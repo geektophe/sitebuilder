@@ -9,6 +9,162 @@ from copy import deepcopy
 
 ###############################################################################
 
+def get_default_config():
+    """
+    Generates the default configuration used to initialize internal
+    configuration structures
+    """
+    return {
+        # General attributes
+        'id' : None,
+        'reference' : '',
+        'description' : '',
+        # Repository related attriutes
+        'repository' : {
+            'enabled' : False,
+            'type' : 'svn',
+            'name' : '',
+            'done' : False
+            },
+        # Sites related attributes (for each available platform)
+        'sites' : {
+            'prod' : {
+                'enabled' : False,
+                'proxied' : False,
+                'maintenance' : False,
+                'done' : False,
+                'template' : 'standard',
+                'domain' : 'bpinet.com',
+                'name' : '__DEFAULT__'
+                },
+            'test' : {
+                'enabled' : False,
+                'proxied' : False,
+                'maintenance' : False,
+                'done' : False,
+                'template' : 'standard',
+                'domain' : 'bpinet.com',
+                'name' : '__DEFAULT__'
+                },
+            'dev' : {
+                'enabled' : False,
+                'maintenance' : False,
+                'done' : False,
+                'template' : 'standard',
+                'domain' : 'bpinet.com',
+                'name' : '__DEFAULT__'
+                },
+            },
+        # Databases related attributes (for each available platform)
+        'databases' : {
+            'prod' : {
+                'enabled' : False,
+                'done' : False,
+                'type' : 'mysql',
+                'name' : '',
+                'username' : '',
+                'password' : ''
+                },
+            'test' : {
+                'enabled' : False,
+                'done' : False,
+                'type' : 'mysql',
+                'name' : '',
+                'username' : '',
+                'password' : ''
+                },
+            'dev' : {
+                'enabled' : False,
+                'done' : False,
+                'type' : 'mysql',
+                'name' : '',
+                'username' : '',
+                'password' : ''
+                },
+            }
+        }
+
+
+###############################################################################
+
+def get_test_configuration_item(identifier):
+    """
+    Generates a sample test configuration dictonnary which attribues are
+    filled based on the id number.
+    """
+    return {
+        # General attributes
+        'id' : identifier,
+        'reference' : 'reference%s' % identifier,
+        'description' : 'description%s' % identifier,
+        # Repository related attriutes
+        'repository' : {
+            'enabled' : True,
+            'type' : 'svn',
+            'name' : 'svn%s' % identifier,
+            'done' : False
+            },
+        # Sites related attributes (for each available platform)
+        'sites' : {
+            'prod' : {
+                'enabled' : True,
+                'proxied' : True,
+                'maintenance' : False,
+                'done' : False,
+                'template' : 'standard',
+                'domain' : 'bpi-group.com',
+                'name' : '__DEFAULT__'
+                },
+            'test' : {
+                'enabled' : True,
+                'proxied' : True,
+                'maintenance' : True,
+                'done' : True,
+                'template' : 'symfony',
+                'domain' : 'bpi-group.com',
+                'name' : 'test%s' % identifier
+                },
+            'dev' : {
+                'enabled' : False,
+                'maintenance' : False,
+                'done' : False,
+                'template' : 'standard',
+                'domain' : 'bpinet.com',
+                'name' : '__DEFAULT__'
+                },
+            },
+        # Databases related attributes (for each available platform)
+        'databases' : {
+            'prod' : {
+                'enabled' : True,
+                'done' : False,
+                'type' : 'pgsql',
+                'name' : 'prod_name%s' % identifier,
+                'username' : 'prod_username%s' % identifier,
+                'password' : 'prod_password%s' % identifier
+                },
+            'test' : {
+                'enabled' : True,
+                'done' : True,
+                'type' : 'pgsql',
+                'name' : 'test_name%s' % identifier,
+                'username' : 'test_username%s' % identifier,
+                'password' : 'test_password%s' % identifier
+                },
+            'dev' : {
+                'enabled' : False,
+                'done' : False,
+                'type' : 'mysql',
+                'name' : '',
+                'username' : '',
+                'password' : ''
+                },
+            }
+        }
+
+
+###############################################################################
+
 class ConfigurationManager(object):
     """
     Configuration class that handles configuration read an write operations
@@ -40,7 +196,7 @@ class ConfigurationManager(object):
 
 
     @staticmethod
-    def getDatabaseTypes():
+    def get_database_types():
         """
         Returns the hash of available databases technologies supported
 
@@ -54,7 +210,7 @@ class ConfigurationManager(object):
 
 
     @staticmethod
-    def getRepoTypes():
+    def get_repository_types():
         """
         Returns the hash of available RCS repositories technologies supported
 
@@ -69,7 +225,7 @@ class ConfigurationManager(object):
 
 
     @staticmethod
-    def getSiteTemplates():
+    def get_site_templates():
         """
         Returns the hash of available site templates supported
 
@@ -84,7 +240,7 @@ class ConfigurationManager(object):
 
 
     @staticmethod
-    def getSiteDomains():
+    def get_site_domains():
         """
         Returns the hash of available site domains supported
 
@@ -99,7 +255,7 @@ class ConfigurationManager(object):
 
 
     @staticmethod
-    def getBlankConfigurationItem():
+    def get_blank_configuration_item():
         """
         Returns a new blank configuration item.
         """
@@ -107,92 +263,13 @@ class ConfigurationManager(object):
 
 
     @staticmethod
-    def getConfigurationItemById(id):
+    def get_configuration_item_by_id(identifier):
         """
         Loads a configuration item based on its id.
         """
         config = ConfigurationItem()
-        config.load(ConfigurationManager._getTestConfigurationItem())
+        config.load(get_test_configuration_item(identifier))
         return config
-
-
-
-    @staticmethod
-    def _getTestConfigurationItem(id):
-        """
-        Generates a sample test configuration dictonnary which attribues are
-        filled based on the id number.
-        """
-        return {
-            # General attributes
-            'id' : id,
-            'reference' : 'reference%s' % id,
-            'description' : 'description%s' % id,
-            # Repository related attriutes
-            'repository' : {
-                'enabled' : True,
-                'type' : 'svn',
-                'name' : 'svn%s' % id,
-                'done' : False
-                },
-            # Sites related attributes (for each available platform)
-            'sites' : {
-                'prod' : {
-                    'enabled' : True,
-                    'proxied' : True,
-                    'maintenance' : False,
-                    'done' : False,
-                    'template' : 'standard',
-                    'domain' : 'bpi-group.com',
-                    'name' : '__DEFAULT__'
-                    },
-                'test' : {
-                    'enabled' : True,
-                    'proxied' : True,
-                    'maintenance' : True,
-                    'done' : True,
-                    'template' : 'symfony',
-                    'domain' : 'bpi-group.com',
-                    'name' : 'test%s' % id
-                    },
-                'dev' : {
-                    'enabled' : False,
-                    'maintenance' : False,
-                    'done' : False,
-                    'template' : 'standard',
-                    'domain' : 'bpinet.com',
-                    'name' : '__DEFAULT__'
-                    },
-                },
-            # Databases related attributes (for each available platform)
-            'databases' : {
-                'prod' : {
-                    'enabled' : True,
-                    'done' : False,
-                    'type' : 'pgsql',
-                    'name' : 'prod_name%s' % id,
-                    'username' : 'prod_username%s' % id,
-                    'password' : 'prod_password%s' % id
-                    },
-                'test' : {
-                    'enabled' : True,
-                    'done' : True,
-                    'type' : 'pgsql',
-                    'name' : 'test_name%s' % id,
-                    'username' : 'test_username%s' % id,
-                    'password' : 'test_password%s' % id
-                    },
-                'dev' : {
-                    'enabled' : False,
-                    'done' : False,
-                    'type' : 'mysql',
-                    'name' : '',
-                    'username' : '',
-                    'password' : ''
-                    },
-                }
-            }
-
 
 
 ###############################################################################
@@ -218,181 +295,104 @@ class ConfigurationItem(object):
         """
         Initializes the internal configuration hash
         """
-        self._config = self._getDefaultConfig()
+        self._config = get_default_config()
 
-
-    def _getDefaultConfig(self):
-        """
-        Generates the default configuration used to initialize internal
-        configuration structure
-        """
-        return {
-            # General attributes
-            'id' : None,
-            'reference' : '',
-            'description' : '',
-            # Repository related attriutes
-            'repository' : {
-                'enabled' : False,
-                'type' : 'svn',
-                'name' : '',
-                'done' : False
-                },
-            # Sites related attributes (for each available platform)
-            'sites' : {
-                'prod' : {
-                    'enabled' : False,
-                    'proxied' : False,
-                    'maintenance' : False,
-                    'done' : False,
-                    'template' : 'standard',
-                    'domain' : 'bpinet.com',
-                    'name' : '__DEFAULT__'
-                    },
-                'test' : {
-                    'enabled' : False,
-                    'proxied' : False,
-                    'maintenance' : False,
-                    'done' : False,
-                    'template' : 'standard',
-                    'domain' : 'bpinet.com',
-                    'name' : '__DEFAULT__'
-                    },
-                'dev' : {
-                    'enabled' : False,
-                    'maintenance' : False,
-                    'done' : False,
-                    'template' : 'standard',
-                    'domain' : 'bpinet.com',
-                    'name' : '__DEFAULT__'
-                    },
-                },
-            # Databases related attributes (for each available platform)
-            'databases' : {
-                'prod' : {
-                    'enabled' : False,
-                    'done' : False,
-                    'type' : 'mysql',
-                    'name' : '',
-                    'username' : '',
-                    'password' : ''
-                    },
-                'test' : {
-                    'enabled' : False,
-                    'done' : False,
-                    'type' : 'mysql',
-                    'name' : '',
-                    'username' : '',
-                    'password' : ''
-                    },
-                'dev' : {
-                    'enabled' : False,
-                    'done' : False,
-                    'type' : 'mysql',
-                    'name' : '',
-                    'username' : '',
-                    'password' : ''
-                    },
-                }
-            }
-
-
-    def getId(self):
+    def get_id(self):
         """
         Returns the configuration identifier (generally the database primary
         key)
 
         >>> config = ConfigurationItem()
-        >>> print config.getId()
+        >>> print config.get_id()
         None
         """
         return self._config['id']
 
 
-    def setId(self, value):
+    def set_id(self, value):
         """
         Sets the configuration identifier (generally the database primary
         key)
 
         >>> config = ConfigurationItem()
-        >>> config.setId(1)
-        >>> config.getId()
+        >>> config.set_id(1)
+        >>> config.get_id()
         1
         """
         self._config['id'] = value
 
 
-    def getReference(self):
+    def get_reference(self):
         """
         Returns the configuration friendly name
 
         >>> config = ConfigurationItem()
-        >>> config.getReference()
+        >>> config.get_reference()
         ''
         """
         return self._config['reference']
 
 
-    def setReference(self, value):
+    def set_reference(self, value):
         """
         Sets the configuration friendly name
 
         >>> config = ConfigurationItem()
-        >>> config.setReference('reference')
-        >>> config.getReference()
+        >>> config.set_reference('reference')
+        >>> config.get_reference()
         'reference'
         """
         self._config['reference'] = value
 
 
-    def getDescription(self):
+    def get_description(self):
         """
         Returns the configuration longer description
 
         >>> config = ConfigurationItem()
-        >>> config.getDescription()
+        >>> config.get_description()
         ''
         """
         return self._config['description']
 
 
-    def setDescription(self, value):
+    def set_description(self, value):
         """
         Sets the configuration longer description
 
         >>> config = ConfigurationItem()
-        >>> config.setDescription('description')
-        >>> config.getDescription()
+        >>> config.set_description('description')
+        >>> config.get_description()
         'description'
         """
         self._config['description'] = value
 
 
-    def getRepositoryAttributeNames(self):
+    def get_repository_attribute_names(self):
         """
         Returns available repository attributes
 
         >>> config = ConfigurationItem()
-        >>> config.getRepositoryAttributeNames()
+        >>> config.get_repository_attribute_names()
         ['type', 'enabled', 'name', 'done']
         """
         return self._config['repository'].keys()
 
 
-    def getRepositoryAttribute(self, attribute):
+    def get_repository_attribute(self, attribute):
         """
         Returns attribute's value for repository configuration
 
         Default value of enabled flag is False
 
         >>> config = ConfigurationItem()
-        >>> config.getRepositoryAttribute('enabled')
+        >>> config.get_repository_attribute('enabled')
         False
 
         Asking an unknown attribute should raise an AttributeError
 
         >>> config = ConfigurationItem()
-        >>> config.getRepositoryAttribute('fake')
+        >>> config.get_repository_attribute('fake')
         Traceback (most recent call last):
             ...
         AttributeError: Unknown repository configuration attribute: fake
@@ -404,19 +404,19 @@ class ConfigurationItem(object):
         return self._config['repository'][attribute]
 
 
-    def setRepositoryAttribute(self, attribute, value):
+    def set_repository_attribute(self, attribute, value):
         """
         Sets attribute's value for repository configuration
 
         >>> config = ConfigurationItem()
-        >>> config.setRepositoryAttribute('enabled', True)
-        >>> config.getRepositoryAttribute('enabled')
+        >>> config.set_repository_attribute('enabled', True)
+        >>> config.get_repository_attribute('enabled')
         True
 
         Setting an unknown attribute should raise an AttributeError
 
         >>> config = ConfigurationItem()
-        >>> config.setRepositoryAttribute('fake', True)
+        >>> config.set_repository_attribute('fake', True)
         Traceback (most recent call last):
             ...
         AttributeError: Unknown repository configuration attribute: fake
@@ -428,7 +428,7 @@ class ConfigurationItem(object):
         self._config['repository'][attribute] = value
 
 
-    def _getPlatformsFor(self, section):
+    def _get_platforms_for(self, section):
         """
         Returns available platforms for a given section (sites, databases, ...)
         """
@@ -438,7 +438,7 @@ class ConfigurationItem(object):
         return self._config[section].keys()
 
 
-    def _getAttributeNamesFor(self, section, platform):
+    def _get_attribute_names_for(self, section, platform):
         """
         Returns available platform attributes for a given section (sites,
         databases, ...)
@@ -453,7 +453,7 @@ class ConfigurationItem(object):
         return self._config[section][platform].keys()
 
 
-    def _getAttributeFor(self, section, platform, attribute):
+    def _get_attribute_for(self, section, platform, attribute):
         """
         Returns attribute's value for a specific platform for a given section
         (sites, databases, ...)
@@ -472,7 +472,7 @@ class ConfigurationItem(object):
         return self._config[section][platform][attribute]
 
 
-    def _setAttributeFor(self, section, platform, attribute, value):
+    def _set_attribute_for(self, section, platform, attribute, value):
         """
         Sets attribute's value for a specific platform for a given section
         (sites, databases, ...)
@@ -491,53 +491,53 @@ class ConfigurationItem(object):
         self._config[section][platform][attribute] = value
 
 
-    def getSitesPlatforms(self):
+    def get_site_platforms(self):
         """
         Returns available sites platforms
 
         >>> config = ConfigurationItem()
-        >>> config.getSitesPlatforms()
+        >>> config.get_site_platforms()
         ['test', 'prod', 'dev']
         """
-        return self._getPlatformsFor('sites')
+        return self._get_platforms_for('sites')
 
 
-    def getSiteAttributeNames(self, platform):
+    def get_site_attribute_names(self, platform):
         """
         Returns available site platform attributes
 
         All platforms do not have the same attributes available
 
         >>> config = ConfigurationItem()
-        >>> config.getSiteAttributeNames('prod')
+        >>> config.get_site_attribute_names('prod')
         ['domain', 'maintenance', 'enabled', 'proxied', 'done', 'template', 'name']
-        >>> config.getSiteAttributeNames('dev')
+        >>> config.get_site_attribute_names('dev')
         ['domain', 'maintenance', 'enabled', 'done', 'template', 'name']
 
         Asking an unknown platform should raise an AttributeError
 
         >>> config = ConfigurationItem()
-        >>> config.getSiteAttributeNames('fake')
+        >>> config.get_site_attribute_names('fake')
         Traceback (most recent call last):
             ...
         AttributeError: Unknown sites platform: fake
         """
-        return self._getAttributeNamesFor('sites', platform)
+        return self._get_attribute_names_for('sites', platform)
 
 
-    def getSiteAttribute(self, platform, attribute):
+    def get_site_attribute(self, platform, attribute):
         """
         Returns attribute's value for a specific platform from sites
         configuration.
 
         >>> config = ConfigurationItem()
-        >>> config.getSiteAttribute('prod', 'enabled')
+        >>> config.get_site_attribute('prod', 'enabled')
         False
 
         Asking an unknown platform should raise an AttributeError
 
         >>> config = ConfigurationItem()
-        >>> config.getSiteAttribute('fake', 'enabled')
+        >>> config.get_site_attribute('fake', 'enabled')
         Traceback (most recent call last):
             ...
         AttributeError: Unknown sites platform: fake
@@ -545,27 +545,27 @@ class ConfigurationItem(object):
         Asking an unknown attribute should raise an AttributeError
 
         >>> config = ConfigurationItem()
-        >>> config.getSiteAttribute('prod', 'fake')
+        >>> config.get_site_attribute('prod', 'fake')
         Traceback (most recent call last):
             ...
         AttributeError: Unknown sites attribute: fake
         """
-        return self._getAttributeFor('sites', platform, attribute)
+        return self._get_attribute_for('sites', platform, attribute)
 
-    def setSiteAttribute(self, platform, attribute, value):
+    def set_site_attribute(self, platform, attribute, value):
         """
         Sets attribute's value for a specific platform from sites
         configuration.
 
         >>> config = ConfigurationItem()
-        >>> config.setSiteAttribute('prod', 'enabled', True)
-        >>> config.getSiteAttribute('prod', 'enabled')
+        >>> config.set_site_attribute('prod', 'enabled', True)
+        >>> config.get_site_attribute('prod', 'enabled')
         True
 
         Using an unknown platform should raise an AttributeError
 
         >>> config = ConfigurationItem()
-        >>> config.setSiteAttribute('fake', 'enabled', True)
+        >>> config.set_site_attribute('fake', 'enabled', True)
         Traceback (most recent call last):
             ...
         AttributeError: Unknown sites platform: fake
@@ -573,57 +573,57 @@ class ConfigurationItem(object):
         Setting an unknown attribute should raise an AttributeError
 
         >>> config = ConfigurationItem()
-        >>> config.setSiteAttribute('prod', 'fake', True)
+        >>> config.set_site_attribute('prod', 'fake', True)
         Traceback (most recent call last):
             ...
         AttributeError: Unknown sites attribute: fake
         """
-        self._setAttributeFor('sites', platform, attribute, value)
+        self._set_attribute_for('sites', platform, attribute, value)
 
 
-    def getDatabasesPlatforms(self):
+    def get_database_platforms(self):
         """
         Returns available databases platforms
 
         >>> config = ConfigurationItem()
-        >>> config.getDatabasesPlatforms()
+        >>> config.get_database_platforms()
         ['test', 'prod', 'dev']
         """
-        return self._getPlatformsFor('databases')
+        return self._get_platforms_for('databases')
 
 
-    def getDatabaseAttributeNames(self, platform):
+    def get_database_attribute_names(self, platform):
         """
         Returns available database platform attributes
 
         >>> config = ConfigurationItem()
-        >>> config.getDatabaseAttributeNames('prod')
+        >>> config.get_database_attribute_names('prod')
         ['username', 'name', 'enabled', 'done', 'password', 'type']
 
         Asking an unknown platform should raise an AttributeError
 
         >>> config = ConfigurationItem()
-        >>> config.getDatabaseAttributeNames('fake')
+        >>> config.get_database_attribute_names('fake')
         Traceback (most recent call last):
             ...
         AttributeError: Unknown databases platform: fake
         """
-        return self._getAttributeNamesFor('databases', platform)
+        return self._get_attribute_names_for('databases', platform)
 
 
-    def getDatabaseAttribute(self, platform, attribute):
+    def get_database_attribute(self, platform, attribute):
         """
         Returns attribute's value for a specific platform from databases
         configuration
 
         >>> config = ConfigurationItem()
-        >>> config.getDatabaseAttribute('prod', 'enabled')
+        >>> config.get_database_attribute('prod', 'enabled')
         False
 
         Asking an unknown platform should raise an AttributeError
 
         >>> config = ConfigurationItem()
-        >>> config.getDatabaseAttribute('fake', 'enabled')
+        >>> config.get_database_attribute('fake', 'enabled')
         Traceback (most recent call last):
             ...
         AttributeError: Unknown databases platform: fake
@@ -631,28 +631,28 @@ class ConfigurationItem(object):
         Asking an unknown attribute should raise an AttributeError
 
         >>> config = ConfigurationItem()
-        >>> config.getDatabaseAttribute('prod', 'fake')
+        >>> config.get_database_attribute('prod', 'fake')
         Traceback (most recent call last):
             ...
         AttributeError: Unknown databases attribute: fake
         """
-        return self._getAttributeFor('databases', platform, attribute)
+        return self._get_attribute_for('databases', platform, attribute)
 
 
-    def setDatabaseAttribute(self, platform, attribute, value):
+    def set_database_attribute(self, platform, attribute, value):
         """
         Sets attribute's value for a specific platform from databases
         configuration
 
         >>> config = ConfigurationItem()
-        >>> config.setDatabaseAttribute('prod', 'enabled', True)
-        >>> config.getDatabaseAttribute('prod', 'enabled')
+        >>> config.set_database_attribute('prod', 'enabled', True)
+        >>> config.get_database_attribute('prod', 'enabled')
         True
 
         Using an unknown platform should raise an AttributeError
 
         >>> config = ConfigurationItem()
-        >>> config.setDatabaseAttribute('fake', 'enabled', True)
+        >>> config.set_database_attribute('fake', 'enabled', True)
         Traceback (most recent call last):
             ...
         AttributeError: Unknown databases platform: fake
@@ -660,12 +660,12 @@ class ConfigurationItem(object):
         Setting an unknown attribute should raise an AttributeError
 
         >>> config = ConfigurationItem()
-        >>> config.setDatabaseAttribute('prod', 'fake', True)
+        >>> config.set_database_attribute('prod', 'fake', True)
         Traceback (most recent call last):
             ...
         AttributeError: Unknown databases attribute: fake
         """
-        self._setAttributeFor('databases', platform, attribute, value)
+        self._set_attribute_for('databases', platform, attribute, value)
 
 
     def load(self, config):
@@ -685,23 +685,23 @@ class ConfigurationItem(object):
         >>> to_load['databases'] =  {'prod' : {'enabled': True, 'name' : 'db1'}}
         >>> config = ConfigurationItem()
         >>> config.load(to_load)
-        >>> config.getId()
+        >>> config.get_id()
         1
-        >>> config.getReference()
+        >>> config.get_reference()
         'ref1'
-        >>> config.getDescription()
+        >>> config.get_description()
         'desc1'
-        >>> config.getRepositoryAttribute('enabled')
+        >>> config.get_repository_attribute('enabled')
         True
-        >>> config.getRepositoryAttribute('name')
+        >>> config.get_repository_attribute('name')
         'svn1'
-        >>> config.getSiteAttribute('prod', 'enabled')
+        >>> config.get_site_attribute('prod', 'enabled')
         True
-        >>> config.getSiteAttribute('prod', 'name')
+        >>> config.get_site_attribute('prod', 'name')
         'prod1'
-        >>> config.getDatabaseAttribute('prod', 'enabled')
+        >>> config.get_database_attribute('prod', 'enabled')
         True
-        >>> config.getDatabaseAttribute('prod', 'name')
+        >>> config.get_database_attribute('prod', 'name')
         'db1'
 
         Trying to load a configuration dictionnary with an unknown attribute should
@@ -731,15 +731,15 @@ class ConfigurationItem(object):
         Traceback (most recent call last):
             ...
         AttributeError: Unknown attribute: fake
-        >>> print config.getId()
+        >>> print config.get_id()
         None
         """
-        localConfig = deepcopy(self._config)
-        self._loadRecursive(localConfig, config)
-        self._config = localConfig
+        local_config = deepcopy(self._config)
+        self._load_recursive(local_config, config)
+        self._config = local_config
 
 
-    def _loadRecursive(self, base, config):
+    def _load_recursive(self, base, config):
         """
         Recursively loads a configuration dictionnary into the internal,
         configuration. An unknown attribute name should raise an
@@ -751,7 +751,7 @@ class ConfigurationItem(object):
                 raise AttributeError("Unknown attribute: %s" % name)
 
             if isinstance(value, dict):
-                self._loadRecursive(base[name], config[name])
+                self._load_recursive(base[name], config[name])
             else:
                 base[name] = value
 

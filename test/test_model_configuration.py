@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 """
-Test classes for model.configuration moodule
+Test classes for abstraction.configuration moodule
 """
 
 import unittest
 import doctest
-from sitebuilder.model import configuration
+from sitebuilder.abstraction import configuration
 
 class Test(unittest.TestCase):
     """Unist tests for configuration."""

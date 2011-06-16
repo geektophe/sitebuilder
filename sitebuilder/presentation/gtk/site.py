@@ -4,7 +4,8 @@ Site editing interface. Supports Create, View and Update modes.
 """
 
 from sitebuilder.utils.parameters import GLADE_BASEDIR
-from sitebuilder.presentation.base import GtkBasePresentation
+from sitebuilder.presentation.gtk.base import GtkBasePresentation
+import gtk
 
 class SitePresentationMain(GtkBasePresentation):
     """
@@ -32,3 +33,9 @@ class SitePresentationMain(GtkBasePresentation):
         configuration loaded from the database is used to fill the widgets.
         """
         GtkBasePresentation.__init__(self, control)
+        self['main'].connect("destroy", gtk.main_quit)
+        self['main'].show()
+
+if __name__ == "__main__":
+    edit = SitePresentationMain(None, None)
+    gtk.main()

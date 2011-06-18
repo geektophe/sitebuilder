@@ -4,9 +4,10 @@ Site editing interface. Supports Create, View and Update modes.
 """
 
 from sitebuilder.utils.parameters import GLADE_BASEDIR
-from sitebuilder.view.base import GtkBasePresentation
+from sitebuilder.presentation.gtk.base import GtkBasePresentation
+import gtk
 
-class SitePresentationMain(GtkBasePresenttion):
+class SitePresentationMain(GtkBasePresentation):
     """
     Main site add/edit/view interface.
 
@@ -31,4 +32,15 @@ class SitePresentationMain(GtkBasePresenttion):
         - In view mode, the widgets are set non interactive, and
         configuration loaded from the database is used to fill the widgets.
         """
-        GtkBaseView.__init__(self, control)
+        GtkBasePresentation.__init__(self, 'site', control)
+
+        sites_container = self['hbox_sites']
+        for platform in ('prod', 'test', 'dev'):
+            pass
+
+        self['main'].connect("destroy", gtk.main_quit)
+        self['main'].show()
+
+if __name__ == "__main__":
+    edit = SitePresentationMain(None, None)
+    gtk.main()

@@ -9,7 +9,7 @@ import os
 
 pygtk.require("2.0")
 
-class GtkBasePresentation(object):
+class GtkBaseView(object):
     """
     Main site add/edit/view interface.
 
@@ -38,17 +38,10 @@ class GtkBasePresentation(object):
         if self._builder.get_object(name) is not None:
             return self._builder.get_object(name)
 
-        for slave in self._slaves:
-            if self[name] is not None:
-                return slave[name]
+        if self._slaves.has_key(name):
+            return self._slaves[name]
 
         return None
-
-    def items(self):
-        """
-        Returns th elist of contained widgets
-        """
-        return self._builder.get_objects()
 
     def get_toplevel(self):
         """
@@ -62,48 +55,34 @@ class GtkBasePresentation(object):
         """
         return self._toplevel_name
 
-    def attach_slave(self, name, slave):
+    def attach_slave(self, name, container_name, slave):
         """
-        Attach a slave window content as a composite component.
-
-        Attaches a slaveview to the current view, substituting the
-        widget specified by name.  the widget specified *must* be a
-        eventbox; its child widget will be removed and substituted for
-        the specified slaveview's toplevel widget::
-
-         .-----------------------. the widget that is indicated in the diagram
-         |window/view (self.view)| as placeholder will be substituted for the
-         |  .----------------.   | slaveview's toplevel.
-         |  | eventbox (name)|   |  .-----------------.
-         |  |.--------------.|      |slaveview (slave)|
-         |  || placeholder  <----.  |.---------------.|
-         |  |'--------------'|    \___ toplevel      ||
-         |  '----------------'   |  ''---------------'|
-         '-----------------------'  '-----------------'
-
-        the original way of attachment (naming the *child* widget
-        instead of the eventbox) is still supported for compatibility
-        reasons but will print a warning.
+        Attach a slave view to the master view.
         """
-        if not isinstance(slave, GtkBasePresentation):
-            raise TypeError("slave must be a GtkBasePresentation, not a %s" %
+        if not isinstance(slave, GtkBaseView):
+            raise TypeError("slave must be a GtkBaseView, not a %s" %
                             type(slave))
 
+        container = self._builder.get_object(container_name)
+
+        if container is None:
+            raise AttributeError("No container named %s" % name)
+
+        slave_toplevel = slave.get_toplevel()
+        widget = slave_toplevel.get_child()
+        slave_toplevel.remove(widget)
+        container.pack_end(widget)
+
         self._slaves[name] = slave
-        slave_toplevel = slave.get_toplevel()
 
-        slave_toplevel = slave.get_toplevel()
+    def get_objects(self):
+        """
+        Returns all widgets
+        """
+        return self._builder.get_objects()
 
-        if isinstance(slave_toplevel, gtk.Window): # view with toplevel window
-            new_widget = slave_toplevel.get_child()
-            slave_toplevel.remove(new_widget) # remove from window to allow reparent
-        else: # slaveview
-            new_widget = slave_toplevel
-
-        placeholder = self.get_widget(name)
-
-        if not placeholder:
-            raise AttributeError(
-                  "slave container widget `%s' not found" % name)
-        parent = placeholder.get_parent()
-
+    def show(self):
+        """
+        Shows window
+        """
+        self.get_toplevel().show()

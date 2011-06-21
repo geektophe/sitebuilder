@@ -5,7 +5,7 @@ Test classes for abstraction.configuration moodule
 
 import unittest
 import doctest
-from sitebuilder.abstraction import configuration
+from sitebuilder.model import configuration
 
 class Test(unittest.TestCase):
     """Unist tests for configuration."""

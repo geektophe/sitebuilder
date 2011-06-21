@@ -34,7 +34,7 @@ class Attribute(object):
     is also available to dump the current configuartion as a dictionnary.
     """
 
-    def __init__(self, name, value=None, vregex=None):
+    def __init__(self, name, value=None, vregex=None, errmsg=None):
         """
         Object initialization. The only mandatory argument is the attribute
         name, that cannot be changed later.
@@ -42,6 +42,7 @@ class Attribute(object):
         self._name = name
         self._value = value
         self._vregex = vregex
+        self._errmsg = errmsg
         self._modified = False
 
         if vregex is not None:
@@ -128,7 +129,15 @@ class Attribute(object):
         >>> attr.set_value('somevalue')
         Traceback (most recent call last):
             ...
-        AttributeError: Invalid input data
+        AttributeError: Value did not match '^[\\d]+$'
+
+        An custom error message can be set at construction
+
+        >>> attr = Attribute(name='somename', vregex=r'^[\d]+$', errmsg='Error')
+        >>> attr.set_value('somevalue')
+        Traceback (most recent call last):
+            ...
+        AttributeError: Error
 
         Finally, if the user interface has previously checked data with the
         check method, in order to avoid double check, it is possible to disable
@@ -150,7 +159,10 @@ class Attribute(object):
         """
         if check is True and self.check(value) is False:
             # TODO: be more descriptive
-            raise AttributeError('Invalid input data')
+            if self._errmsg is not None:
+                raise AttributeError(self._errmsg)
+            else:
+                raise AttributeError(r"Value did not match '%s'" % self._vregex)
         self._value = value
         self._modified = True
 
@@ -186,7 +198,7 @@ class AttributeSet(object):
 
     """
 
-    def __init__(self, name, attributes=None):
+    def __init__(self, name=None, attributes=None):
         self._name = name
         self._attributes = {}
 
@@ -203,7 +215,7 @@ class AttributeSet(object):
         """
         return self._name
 
-    def load(self, attributes):
+    def load(self, attrdict):
         """
         = Attribute set loading from dictionnary
 
@@ -229,13 +241,13 @@ class AttributeSet(object):
         (should be None if you don't want to apply value cehcking), and 'value'
         is the initial attrbiute value (should be None if you don't knwo it).
 
-        >>> attributes = {}
-        >>> attributes['somename'] = ('somevalue', None, None)
-        >>> attributes['sub'] = {}
-        >>> attributes['sub']['someothername'] = ('someothervalue', '^[\w]+$',
+        >>> attrdict = {}
+        >>> attrdict['somename'] = ('somevalue', None, None)
+        >>> attrdict['sub'] = {}
+        >>> attrdict['sub']['someothername'] = ('someothervalue', '^[\w]+$',
         ...                                       'Value should be a string')
         >>> aset = AttributeSet('aset')
-        >>> aset.load(attributes)
+        >>> aset.load(attrdict)
         >>> attr = aset.get_attribute('somename')
         >>> isinstance(attr, Attribute)
         True
@@ -252,14 +264,20 @@ class AttributeSet(object):
         >>> subattr.get_value()
         'someothervalue'
 
-        The load operation should also be atomic. If an attribute loading
-        fails, the whole loading should be rollbacked.
+        The load operation is atomic. If an attribute loading fails, the whole
+        loading should be rollbacked.
         """
         new_attributes = {}
 
-        for key, value in attributes.iteritems():
+        for key, value in attrdict.iteritems():
             if isinstance(value, tuple):
-                new_attributes[key] = Attribute(key, value[0], value[1])
+                options = []
+
+                for index in range(3):
+                    if len(value) > index:
+                        options.append(value[index])
+
+                new_attributes[key] = Attribute(key, *options)
             elif isinstance(value, dict):
                 new_attributes[key] = AttributeSet(key)
                 new_attributes[key].load(value)
@@ -268,12 +286,20 @@ class AttributeSet(object):
 
             self._attributes = new_attributes
 
+    def dump(self):
+        """
+        Returns a dump of the internal data
+        """
+        # TODO: implement dump method
+        raise NotImplementedError(
+            'dump method is not implemented for the moment.')
+
     def get_attribute(self, name):
         """
         Returns attribute named 'name'
 
-        >>> attributes = {'somename': ('somevalue', None, None)}
-        >>> aset = AttributeSet('aset', attributes)
+        >>> attrdict = {'somename': ('somevalue', None, None)}
+        >>> aset = AttributeSet('aset', attrdict)
         >>> attr = aset.get_attribute('somename')
         >>> isinstance(attr, Attribute)
         True
@@ -297,8 +323,8 @@ class AttributeSet(object):
         """
         Deletes attribute named 'name'
 
-        >>> attributes = {'somename': ('somevalue', None, None)}
-        >>> aset = AttributeSet('aset', attributes)
+        >>> attrdict = {'somename': ('somevalue', None, None)}
+        >>> aset = AttributeSet('aset', attrdict)
         >>> attr = aset.del_attribute('somename')
         >>> attr = aset.get_attribute('somename')
         Traceback (most recent call last):
@@ -322,10 +348,10 @@ class AttributeSet(object):
         """
         Returns the list of contained attributes
 
-        >>> attributes = {}
-        >>> attributes['somename'] = ('somevalue', None, None)
-        >>> attributes['someothername'] = ('someothervalue', None, None)
-        >>> aset = AttributeSet('aset', attributes)
+        >>> attrdict = {}
+        >>> attrdict['somename'] = ('somevalue', None, None)
+        >>> attrdict['someothername'] = ('someothervalue', None, None)
+        >>> aset = AttributeSet('aset', attrdict)
         >>> aset.get_attribute_names()
         ['somename', 'someothername']
         """

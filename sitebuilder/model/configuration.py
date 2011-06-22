@@ -90,7 +90,7 @@ def get_checked_default_config():
     """
     return {
         # General attributes
-        'id' : (None, '^(\d*)$', 'Id should be a number'),
+        'id' : (None, int, 'Id should be a number'),
         'reference' : ('', '^[\d\w\s_-]*$', 'Reference should be an alphanumeric string'),
         'description' : ('', '^[\d\w\s_-]*$', 'Reference should be an alphanumeric string'),
         # Repository related attriutes

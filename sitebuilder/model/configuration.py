@@ -7,8 +7,6 @@ Configuration related classes
 from sitebuilder.utils.attribute import Attribute, AttributeSet
 
 
-###############################################################################
-
 def get_default_config():
     """
     Generates the default configuration used to initialize internal
@@ -85,7 +83,81 @@ def get_default_config():
         }
 
 
-###############################################################################
+def get_checked_default_config():
+    """
+    Generates the default configuration used to initialize internal
+    configuration structures
+    """
+    return {
+        # General attributes
+        'id' : (None, '^(\d*)$', 'Id should be a number'),
+        'reference' : ('', '^[\d\w\s_-]*$', 'Reference should be an alphanumeric string'),
+        'description' : ('', '^[\d\w\s_-]*$', 'Reference should be an alphanumeric string'),
+        # Repository related attriutes
+        'repository' : {
+            'enabled' : (False, bool),
+            'type' : ('svn', ConfigurationManager.get_repository_types().keys(), 'Unsupported RCS type'),
+            'name' : ('', '^[\d\w_-]*$', 'Name should be an alphanumeric string or _, without spaces'),
+            'done' : (False, bool),
+            },
+        # Sites related attributes (for each available platform)
+        'sites' : {
+            'prod' : {
+                'enabled' : (False, bool),
+                'proxied' : (False, bool),
+                'maintenance' : (False, bool),
+                'done' : (False, bool),
+                'template' : ('standard', ConfigurationManager.get_site_templates().keys(), 'Unsupported site template'),
+                'domain' : ('bpinet.com', ConfigurationManager.get_site_domains().keys(), 'Unknown domain'),
+                'name' : ('__DEFAULT__', '^[a-z0-9_-]+$', 'Name should be a simple alphanumeric string without spaces')
+                },
+            'test' : {
+                'enabled' : (False, bool),
+                'proxied' : (False, bool),
+                'maintenance' : (False, bool),
+                'done' : (False, bool),
+                'template' : ('standard', ConfigurationManager.get_site_templates().keys(), 'Unsupported site template'),
+                'domain' : ('bpinet.com', ConfigurationManager.get_site_domains().keys(), 'Unknown domain'),
+                'name' : ('__DEFAULT__', '^[a-z0-9_-]+$', 'Name should be a simple alphanumeric string without spaces')
+                },
+            'dev' : {
+                'enabled' : (False, bool),
+                'maintenance' : (False, bool),
+                'done' : (False, bool),
+                'template' : ('standard', ConfigurationManager.get_site_templates().keys(), 'Unsupported site template'),
+                'domain' : ('bpinet.com', ConfigurationManager.get_site_domains().keys(), 'Unknown domain'),
+                'name' : ('__DEFAULT__', '^[a-z0-9_-]+$', 'Name should be a simple alphanumeric string without spaces')
+                },
+            },
+        # Databases related attributes (for each available platform)
+        'databases' : {
+            'prod' : {
+                'enabled' : (False, bool),
+                'done' : (False, bool),
+                'type' : ('mysql', ConfigurationManager.get_database_types().keys(), 'Unsupported database type'),
+                'name' : ('', '^[a-z0-9_]+$', 'Name should be a simple alphanumeric string without spaces'),
+                'username' : ('', '^[a-z0-9_]+$', 'Username should be a simple alphanumeric string without spaces'),
+                'password' : ('', None)
+                },
+            'test' : {
+                'enabled' : (False, bool),
+                'done' : (False, bool),
+                'type' : ('mysql', ConfigurationManager.get_database_types().keys(), 'Unsupported database type'),
+                'name' : ('', '^[a-z0-9_]+$', 'Name should be a simple alphanumeric string without spaces'),
+                'username' : ('', '^[a-z0-9_]+$', 'Username should be a simple alphanumeric string without spaces'),
+                'password' : ('', None)
+                },
+            'dev' : {
+                'enabled' : (False, bool),
+                'done' : (False, bool),
+                'type' : ('mysql', ConfigurationManager.get_database_types().keys(), 'Unsupported database type'),
+                'name' : ('', '^[a-z0-9_]+$', 'Name should be a simple alphanumeric string without spaces'),
+                'username' : ('', '^[a-z0-9_]+$', 'Username should be a simple alphanumeric string without spaces'),
+                'password' : ('', None)
+                },
+            }
+        }
+
 
 def get_test_configuration_item(identifier):
     """
@@ -162,8 +234,6 @@ def get_test_configuration_item(identifier):
             }
         }
 
-
-###############################################################################
 
 class ConfigurationManager(object):
     """
@@ -271,8 +341,6 @@ class ConfigurationManager(object):
         config.load(get_test_configuration_item(identifier))
         return config
 
-
-###############################################################################
 
 class BaseConfigurationItem(object):
     """
@@ -453,6 +521,7 @@ class MainConfigurationItem(BaseConfigurationItem):
         else:
             return None
 
+
 class RepositoryConfigurationItem(BaseConfigurationItem):
     """
     Repository configuration related configuration class.
@@ -528,6 +597,7 @@ class SiteConfigurationItem(BaseConfigurationItem):
         """
         return self._config['enabled']
 
+
 class DatabaseConfigurationItem(BaseConfigurationItem):
     """
     Database configuration related configuration class.
@@ -572,6 +642,7 @@ class DatabaseConfigurationItem(BaseConfigurationItem):
 
 
 ###############################################################################
+
 
 if __name__ == "__main__":
     import doctest

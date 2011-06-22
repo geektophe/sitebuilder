@@ -34,21 +34,18 @@ class Attribute(object):
     is also available to dump the current configuartion as a dictionnary.
     """
 
-    def __init__(self, name, value=None, vregex=None, errmsg=None):
+    def __init__(self, name, value=None, validator=None, errmsg=None):
         """
         Object initialization. The only mandatory argument is the attribute
         name, that cannot be changed later.
         """
         self._name = name
         self._value = value
-        self._vregex = vregex
+        self._validator = validator
         self._errmsg = errmsg
         self._modified = False
+        self._re = None
 
-        if vregex is not None:
-            self._validator = re.compile(vregex)
-        else:
-            self._validator = None
 
     def get_name(self):
         """
@@ -60,41 +57,75 @@ class Attribute(object):
         """
         return self._name
 
-    def get_vregex(self):
-        """
-        Returns attribute validation regex
-
-        >>> attr = Attribute(name='somename', vregex=r'^[\d]+$')
-        >>> attr.get_vregex()
-        '^[\\\\d]+$'
-        """
-        return self._vregex
-
-    def check(self, value):
+    def validate(self, value):
         """
         Checks whether an input value is valid
 
-        If a regex is passed at instanciation, it should be used to check
-        against data valididty
+        If a regex is passed at instanciation, it should be used to validate
+        against data validity
 
-        >>> attr = Attribute(name='somename', vregex=r'^[\d]+$')
-        >>> attr.check(5)
+        >>> attr = Attribute(name='somename', validator=r'^[\d]+$')
+        >>> attr.validate(5)
         True
-        >>> attr.check('somestring')
+        >>> attr.validate('somestring')
         False
 
         If none is defined, a value should always ve valid
 
         >>> attr = Attribute(name='somename')
-        >>> attr.check(5)
+        >>> attr.validate(5)
         True
-        >>> attr.check('somestring')
+        >>> attr.validate('somestring')
         True
+
+        Validator may also be a type. In such a case, the value validates if
+        it is a direct or indirect instance of this type
+
+        >>> attr = Attribute(name='somename', validator=bool)
+        >>> attr.validate(True)
+        True
+        >>> attr.validate('string')
+        False
+
+        It can also be a list. In such a case, value is valid if is matches one
+        of the values
+
+        >>> attr = Attribute(name='somename', validator=(1, 2, 3))
+        >>> attr.validate(1)
+        True
+        >>> attr.validate(4)
+        False
+        
+        It can also be a fucntion, such as a lambda function
+
+        >>> attr = Attribute(name='somename', validator=lambda x: x == 1)
+        >>> attr.validate(1)
+        True
+        >>> attr.validate(2)
+        False
         """
-        if self._validator is None:
+        validator = self._validator
+
+        if validator is None:
             return True
+
+        elif isinstance(validator, str) and len(validator) and \
+                    validator[0] == '^' and validator[-1] == '$':
+            if self._re is None:
+                self._re = re.compile(validator)
+            return (self._re.match(str(value)) is not None)
+
+        elif isinstance(validator, (tuple, list)):
+            return value in self._validator
+
+        elif isinstance(validator, type):
+            return isinstance(value, validator)
+
+        elif callable(validator):
+            return validator(value)
+
         else:
-            return (self._validator.match(str(value)) is not None)
+            raise AttributeError("Unsupported validator type")
 
     def get_value(self):
         """
@@ -118,14 +149,14 @@ class Attribute(object):
         If a validatoin regex is passed at instanciation, it should be used to
         check against data validity.
 
-        >>> attr = Attribute(name='somename', vregex=r'^[\d]+$')
+        >>> attr = Attribute(name='somename', validator=r'^[\d]+$')
         >>> attr.set_value(5)
         >>> attr.get_value()
         5
 
         If an invalid data is passed, an AttributeError should be raised.
 
-        >>> attr = Attribute(name='somename', vregex=r'^[\d]+$')
+        >>> attr = Attribute(name='somename', validator=r'^[\d]+$')
         >>> attr.set_value('somevalue')
         Traceback (most recent call last):
             ...
@@ -133,7 +164,7 @@ class Attribute(object):
 
         An custom error message can be set at construction
 
-        >>> attr = Attribute(name='somename', vregex=r'^[\d]+$', errmsg='Error')
+        >>> attr = Attribute(name='somename', validator=r'^[\d]+$', errmsg='Error')
         >>> attr.set_value('somevalue')
         Traceback (most recent call last):
             ...
@@ -143,7 +174,7 @@ class Attribute(object):
         check method, in order to avoid double check, it is possible to disable
         data check. This way, any data should be set.
 
-        >>> attr = Attribute(name='somename', vregex=r'^[\d]+$')
+        >>> attr = Attribute(name='somename', validator=r'^[\d]+$')
         >>> attr.set_value(5, False)
         >>> attr.get_value()
         5
@@ -152,17 +183,17 @@ class Attribute(object):
         'somevalue'
 
         A value set should enable the modified flag
-        >>> attr = Attribute(name='somename', vregex=r'^[\d]+$')
+        >>> attr = Attribute(name='somename', validator=r'^[\d]+$')
         >>> attr.set_value(5, False)
         >>> attr.is_modified()
         True
         """
-        if check is True and self.check(value) is False:
+        if check is True and self.validate(value) is False:
             # TODO: be more descriptive
             if self._errmsg is not None:
                 raise AttributeError(self._errmsg)
             else:
-                raise AttributeError(r"Value did not match '%s'" % self._vregex)
+                raise AttributeError(r"Value did not match '%s'" % self._validator)
         self._value = value
         self._modified = True
 
@@ -182,8 +213,8 @@ class Attribute(object):
         """
         Returns object string representation.
         """
-        return '<Attribute object {name: %s, vregex: %s, value: %s}>' % \
-            (self._name, self._vregex, self._value)
+        return '<Attribute object {name: %s, value: %s}>' % \
+            (self._name, self._value)
 
 
 class AttributeSet(object):
@@ -234,9 +265,9 @@ class AttributeSet(object):
         When a tupple is detected in a dictionary value, it is loaded as an
         Attribute object. The tupple must stick the following formalism :
 
-        (value, vregex, verrdescr)
+        (value, validator, verrdescr)
 
-        Where 'name' is the attribute name, 'vregex' is the attrbibute regex
+        Where 'name' is the attribute name, 'validator' is the attrbibute regex
         used to check attribute value vaidity while using set_attrbiute methid
         (should be None if you don't want to apply value cehcking), and 'value'
         is the initial attrbiute value (should be None if you don't knwo it).

@@ -14,82 +14,6 @@ def get_default_config():
     """
     return {
         # General attributes
-        'id' : None,
-        'reference' : '',
-        'description' : '',
-        # Repository related attriutes
-        'repository' : {
-            'enabled' : False,
-            'type' : 'svn',
-            'name' : '',
-            'done' : False
-            },
-        # Sites related attributes (for each available platform)
-        'sites' : {
-            'prod' : {
-                'enabled' : False,
-                'proxied' : False,
-                'maintenance' : False,
-                'done' : False,
-                'template' : 'standard',
-                'domain' : 'bpinet.com',
-                'name' : '__DEFAULT__'
-                },
-            'test' : {
-                'enabled' : False,
-                'proxied' : False,
-                'maintenance' : False,
-                'done' : False,
-                'template' : 'standard',
-                'domain' : 'bpinet.com',
-                'name' : '__DEFAULT__'
-                },
-            'dev' : {
-                'enabled' : False,
-                'maintenance' : False,
-                'done' : False,
-                'template' : 'standard',
-                'domain' : 'bpinet.com',
-                'name' : '__DEFAULT__'
-                },
-            },
-        # Databases related attributes (for each available platform)
-        'databases' : {
-            'prod' : {
-                'enabled' : False,
-                'done' : False,
-                'type' : 'mysql',
-                'name' : '',
-                'username' : '',
-                'password' : ''
-                },
-            'test' : {
-                'enabled' : False,
-                'done' : False,
-                'type' : 'mysql',
-                'name' : '',
-                'username' : '',
-                'password' : ''
-                },
-            'dev' : {
-                'enabled' : False,
-                'done' : False,
-                'type' : 'mysql',
-                'name' : '',
-                'username' : '',
-                'password' : ''
-                },
-            }
-        }
-
-
-def get_checked_default_config():
-    """
-    Generates the default configuration used to initialize internal
-    configuration structures
-    """
-    return {
-        # General attributes
         'id' : (None, int, 'Id should be a number'),
         'reference' : ('', '^[\d\w\s_-]*$', 'Reference should be an alphanumeric string'),
         'description' : ('', '^[\d\w\s_-]*$', 'Reference should be an alphanumeric string'),
@@ -109,7 +33,7 @@ def get_checked_default_config():
                 'done' : (False, bool),
                 'template' : ('standard', ConfigurationManager.get_site_templates().keys(), 'Unsupported site template'),
                 'domain' : ('bpinet.com', ConfigurationManager.get_site_domains().keys(), 'Unknown domain'),
-                'name' : ('__DEFAULT__', '^[a-z0-9_-]+$', 'Name should be a simple alphanumeric string without spaces')
+                'name' : ('__DEFAULT__', '^([a-z0-9_-]+|__DEFAULT__)$', 'Name should be a simple alphanumeric string without spaces')
                 },
             'test' : {
                 'enabled' : (False, bool),
@@ -159,80 +83,67 @@ def get_checked_default_config():
         }
 
 
-def get_test_configuration_item(identifier):
+def get_test_config(config_id):
     """
-    Generates a sample test configuration dictonnary which attribues are
-    filled based on the id number.
+    Generates the default configuration used to initialize internal
+    configuration structures
     """
-    return {
-        # General attributes
-        'id' : identifier,
-        'reference' : 'reference%s' % identifier,
-        'description' : 'description%s' % identifier,
-        # Repository related attriutes
-        'repository' : {
-            'enabled' : True,
-            'type' : 'svn',
-            'name' : 'svn%s' % identifier,
-            'done' : False
-            },
-        # Sites related attributes (for each available platform)
-        'sites' : {
-            'prod' : {
-                'enabled' : True,
-                'proxied' : True,
-                'maintenance' : False,
-                'done' : False,
-                'template' : 'standard',
-                'domain' : 'bpi-group.com',
-                'name' : '__DEFAULT__'
-                },
-            'test' : {
-                'enabled' : True,
-                'proxied' : True,
-                'maintenance' : True,
-                'done' : True,
-                'template' : 'symfony',
-                'domain' : 'bpi-group.com',
-                'name' : 'test%s' % identifier
-                },
-            'dev' : {
-                'enabled' : False,
-                'maintenance' : False,
-                'done' : False,
-                'template' : 'standard',
-                'domain' : 'bpinet.com',
-                'name' : '__DEFAULT__'
-                },
-            },
-        # Databases related attributes (for each available platform)
-        'databases' : {
-            'prod' : {
-                'enabled' : True,
-                'done' : False,
-                'type' : 'pgsql',
-                'name' : 'prod_name%s' % identifier,
-                'username' : 'prod_username%s' % identifier,
-                'password' : 'prod_password%s' % identifier
-                },
-            'test' : {
-                'enabled' : True,
-                'done' : True,
-                'type' : 'pgsql',
-                'name' : 'test_name%s' % identifier,
-                'username' : 'test_username%s' % identifier,
-                'password' : 'test_password%s' % identifier
-                },
-            'dev' : {
-                'enabled' : False,
-                'done' : False,
-                'type' : 'mysql',
-                'name' : '',
-                'username' : '',
-                'password' : ''
-                },
-            }
-        }
+    config = ConfigurationManager.get_blank_config()
+
+    config.get_attribute('id').set_value(config_id)
+    config.get_attribute('reference').set_value('ref%d' % config_id)
+    config.get_attribute('description').set_value('desc%d' % config_id)
+
+    repository = config.get_attribute('repository')
+    repository.get_attribute('enabled').set_value(True)
+    repository.get_attribute('name').set_value('repo%d' % config_id)
+    repository.get_attribute('done').set_value(False)
+
+    i = 0
+    sites = config.get_attribute('sites')
+
+    for platform in sites.get_attribute_names():
+        site = sites.get_attribute(platform)
+
+        if i % 2 == 0:
+            site.get_attribute('enabled').set_value(True)
+
+            if 'proxied' in site.get_attribute_names():
+                site.get_attribute('proxied').set_value(True)
+
+            site.get_attribute('maintenance').set_value(True)
+            site.get_attribute('done').set_value(True)
+            site.get_attribute('name').set_value('%s_site' % platform)
+
+        else:
+            site.get_attribute('enabled').set_value(False)
+
+            if 'proxied' in site.get_attribute_names():
+                site.get_attribute('proxied').set_value(False)
+
+            site.get_attribute('maintenance').set_value(False)
+            site.get_attribute('done').set_value(False)
+            site.get_attribute('name').set_value('__DEFAULT__')
+
+        site.get_attribute('domain').set_value('groupe-bpi.com' % platform)
+        site.get_attribute('template').set_value('symfony' % platform)
+        i += 1
+
+    i = 0
+    databases = config.get_attribute('databases')
+
+    for platform in databases.get_attribute_names():
+        database = databases.get_attribute(platform)
+
+        if i % 2 == 0:
+            database.get_attribute('enabled').set_value(True)
+        else:
+            database.get_attribute('enabled').set_value(False)
+
+        database.get_attribute('name').set_value('%s_name' % platform)
+        database.get_attribute('username').set_value('%s_username' % platform)
+        database.get_attribute('password').set_value('%s_password' % platform)
+        i += 1
 
 
 class ConfigurationManager(object):
@@ -250,20 +161,17 @@ class ConfigurationManager(object):
     instanciated.
     """
 
-
     def __init__(self):
         """
         Since it should be used as a static class, instaciation is forbdden.
         """
         raise NotImplementedError("Oops. Instaciation not allowed")
 
-
     def __copy__(self):
         """
         Since it should be used as a static class, cloning is forbdden.
         """
         raise NotImplementedError("Oops. Copy not allowed")
-
 
     @staticmethod
     def get_database_types():
@@ -277,7 +185,6 @@ class ConfigurationManager(object):
             'mysql': 'MySQL',
             'pgsql': 'PostgresQL'
             }
-
 
     @staticmethod
     def get_repository_types():
@@ -293,7 +200,6 @@ class ConfigurationManager(object):
             'cvs': 'CVS'
             }
 
-
     @staticmethod
     def get_site_templates():
         """
@@ -307,7 +213,6 @@ class ConfigurationManager(object):
             'symfony': 'Symfony',
             'zend': 'Zend'
             }
-
 
     @staticmethod
     def get_site_domains():
@@ -323,23 +228,19 @@ class ConfigurationManager(object):
             'bpi-group.com': 'bpi-group.com'
             }
 
-
     @staticmethod
-    def get_blank_configuration_item():
+    def get_blank_configuration():
         """
         Returns a new blank configuration item.
         """
-        return MainConfigurationItem()
-
+        return AttributeSet(attributes=get_default_config())
 
     @staticmethod
-    def get_configuration_item_by_id(identifier):
+    def get_configuration_by_id(identifier):
         """
         Loads a configuration item based on its id.
         """
-        config = MainConfigurationItem()
-        config.load(get_test_configuration_item(identifier))
-        return config
+        return AttributeSet(attributes=get_test_config(identifier))
 
 
 class BaseConfigurationItem(object):

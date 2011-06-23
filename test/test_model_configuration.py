@@ -6,9 +6,7 @@ Test classes for abstraction.configuration moodule
 import unittest
 import doctest
 from sitebuilder.model import configuration
-from sitebuilder.model.configuration import get_checked_default_config
 from sitebuilder.model.configuration import ConfigurationManager
-from sitebuilder.utils.attribute import AttributeSet
 
 class Test(unittest.TestCase):
     """
@@ -26,7 +24,7 @@ class Test(unittest.TestCase):
         Tests that default configuration builds correctly and that attributes
         work as expected.
         """
-        config = AttributeSet(attributes=get_checked_default_config())
+        config = ConfigurationManager.get_blank_configuration()
 
         self.assertEquals(config.get_attribute('id').get_value(), None)
         self.assertEquals(config.get_attribute('reference').get_value(), '')
@@ -76,7 +74,7 @@ class Test(unittest.TestCase):
         Tests that configuration attributes react as expected when setting
         attributes value
         """
-        config = AttributeSet(attributes=get_checked_default_config())
+        config = ConfigurationManager.get_blank_configuration()
 
         _id = config.get_attribute('id')
         _id.set_value(1)

@@ -390,7 +390,7 @@ class AttributeSet(object):
 
     def add_attribute(self, attribute):
         """
-        Adds an Attribute anr an AttributeSet.
+        Adds an Attribute or an AttributeSet.
 
         The key under which the attribute is stored is the same as the
         attribute name

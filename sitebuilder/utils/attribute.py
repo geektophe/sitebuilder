@@ -11,8 +11,10 @@ attributes. It has the necessary methods to manipulate attributes.
 """
 
 import re
+from sitebuilder.utils.observer import DataChangedListener
+from sitebuilder.utils.observer import DataChangedDispatcher
 
-class Attribute(object):
+class Attribute(DataChangedDispatcher):
     """
     A configuration attribute item that is part of a configuration tree.
 
@@ -39,13 +41,13 @@ class Attribute(object):
         Object initialization. The only mandatory argument is the attribute
         name, that cannot be changed later.
         """
+        DataChangedDispatcher.__init__(self)
         self._name = name
         self._value = value
         self._validator = validator
         self._errmsg = errmsg
         self._modified = False
         self._re = None
-
 
     def get_name(self):
         """
@@ -196,6 +198,7 @@ class Attribute(object):
                 raise AttributeError(r"Value did not match '%s'" % self._validator)
         self._value = value
         self._modified = True
+        self.notify_data_changed()
 
     def is_modified(self):
         """
@@ -217,7 +220,7 @@ class Attribute(object):
             (self._name, self._value)
 
 
-class AttributeSet(object):
+class AttributeSet(DataChangedListener,DataChangedDispatcher):
     """
     A class that represents a set of attributes.
 
@@ -230,6 +233,10 @@ class AttributeSet(object):
     """
 
     def __init__(self, name=None, attributes=None):
+        """
+        AttribvuteSet initialization
+        """
+        DataChangedDispatcher.__init__(self)
         self._name = name
         self._attributes = {}
 
@@ -309,8 +316,10 @@ class AttributeSet(object):
                         options.append(value[index])
 
                 new_attributes[key] = Attribute(key, *options)
+                new_attributes[key].add_data_changed_listener(self)
             elif isinstance(value, dict):
                 new_attributes[key] = AttributeSet(key)
+                new_attributes[key].add_data_changed_listener(self)
                 new_attributes[key].load(value)
             else:
                 raise AttributeError('Invalid data format for key %s' % key)
@@ -440,6 +449,35 @@ class AttributeSet(object):
                                 attribute.get_name())
 
         self._attributes[attribute.get_name()] = attribute
+        attribute.add_data_changed_listener(self)
+        self.notify_data_changed()
+
+    def remove_attribute(self, name):
+        """
+        Removes an Attribute or an AttributeSet.
+
+        >>> attr = Attribute('somename', 'somevalue')
+        >>> aset = AttributeSet('aset')
+        >>> aset['somename'] = attr
+        >>> attr2 = aset.get_attribute('somename')
+        >>> isinstance(attr2, Attribute)
+        True
+        >>> aset.remove_attribute('somename')
+        >>> attr2 = aset.get_attribute('somename')
+        Traceback (most recent call last):
+            ...
+        AttributeError: No attribute named 'somename'
+        """
+        attribute = self.get_attribute(name)
+        attribute.del_data_changed_listener(self)
+        del self._attributes[name]
+        self.notify_data_changed()
+
+    def data_changed(self):
+        """
+        Listener trigger method implementation
+        """
+        self.notify_data_changed()
 
     def iteritems(self):
         """
@@ -599,6 +637,24 @@ class AttributeSet(object):
         'somevalue'
         """
         self.add_attribute(attribute)
+
+    def __delitem__(self, name):
+        """
+        Dictionnary like magic method.
+
+        >>> attr = Attribute('somename', 'somevalue')
+        >>> aset = AttributeSet('aset')
+        >>> aset['somename'] = attr
+        >>> attr2 = aset.get_attribute('somename')
+        >>> isinstance(attr2, Attribute)
+        True
+        >>> del aset['somename']
+        >>> attr2 = aset.get_attribute('somename')
+        Traceback (most recent call last):
+            ...
+        AttributeError: No attribute named 'somename'
+        """
+        self.remove_attribute(name)
 
     def __str__(self):
         """

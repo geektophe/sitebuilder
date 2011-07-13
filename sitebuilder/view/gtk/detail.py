@@ -7,9 +7,9 @@ from sitebuilder.utils.parameters import GLADE_BASEDIR
 from sitebuilder.view.gtk.base import GtkBaseView
 import gtk
 
-class SiteMainView(GtkBaseView):
+class DetailMainView(GtkBaseView):
     """
-    SiteMainView site add/edit/view interface.
+    DetailMainView site add/edit/view interface.
 
     The interface design is loaded from a glade file.
     """
@@ -35,9 +35,9 @@ class SiteMainView(GtkBaseView):
         GtkBaseView.__init__(self, 'main', controller)
 
 
-class SiteSiteView(GtkBaseView):
+class DetailSiteView(GtkBaseView):
     """
-    SiteSiteView composite widget.
+    DetailSiteView composite widget.
 
     The interface design is loaded from a glade file.
     """
@@ -53,12 +53,17 @@ class SiteSiteView(GtkBaseView):
         enabled.connect('toggled', self.on_site_enabled_toggled)
 
     def on_site_enabled_toggled(self, widget):
-        print "Site enabled: %s" % widget.get_active()
+        print "Detail enabled: %s" % widget.get_active()
+
+    def fire_data_changed(self):
+        """
+        Updates view widgets based on configuraton settings
+        """
 
 if __name__ == "__main__":
-    edit = SiteMainView(None, None)
+    edit = DetailMainView(None)
     for platform in ('prod', 'test', 'dev'):
-        slave = SiteSiteView(None)
+        slave = DetailSiteView(None)
         edit.attach_slave('site_%s' % platform, 'hbox_sites', slave)
 
     edit.get_toplevel().connect("destroy", gtk.main_quit)

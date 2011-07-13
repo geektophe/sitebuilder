@@ -1,25 +1,29 @@
 #!/usr/bin/env python
 """
-Site related controllers
+Site details related controllers
 """
 
-from sitebuilder.view.gtk.site import SiteMainView, SiteSiteView
+from sitebuilder.view.gtk.detail import DetailMainView, DetailSiteView
+from sitebuilder.model.configuration import ConfigurationManager
+from sitebuilder.controller.base import BaseController
 import gtk
 
-class SiteMainController(object):
+class DetailMainController(BaseController):
     """
-    Site main interface's controller
+    Site details main interface's controller
     """
 
     def __init__(self, configuration, mode):
         """
         Controller initialization
         """
-        self._view = SiteMainView(self)
+        BaseController.__init__(self)
+        self._view = DetailMainView(self)
         self._mode = mode
+        self._configuration = configuration
 
-        for platform in ('prod', 'test', 'dev'):
-            slave = SiteSiteController(configuration, mode)
+        for platform in configuration.get_attribute('sites').values():
+            slave = DetailSiteController(platform, mode)
             self._view.attach_slave('site_%s' % platform, 'hbox_sites',
                                     slave.get_view())
 
@@ -36,12 +40,12 @@ class SiteMainController(object):
         return self._view
 
 
-class SiteSiteController(object):
+class DetailSiteController(BaseController):
     """
     Site widget's controller
     """
     def __init__(self, configuration, mode):
-        self._view = SiteSiteView(self)
+        self._view = DetailSiteView(self)
         self._mode = mode
 
     def get_mode(self):
@@ -56,10 +60,17 @@ class SiteSiteController(object):
         """
         return self._view
 
+    def get_site_enbled(self):
+        """
+        Returns site's enabled flag
+        """
+        return self._view
+
 
 
 if __name__ == '__main__':
-    controller = SiteMainController(None, None)
+    configuration = ConfigurationManager.get_blank_configuration()
+    controller = DetailMainController(configuration, None)
     view = controller.get_view()
     view.get_toplevel().connect("destroy", gtk.main_quit)
     view.show()

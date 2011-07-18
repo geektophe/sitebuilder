@@ -18,14 +18,14 @@ class GtkBaseView(object):
 
     GLADE_FILE = ""
 
-    def __init__(self, toplevel_name, control):
+    def __init__(self, toplevel_name, controller):
         """
         Basic view to be subclassed.
         """
         if not os.path.isfile(self.GLADE_FILE):
             raise RuntimeError("No glade file found.")
 
-        self._control = control
+        self._controller = controller
         self._builder = gtk.Builder()
         self._builder.add_from_file(self.GLADE_FILE)
         self._toplevel_name = toplevel_name

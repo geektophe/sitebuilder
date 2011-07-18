@@ -18,14 +18,20 @@ class DetailMainController(BaseController):
         Controller initialization
         """
         BaseController.__init__(self)
-        self._view = DetailMainView(self)
         self._mode = mode
         self._configuration = configuration
+        self._view = DetailMainView(self)
 
         for platform in configuration.get_attribute('sites').values():
             slave = DetailSiteController(platform, mode)
             self._view.attach_slave('site_%s' % platform, 'hbox_sites',
                                     slave.get_view())
+
+    def data_changed(self):
+        """
+        DataChangedListerner trigger mmethod local implementation
+        """
+        pass
 
     def get_mode(self):
         """
@@ -45,8 +51,17 @@ class DetailSiteController(BaseController):
     Site widget's controller
     """
     def __init__(self, configuration, mode):
-        self._view = DetailSiteView(self)
+        BaseController.__init__(self)
         self._mode = mode
+        self._configuration = configuration
+        self._view = DetailSiteView(self)
+        configuration.add_data_changed_listener(self)
+
+    def data_changed(self):
+        """
+        DataChangedListerner trigger mmethod local implementation
+        """
+        self.notify_data_changed()
 
     def get_mode(self):
         """
@@ -60,17 +75,76 @@ class DetailSiteController(BaseController):
         """
         return self._view
 
+    def get_attribute_value(self, name):
+        """
+        Returns a configuration attribute value
+        """
+        return self._configuration.get_attribute(name).get_value()
+
+    def check_attribute_value(self, name, value):
+        """
+        Checks if a potential configuration attribute value is valid
+        """
+        return self._configuration.get_attribute(name).validate(value)
+
+    def set_attribute_value(self, name, value):
+        """
+        Returns a configuration attribute value
+        """
+        self._configuration.get_attribute(name).set_value(value)
+
+    def get_platform_name(self):
+        """
+        Returns platform anme, that is in fact the configuration name
+        """
+        return self._configuration.get_name()
+
     def get_site_enbled(self):
         """
-        Returns site's enabled flag
+        Returns site enabled flag for the current platform
         """
-        return self._view
+        return self.get_attribute_value('enaled')
 
+    def get_site_proxied(self):
+        """
+        Returns site proxied flag for the current platform
+        """
+        return self.get_attribute_value('enaled')
+
+    def get_site_maintenance(self):
+        """
+        Returns site 'under maintenance' flag for the current platform
+        """
+        return self.get_attribute_value('maintenance')
+
+    def get_site_done(self):
+        """
+        Returns site done flag for the current platform
+        """
+        return self.get_attribute_value('done')
+
+    def get_site_name(self):
+        """
+        Returns site name for the current platform
+        """
+        return self.get_attribute_value('name')
+
+    def get_site_domain(self):
+        """
+        Returns site domain for the current platform
+        """
+        return self.get_attribute_value('domain')
+
+    def get_site_template(self):
+        """
+        Returns site temaplate for the current platform
+        """
+        return self.get_attribute_value('temaplate ')
 
 
 if __name__ == '__main__':
-    configuration = ConfigurationManager.get_blank_configuration()
-    controller = DetailMainController(configuration, None)
+    config = ConfigurationManager.get_blank_configuration()
+    controller = DetailMainController(config, None)
     view = controller.get_view()
     view.get_toplevel().connect("destroy", gtk.main_quit)
     view.show()

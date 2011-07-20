@@ -201,6 +201,15 @@ class ConfigurationManager(object):
             }
 
     @staticmethod
+    def get_site_platforms():
+        """
+        Returns a sorted list of available platfoms.
+
+        The sorted list is mainly used to order components in applicaiton views
+        """
+        return [ 'prod', 'test', 'dev' ]
+
+    @staticmethod
     def get_site_templates():
         """
         Returns the hash of available site templates supported

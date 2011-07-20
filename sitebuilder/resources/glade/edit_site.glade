@@ -181,7 +181,7 @@
             <child>
               <object class="GtkLabel" id="maintenance_label">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">label</property>
+                <property name="label" translatable="yes">Maintenance</property>
               </object>
               <packing>
                 <property name="left_attach">1</property>

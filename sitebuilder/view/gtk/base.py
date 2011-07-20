@@ -71,7 +71,7 @@ class GtkBaseView(object):
         slave_toplevel = slave.get_toplevel()
         widget = slave_toplevel.get_child()
         slave_toplevel.remove(widget)
-        container.pack_end(widget)
+        container.pack_start(widget)
 
         self._slaves[name] = slave
 
@@ -101,8 +101,12 @@ class GtkBaseView(object):
         # Only the row's label is displayed (second element of the tupple: 1)
         combobox.add_attribute(renderer, 'text', 1)
 
-        for name, label in items.items():
-            model.append((name, label))
+        # Appends items to the combobox
+        names = items.keys()
+        names.sort()
+
+        for name in names:
+            model.append((name, items[name]))
 
     def get_combobox_selection(self, combobox):
         """

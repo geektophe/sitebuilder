@@ -22,7 +22,8 @@ class DetailMainController(BaseController):
         self._configuration = configuration
         self._view = DetailMainView(self)
 
-        for platform in configuration.get_attribute('sites').values():
+        for name in ConfigurationManager.get_site_platforms():
+            platform = configuration.get_attribute('sites').get_attribute(name)
             slave = DetailSiteController(platform, mode)
             self._view.attach_slave('site_%s' % platform, 'hbox_sites',
                                     slave.get_view())

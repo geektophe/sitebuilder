@@ -86,3 +86,50 @@ class GtkBaseView(object):
         Shows window
         """
         self.get_toplevel().show()
+
+    def set_combobox_items(self, combobox, items):
+        """
+        Sets an interface combobox items. Each item is composed of a mnemonic
+        name and a label, but only the label is displayed in the combobox.
+        """
+        # The model is configured for rows composed of name and a label
+        model = gtk.ListStore(str, str)
+        combobox.set_model(model)
+        # A text rederer is used to display rows
+        renderer = gtk.CellRendererText()
+        combobox.pack_start(renderer, True)
+        # Only the row's label is displayed (second element of the tupple: 1)
+        combobox.add_attribute(renderer, 'text', 1)
+
+        for name, label in items.items():
+            model.append((name, label))
+
+    def get_combobox_selection(self, combobox):
+        """
+        Retrieves the value of the combobox selected item.
+        """
+        model = combobox.get_model()
+        index = combobox.get_active()
+
+        if index < 0:
+            return None
+
+        return model[index][0]
+
+    def set_combobox_selection(self, combobox, value):
+        """
+        Selects the combobox row which name column equals value.
+        """
+        model = combobox.get_model()
+        index = 0
+
+        for row in model:
+            if row[0] == value:
+                break
+            index += 1
+
+        if index < len(model):
+            combobox.set_active(index)
+        else:
+            combobox.set_active(-1)
+

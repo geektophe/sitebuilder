@@ -99,48 +99,6 @@ class DetailSiteController(BaseController):
         """
         return self._configuration.get_name()
 
-    def get_site_enbled(self):
-        """
-        Returns site enabled flag for the current platform
-        """
-        return self.get_attribute_value('enaled')
-
-    def get_site_proxied(self):
-        """
-        Returns site proxied flag for the current platform
-        """
-        return self.get_attribute_value('enaled')
-
-    def get_site_maintenance(self):
-        """
-        Returns site 'under maintenance' flag for the current platform
-        """
-        return self.get_attribute_value('maintenance')
-
-    def get_site_done(self):
-        """
-        Returns site done flag for the current platform
-        """
-        return self.get_attribute_value('done')
-
-    def get_site_name(self):
-        """
-        Returns site name for the current platform
-        """
-        return self.get_attribute_value('name')
-
-    def get_site_domain(self):
-        """
-        Returns site domain for the current platform
-        """
-        return self.get_attribute_value('domain')
-
-    def get_site_template(self):
-        """
-        Returns site temaplate for the current platform
-        """
-        return self.get_attribute_value('temaplate ')
-
 
 if __name__ == '__main__':
     config = ConfigurationManager.get_blank_configuration()

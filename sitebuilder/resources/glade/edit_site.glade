@@ -149,7 +149,6 @@
             <child>
               <object class="GtkComboBox" id="domain">
                 <property name="visible">True</property>
-                <property name="model">domain_model</property>
               </object>
               <packing>
                 <property name="left_attach">1</property>
@@ -171,7 +170,6 @@
             <child>
               <object class="GtkComboBox" id="template">
                 <property name="visible">True</property>
-                <property name="model">template_model</property>
               </object>
               <packing>
                 <property name="left_attach">1</property>
@@ -212,6 +210,4 @@
       </object>
     </child>
   </object>
-  <object class="GtkListStore" id="domain_model"/>
-  <object class="GtkListStore" id="template_model"/>
 </interface>

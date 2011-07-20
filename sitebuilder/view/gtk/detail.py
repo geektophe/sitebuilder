@@ -6,6 +6,7 @@ Site editing interface. Supports Create, View and Update modes.
 from sitebuilder.utils.parameters import GLADE_BASEDIR
 from sitebuilder.utils.observer import DataChangedListener
 from sitebuilder.view.gtk.base import GtkBaseView
+from sitebuilder.model.configuration import ConfigurationManager
 import gtk
 
 class DetailMainView(GtkBaseView):
@@ -50,20 +51,31 @@ class DetailSiteView(GtkBaseView,DataChangedListener):
         Class initialization.
         """
         GtkBaseView.__init__(self, 'site', controller)
-        label_site = self['label_site']
-        label_site.set_markup("<b>%s site</b>" % \
-                            controller.get_platform_name().capitalize())
-        self.load_widgets_data()
-        controller.add_data_changed_listener(self)
+
+        # Sets widget title
+        self['label_site'].set_markup(
+            "<b>%s site</b>" % controller.get_platform_name().capitalize())
+
+        # Sets widgets signal handlers
         #self._builder.connect_signals(self)
-        enabled = self['enabled']
-        name_cus = self['name_cus']
-        name_def = self['name_def']
-        name = self['name']
-        enabled.connect('toggled', self.on_enabled_toggled)
-        name_cus.connect('toggled', self.on_name_cus_toggled)
-        name_def.connect('toggled', self.on_name_def_toggled)
-        name.connect('changed', self.on_name_changed)
+        self['enabled'].connect('toggled', self.on_enabled_toggled)
+        self['name_cus'].connect('toggled', self.on_name_cus_toggled)
+        self['name_def'].connect('toggled', self.on_name_def_toggled)
+        self['name'].connect('changed', self.on_name_changed)
+        self['template'].connect('changed', self.on_template_changed)
+        self['domain'].connect('changed', self.on_domain_changed)
+
+        # Loads comboboxes items
+        self.set_combobox_items(self['template'],
+                ConfigurationManager.get_site_templates())
+        self.set_combobox_items(self['domain'],
+                ConfigurationManager.get_site_domains())
+
+        # Loads widgets data from controller
+        self.load_widgets_data()
+
+        # Listens data changed events from from controller
+        controller.add_data_changed_listener(self)
 
     def data_changed(self):
         """
@@ -89,14 +101,17 @@ class DetailSiteView(GtkBaseView,DataChangedListener):
         """
         enabled = self.get_attribute_value('enabled')
         done = self.get_attribute_value('done')
-        sensitive = enabled and not done
+        mode = self._controller.get_mode()
+        sensitive = enabled and not done and mode != "view"
 
         maintenance = self.get_attribute_value('maintenance')
         name = self.get_attribute_value('name')
 
+        # Loads enabled checkbox state
         self['enabled'].set_active(enabled)
         self['enabled'].set_sensitive(not done)
 
+        # Loads proxied checkbox state (may not be defined in model)
         try:
             proxied = self.get_attribute_value('proxied')
             self['proxied'].set_active(proxied)
@@ -104,9 +119,11 @@ class DetailSiteView(GtkBaseView,DataChangedListener):
         except AttributeError:
             self['proxied'].set_sensitive(False)
 
+        # Loads maintenance checkbox state
         self['maintenance'].set_active(maintenance)
         self['maintenance'].set_sensitive(enabled)
 
+        # Loads site name, and sets appropriate state on name related widgets
         if name == '__DEFAULT__':
             self['name_def'].set_active(True)
             # Disabled to prevent name input deletion if default name is clicked
@@ -119,9 +136,19 @@ class DetailSiteView(GtkBaseView,DataChangedListener):
         self['name_cus'].set_sensitive(sensitive)
         self['name'].set_sensitive(sensitive and name != '__DEFAULT__')
 
+        # Loads template combobox selected option
+        self.set_combobox_selection(self['template'],
+                self.get_attribute_value('template'))
+        self['template'].set_sensitive(sensitive)
+
+        # Loads domain combobox selected option
+        self.set_combobox_selection(self['domain'],
+                self.get_attribute_value('domain'))
+        self['domain'].set_sensitive(sensitive)
+
     def on_enabled_toggled(self, widget):
         """
-        Signal handler associated with the enabled check button
+        Signal handler associated with the enabled checkbox
         """
         enabled = self['enabled'].get_active()
         self.set_attribute_value('enabled', enabled)
@@ -141,15 +168,28 @@ class DetailSiteView(GtkBaseView,DataChangedListener):
 
     def on_name_changed(self, widget):
         """
-        Signal handler associated with the named_text input
+        Signal handler associated with the name text input
         """
         name = widget.get_text()
 
         try:
+            self._controller.set_attribute_value('name', name)
             widget.set_tooltip_text('')
             widget.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('#90EE90'))
-            self._controller.set_attribute_value('name', name)
         except AttributeError, e:
             widget.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('#FFCCCC'))
             widget.set_tooltip_text(str(e))
 
+    def on_template_changed(self, widget):
+        """
+        Signal handler associated with the template combobox
+        """
+        template_name = self.get_combobox_selection(self['template'])
+        self.set_attribute_value('template', template_name )
+
+    def on_domain_changed(self, widget):
+        """
+        Signal handler associated with the domain combobox
+        """
+        domain_name = self.get_combobox_selection(self['domain'])
+        self.set_attribute_value('domain', domain_name )

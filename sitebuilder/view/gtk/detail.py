@@ -93,7 +93,7 @@ class DetailSiteView(GtkBaseView,DataChangedListener):
         """
         Sets an attribute value on the controller
         """
-        return self._controller.set_attribute_value(name, value)
+        self._controller.set_attribute_value(name, value)
 
     def load_widgets_data(self):
         """

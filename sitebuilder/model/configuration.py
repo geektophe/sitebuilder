@@ -42,7 +42,7 @@ def get_default_config():
                 'done' : (False, bool),
                 'template' : ('standard', ConfigurationManager.get_site_templates().keys(), 'Unsupported site template'),
                 'domain' : ('bpinet.com', ConfigurationManager.get_site_domains().keys(), 'Unknown domain'),
-                'name' : ('__DEFAULT__', '^[a-z0-9_-]+$', 'Name should be a simple alphanumeric string without spaces')
+                'name' : ('__DEFAULT__', '^([a-z0-9_-]+|__DEFAULT__)$', 'Name should be a simple alphanumeric string without spaces')
                 },
             'dev' : {
                 'enabled' : (False, bool),
@@ -50,7 +50,7 @@ def get_default_config():
                 'done' : (False, bool),
                 'template' : ('standard', ConfigurationManager.get_site_templates().keys(), 'Unsupported site template'),
                 'domain' : ('bpinet.com', ConfigurationManager.get_site_domains().keys(), 'Unknown domain'),
-                'name' : ('__DEFAULT__', '^[a-z0-9_-]+$', 'Name should be a simple alphanumeric string without spaces')
+                'name' : ('__DEFAULT__', '^([a-z0-9_-]+|__DEFAULT__)$', 'Name should be a simple alphanumeric string without spaces')
                 },
             },
         # Databases related attributes (for each available platform)

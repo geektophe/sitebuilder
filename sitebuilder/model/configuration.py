@@ -83,12 +83,12 @@ def get_default_config():
         }
 
 
-def get_test_config(config_id):
+def get_test_configuration(config_id):
     """
     Generates the default configuration used to initialize internal
     configuration structures
     """
-    config = ConfigurationManager.get_blank_config()
+    config = ConfigurationManager.get_blank_configuration()
 
     config.get_attribute('id').set_value(config_id)
     config.get_attribute('reference').set_value('ref%d' % config_id)
@@ -125,8 +125,8 @@ def get_test_config(config_id):
             site.get_attribute('done').set_value(False)
             site.get_attribute('name').set_value('__DEFAULT__')
 
-        site.get_attribute('domain').set_value('groupe-bpi.com' % platform)
-        site.get_attribute('template').set_value('symfony' % platform)
+        site.get_attribute('domain').set_value('groupe-bpi.com')
+        site.get_attribute('template').set_value('symfony')
         i += 1
 
     i = 0
@@ -144,6 +144,8 @@ def get_test_config(config_id):
         database.get_attribute('username').set_value('%s_username' % platform)
         database.get_attribute('password').set_value('%s_password' % platform)
         i += 1
+
+    return config
 
 
 class ConfigurationManager(object):
@@ -243,6 +245,13 @@ class ConfigurationManager(object):
         Returns a new blank configuration item.
         """
         return AttributeSet(attributes=get_default_config())
+
+    @staticmethod
+    def get_test_configuration(config_id):
+        """
+        Returns a new blank configuration item.
+        """
+        return get_test_configuration(config_id)
 
     @staticmethod
     def get_configuration_by_id(identifier):

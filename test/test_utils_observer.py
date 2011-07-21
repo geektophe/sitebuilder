@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Test classes for utils.observer moodule
+Test classes for utils.observer module
 """
 
 import unittest
@@ -16,4 +16,3 @@ class Test(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

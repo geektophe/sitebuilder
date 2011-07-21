@@ -51,9 +51,9 @@ class DetailSiteController(BaseController):
     """
     Site widget's controller
     """
-    def __init__(self, configuration, mode):
+    def __init__(self, configuration, read_only=False):
         BaseController.__init__(self)
-        self._mode = mode
+        self._read_only = read_only
         self._configuration = configuration
         self._view = DetailSiteView(self)
         configuration.add_data_changed_listener(self)
@@ -64,17 +64,23 @@ class DetailSiteController(BaseController):
         """
         self.notify_data_changed()
 
-    def get_mode(self):
+    def get_read_only_flag(self):
         """
-        Returns editting mode
+        Returns read only flag
         """
-        return self._mode
+        return self._read_only
 
     def get_view(self):
         """
-        Returns view
+        Returns DetailSiteView view instance
         """
         return self._view
+
+    def get_configuratuon(self):
+        """
+        Returns configuration instance
+        """
+        return self._configuration
 
     def get_attribute_value(self, name):
         """

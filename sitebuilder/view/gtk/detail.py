@@ -59,6 +59,8 @@ class DetailSiteView(GtkBaseView,DataChangedListener):
         # Sets widgets signal handlers
         #self._builder.connect_signals(self)
         self['enabled'].connect('toggled', self.on_enabled_toggled)
+        self['proxied'].connect('toggled', self.on_proxied_toggled)
+        self['maintenance'].connect('toggled', self.on_maintenance_toggled)
         self['name_cus'].connect('toggled', self.on_name_cus_toggled)
         self['name_def'].connect('toggled', self.on_name_def_toggled)
         self['name'].connect('changed', self.on_name_changed)
@@ -101,8 +103,8 @@ class DetailSiteView(GtkBaseView,DataChangedListener):
         """
         enabled = self.get_attribute_value('enabled')
         done = self.get_attribute_value('done')
-        mode = self._controller.get_mode()
-        sensitive = enabled and not done and mode != "view"
+        read_only = self._controller.get_read_only_flag()
+        sensitive = enabled and not done and not read_only
 
         maintenance = self.get_attribute_value('maintenance')
         name = self.get_attribute_value('name')
@@ -152,6 +154,20 @@ class DetailSiteView(GtkBaseView,DataChangedListener):
         """
         enabled = self['enabled'].get_active()
         self.set_attribute_value('enabled', enabled)
+
+    def on_proxied_toggled(self, widget):
+        """
+        Signal handler associated with the proxied checkbox
+        """
+        proxied = self['proxied'].get_active()
+        self.set_attribute_value('proxied', proxied)
+
+    def on_maintenance_toggled(self, widget):
+        """
+        Signal handler associated with the maintenance checkbox
+        """
+        maintenance = self['maintenance'].get_active()
+        self.set_attribute_value('maintenance', maintenance)
 
     def on_name_def_toggled(self, widget):
         """

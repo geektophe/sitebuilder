@@ -111,19 +111,21 @@ class DetailSiteView(GtkBaseView,DataChangedListener):
 
         # Loads enabled checkbox state
         self['enabled'].set_active(enabled)
-        self['enabled'].set_sensitive(not done)
+        self['enabled'].set_sensitive(not done and not read_only)
 
         # Loads proxied checkbox state (may not be defined in model)
         try:
             proxied = self.get_attribute_value('proxied')
             self['proxied'].set_active(proxied)
-            self['proxied'].set_sensitive(enabled)
+            # Proxied should be changeable even if site is in done state
+            self['proxied'].set_sensitive(enabled and not read_only)
         except AttributeError:
             self['proxied'].set_sensitive(False)
 
         # Loads maintenance checkbox state
         self['maintenance'].set_active(maintenance)
-        self['maintenance'].set_sensitive(enabled)
+        # Maintenance should be changeable even if site is in done state
+        self['maintenance'].set_sensitive(enabled and not read_only)
 
         # Loads site name, and sets appropriate state on name related widgets
         if name == '__DEFAULT__':

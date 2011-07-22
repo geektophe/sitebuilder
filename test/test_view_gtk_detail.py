@@ -193,6 +193,30 @@ class TestDetailSiteGtkView(unittest.TestCase):
             self.assertEquals(view.get_combobox_selection(view[name]),
                     value, 'site %s widget selection is wrong' % name)
 
+    def test_detail_site_read_only(self):
+        """
+        Tests that site detail component's models changes are correctly
+        reported to GUI.
+        """
+        config = ConfigurationManager.get_blank_configuration()
+        prod = config['sites']['prod']
+        controller = DetailSiteController(prod, read_only=True)
+        view = controller.get_view()
+        prod['enabled'].set_value(True)
+        refresh_gui()
+
+        # Ine read-only mode, all widgets should be disabled
+        flags = {
+            'enabled': False,
+            'proxied': False,
+            'maintenance': False,
+            'name_def': False,
+            'name_cus': False,
+            'domain': False,
+            'template': False
+            }
+        self.assert_widgets_sensitive_flag(view, flags)
+
 
 if __name__ == "__main__":
     unittest.main()

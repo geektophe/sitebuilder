@@ -7,7 +7,6 @@ from sitebuilder.utils.parameters import GLADE_BASEDIR
 from sitebuilder.utils.observer import DataChangedListener
 from sitebuilder.view.gtk.base import GtkBaseView
 from sitebuilder.model.configuration import ConfigurationManager
-import gtk
 
 class DetailMainView(GtkBaseView):
     """
@@ -37,9 +36,9 @@ class DetailMainView(GtkBaseView):
         GtkBaseView.__init__(self, 'main', controller)
 
 
-class DetailSiteView(GtkBaseView,DataChangedListener):
+class DetailSiteView(GtkBaseView, DataChangedListener):
     """
-    DetailSiteView composite widget.
+    Detail site view composite widget.
 
     The interface design is loaded from a glade file.
     """
@@ -188,15 +187,7 @@ class DetailSiteView(GtkBaseView,DataChangedListener):
         """
         Signal handler associated with the name text input
         """
-        name = widget.get_text()
-
-        try:
-            self._controller.set_attribute_value('name', name)
-            widget.set_tooltip_text('')
-            widget.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('#90EE90'))
-        except AttributeError, e:
-            widget.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('#FFCCCC'))
-            widget.set_tooltip_text(str(e))
+        self.set_entry_attribute(widget, 'name')
 
     def on_template_changed(self, widget):
         """
@@ -211,3 +202,124 @@ class DetailSiteView(GtkBaseView,DataChangedListener):
         """
         domain_name = self.get_combobox_selection(self['domain'])
         self.set_attribute_value('domain', domain_name )
+
+
+class DetailDatabaseView(GtkBaseView, DataChangedListener):
+    """
+    Detail database view composite widget.
+
+    The interface design is loaded from a glade file.
+    """
+
+    GLADE_FILE = "%s/%s" % (GLADE_BASEDIR, 'edit_db.glade')
+
+    def __init__(self, controller):
+        """
+        Class initialization.
+        """
+        GtkBaseView.__init__(self, 'database', controller)
+
+        # Sets widget title
+        self['label_database'].set_markup(
+            "<b>%s database</b>" % controller.get_platform_name().capitalize())
+
+        # Sets widgets signal handlers
+        self['enabled'].connect('toggled', self.on_enabled_toggled)
+        self['name'].connect('changed', self.on_name_changed)
+        self['username'].connect('changed', self.on_username_changed)
+        self['password'].connect('changed', self.on_password_changed)
+        self['type'].connect('changed', self.on_type_changed)
+
+        # Loads comboboxes items
+        self.set_combobox_items(self['type'],
+                ConfigurationManager.get_database_types())
+
+        # Loads widgets data from controller
+        self.load_widgets_data()
+
+        # Listens data changed events from from controller
+        controller.add_data_changed_listener(self)
+
+    def data_changed(self):
+        """
+        DataChangedListerner trigger mmethod local implementation
+        """
+        self.load_widgets_data()
+
+    def get_attribute_value(self, name):
+        """
+        Returns an attribute value from the controller
+        """
+        return self._controller.get_attribute_value(name)
+
+    def set_attribute_value(self, name, value):
+        """
+        Sets an attribute value on the controller
+        """
+        self._controller.set_attribute_value(name, value)
+
+    def load_widgets_data(self):
+        """
+        Updates view widgets based on configuraton settings
+        """
+        enabled = self.get_attribute_value('enabled')
+        done = self.get_attribute_value('done')
+        read_only = self._controller.get_read_only_flag()
+        sensitive = enabled and not done and not read_only
+
+        name = self.get_attribute_value('name')
+        username = self.get_attribute_value('username')
+        password = self.get_attribute_value('password')
+
+        # Loads enabled checkbox state
+        self['enabled'].set_active(enabled)
+        self['enabled'].set_sensitive(not done and not read_only)
+
+        # Loads name entry
+        self['name'].set_text(name)
+        self['name'].set_sensitive(sensitive)
+
+        # Loads username entry
+        self['username'].set_text(username)
+        self['username'].set_sensitive(sensitive)
+
+        # Loads password entry
+        self['password'].set_text(password)
+        self['password'].set_sensitive(sensitive)
+
+        # Loads type combobox selected option
+        self.set_combobox_selection(self['type'],
+                self.get_attribute_value('type'))
+        self['type'].set_sensitive(sensitive)
+
+    def on_enabled_toggled(self, widget):
+        """
+        Signal handler associated with the enabled checkbox
+        """
+        enabled = self['enabled'].get_active()
+        self.set_attribute_value('enabled', enabled)
+
+    def on_name_changed(self, widget):
+        """
+        Signal handler associated with the name text input
+        """
+        self.set_entry_attribute(widget, 'name')
+
+    def on_username_changed(self, widget):
+        """
+        Signal handler associated with the username text input
+        """
+        self.set_entry_attribute(widget, 'username')
+
+    def on_password_changed(self, widget):
+        """
+        Signal handler associated with the password text input
+        """
+        self.set_entry_attribute(widget, 'password')
+
+    def on_type_changed(self, widget):
+        """
+        Signal handler associated with the type combobox
+        """
+        type_name = self.get_combobox_selection(self['type'])
+        self.set_attribute_value('type', type_name )

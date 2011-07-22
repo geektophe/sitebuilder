@@ -4,21 +4,21 @@
   <!-- interface-naming-policy project-wide -->
   <object class="GtkWindow" id="database">
     <child>
-      <object class="GtkVBox" id="vbox3">
+      <object class="GtkVBox" id="vbox">
         <property name="visible">True</property>
         <child>
-          <object class="GtkLabel" id="label_db">
+          <object class="GtkLabel" id="label_database">
             <property name="visible">True</property>
-            <property name="label" translatable="yes">Prod DB</property>
+            <property name="label" translatable="yes">platform database</property>
           </object>
           <packing>
             <property name="position">0</property>
           </packing>
         </child>
         <child>
-          <object class="GtkTable" id="table8">
+          <object class="GtkTable" id="table">
             <property name="visible">True</property>
-            <property name="n_rows">4</property>
+            <property name="n_rows">5</property>
             <property name="n_columns">2</property>
             <child>
               <object class="GtkLabel" id="label_enable">
@@ -31,13 +31,13 @@
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="label_nam">
+              <object class="GtkLabel" id="label_name">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Name</property>
               </object>
               <packing>
-                <property name="top_attach">1</property>
-                <property name="bottom_attach">2</property>
+                <property name="top_attach">2</property>
+                <property name="bottom_attach">3</property>
               </packing>
             </child>
             <child>
@@ -46,8 +46,8 @@
                 <property name="label" translatable="yes">Username</property>
               </object>
               <packing>
-                <property name="top_attach">2</property>
-                <property name="bottom_attach">3</property>
+                <property name="top_attach">3</property>
+                <property name="bottom_attach">4</property>
               </packing>
             </child>
             <child>
@@ -56,12 +56,12 @@
                 <property name="label" translatable="yes">Password</property>
               </object>
               <packing>
-                <property name="top_attach">3</property>
-                <property name="bottom_attach">4</property>
+                <property name="top_attach">4</property>
+                <property name="bottom_attach">5</property>
               </packing>
             </child>
             <child>
-              <object class="GtkCheckButton" id="db_enabled">
+              <object class="GtkCheckButton" id="enabled">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
@@ -69,20 +69,7 @@
               </object>
             </child>
             <child>
-              <object class="GtkEntry" id="db_name">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="invisible_char">&#x25CF;</property>
-              </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="right_attach">2</property>
-                <property name="top_attach">1</property>
-                <property name="bottom_attach">2</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkEntry" id="db_username">
+              <object class="GtkEntry" id="name">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="invisible_char">&#x25CF;</property>
@@ -95,7 +82,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkEntry" id="db_password">
+              <object class="GtkEntry" id="username">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="invisible_char">&#x25CF;</property>
@@ -105,6 +92,40 @@
                 <property name="right_attach">2</property>
                 <property name="top_attach">3</property>
                 <property name="bottom_attach">4</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkEntry" id="password">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="invisible_char">&#x25CF;</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+                <property name="top_attach">4</property>
+                <property name="bottom_attach">5</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label_type">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Type</property>
+              </object>
+              <packing>
+                <property name="top_attach">1</property>
+                <property name="bottom_attach">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkComboBox" id="type">
+                <property name="visible">True</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+                <property name="top_attach">1</property>
+                <property name="bottom_attach">2</property>
               </packing>
             </child>
           </object>

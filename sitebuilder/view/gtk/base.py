@@ -66,13 +66,12 @@ class GtkBaseView(object):
         container = self._builder.get_object(container_name)
 
         if container is None:
-            raise AttributeError("No container named %s" % name)
+            raise AttributeError("No container named %s" % container_name)
 
         slave_toplevel = slave.get_toplevel()
         widget = slave_toplevel.get_child()
         slave_toplevel.remove(widget)
         container.pack_start(widget)
-
         self._slaves[name] = slave
 
     def get_objects(self):
@@ -136,4 +135,22 @@ class GtkBaseView(object):
             combobox.set_active(index)
         else:
             combobox.set_active(-1)
+
+    def set_entry_attribute(self, widget, attribute):
+        """
+        Retrieves an entry widget text, and tries to set it in the model.
+
+        If an AttributeError is risen while setting the attribute (indicating
+        an incorrect value), the widget backgroud is set red and a tooltip
+        indicates the error.
+        """
+        value = widget.get_text()
+
+        try:
+            self._controller.set_attribute_value(attribute, value)
+            widget.set_tooltip_text('')
+            widget.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('#90EE90'))
+        except AttributeError, e:
+            widget.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('#FFCCCC'))
+            widget.set_tooltip_text(str(e))
 

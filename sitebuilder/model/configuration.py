@@ -205,7 +205,16 @@ class ConfigurationManager(object):
     @staticmethod
     def get_site_platforms():
         """
-        Returns a sorted list of available platfoms.
+        Returns a sorted list of available site platfoms.
+
+        The sorted list is mainly used to order components in applicaiton views
+        """
+        return [ 'prod', 'test', 'dev' ]
+
+    @staticmethod
+    def get_database_platforms():
+        """
+        Returns a sorted list of available database platfoms.
 
         The sorted list is mainly used to order components in applicaiton views
         """

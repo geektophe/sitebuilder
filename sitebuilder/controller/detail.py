@@ -3,7 +3,9 @@
 Site details related controllers
 """
 
-from sitebuilder.view.gtk.detail import DetailMainView, DetailSiteView
+from sitebuilder.view.gtk.detail import DetailMainView
+from sitebuilder.view.gtk.detail import DetailSiteView
+from sitebuilder.view.gtk.detail import DetailDatabaseView
 from sitebuilder.model.configuration import ConfigurationManager
 from sitebuilder.controller.base import BaseController
 import gtk
@@ -13,19 +15,25 @@ class DetailMainController(BaseController):
     Site details main interface's controller
     """
 
-    def __init__(self, configuration, mode):
+    def __init__(self, configuration, read_only):
         """
         Controller initialization
         """
         BaseController.__init__(self)
-        self._mode = mode
+        self._read_only = read_only
         self._configuration = configuration
         self._view = DetailMainView(self)
 
         for name in ConfigurationManager.get_site_platforms():
             platform = configuration.get_attribute('sites').get_attribute(name)
-            slave = DetailSiteController(platform, mode)
-            self._view.attach_slave('site_%s' % platform, 'hbox_sites',
+            slave = DetailSiteController(platform, read_only)
+            self._view.attach_slave('site_%s' % name, 'hbox_sites',
+                                    slave.get_view())
+
+        for name in ConfigurationManager.get_database_platforms():
+            platform = configuration.get_attribute('databases').get_attribute(name)
+            slave = DetailDatabaseController(platform, read_only)
+            self._view.attach_slave('database_%s' % name, 'hbox_databases',
                                     slave.get_view())
 
     def data_changed(self):
@@ -34,11 +42,11 @@ class DetailMainController(BaseController):
         """
         pass
 
-    def get_mode(self):
+    def get_read_only_flag(self):
         """
-        Returns editting mode
+        Returns read only flag
         """
-        return self._mode
+        return self._read_only
 
     def get_view(self):
         """
@@ -47,15 +55,22 @@ class DetailMainController(BaseController):
         return self._view
 
 
-class DetailSiteController(BaseController):
+class DetailComponentController(BaseController):
     """
-    Site widget's controller
+    Generic sub component controller
     """
+
     def __init__(self, configuration, read_only=False):
+        """
+        Initializes controller.
+
+        The read_only attribute indocates to the view that none of then widgets
+        should be sensitive. The user is then not allowed to change any value.
+        """
         BaseController.__init__(self)
         self._read_only = read_only
         self._configuration = configuration
-        self._view = DetailSiteView(self)
+        self._view = None
         configuration.add_data_changed_listener(self)
 
     def data_changed(self):
@@ -88,12 +103,6 @@ class DetailSiteController(BaseController):
         """
         return self._configuration.get_attribute(name).get_value()
 
-    def check_attribute_value(self, name, value):
-        """
-        Checks if a potential configuration attribute value is valid
-        """
-        return self._configuration.get_attribute(name).validate(value)
-
     def set_attribute_value(self, name, value):
         """
         Returns a configuration attribute value
@@ -107,9 +116,29 @@ class DetailSiteController(BaseController):
         return self._configuration.get_name()
 
 
+class DetailSiteController(DetailComponentController):
+    """
+    Site sub component controller
+    """
+
+    def __init__(self, configuration, read_only=False):
+        DetailComponentController.__init__(self, configuration, read_only)
+        self._view = DetailSiteView(self)
+
+
+class DetailDatabaseController(DetailComponentController):
+    """
+    Database sub component controller
+    """
+
+    def __init__(self, configuration, read_only=False):
+        DetailComponentController.__init__(self, configuration, read_only)
+        self._view = DetailDatabaseView(self)
+
+
 if __name__ == '__main__':
     config = ConfigurationManager.get_blank_configuration()
-    controller = DetailMainController(config, None)
+    controller = DetailMainController(config, False)
     view = controller.get_view()
     view.get_toplevel().connect("destroy", gtk.main_quit)
     view.show()

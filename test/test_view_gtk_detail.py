@@ -7,6 +7,7 @@ import unittest
 from gtktest import refresh_gui
 from sitebuilder.model.configuration import ConfigurationManager
 from sitebuilder.controller.detail import DetailSiteController
+from sitebuilder.controller.detail import DetailDatabaseController
 
 def get_default_site_controller():
     """
@@ -14,8 +15,8 @@ def get_default_site_controller():
     """
 
 
-class TestDetailSiteGtkView(unittest.TestCase):
-    """Unit tests for site detail gtk views"""
+class BaseTestGtkView(unittest.TestCase):
+    """Unit tests for database detail gtk views"""
 
     def assert_widgets_active_flag(self, view, flags):
         """
@@ -36,6 +37,10 @@ class TestDetailSiteGtkView(unittest.TestCase):
             self.assertEquals(view[name].get_sensitive(), flag,
                     "%s widget sensitive flag sould be %s" % (name, flag))
 
+
+class TestDetailSiteGtkView(BaseTestGtkView):
+    """Unit tests for site detail gtk views"""
+
     def test_detail_site_init_state(self):
         """
         Tests site detail component's view initial state
@@ -46,7 +51,7 @@ class TestDetailSiteGtkView(unittest.TestCase):
         view = controller.get_view()
         refresh_gui()
 
-        # All checkboxes should be unchecked
+        # Tests checkboxes state
         flags = {
             'enabled': prod['enabled'].get_value(),
             'proxied': prod['proxied'].get_value(),
@@ -56,7 +61,7 @@ class TestDetailSiteGtkView(unittest.TestCase):
             }
         self.assert_widgets_active_flag(view, flags)
 
-        # All widgets should be disabled
+        # Tests widgets sensitivity
         flags = {
             'enabled': not prod['done'].get_value(),
             'proxied': prod['enabled'].get_value(),
@@ -202,7 +207,6 @@ class TestDetailSiteGtkView(unittest.TestCase):
         prod = config['sites']['prod']
         controller = DetailSiteController(prod, read_only=True)
         view = controller.get_view()
-        prod['enabled'].set_value(True)
         refresh_gui()
 
         # Ine read-only mode, all widgets should be disabled
@@ -214,6 +218,131 @@ class TestDetailSiteGtkView(unittest.TestCase):
             'name_cus': False,
             'domain': False,
             'template': False
+            }
+        self.assert_widgets_sensitive_flag(view, flags)
+
+
+class TestDetailDatabaseGtkView(BaseTestGtkView):
+    """Unit tests for database detail gtk views"""
+
+    def test_detail_database_init_state(self):
+        """
+        Tests site detail component's view initial state
+        """
+        config = ConfigurationManager.get_test_configuration(1)
+        prod = config['databases']['prod']
+        controller = DetailDatabaseController(prod)
+        view = controller.get_view()
+        refresh_gui()
+
+        # Tests checkboxes state
+        flags = { 'enabled': prod['enabled'].get_value() }
+        self.assert_widgets_active_flag(view, flags)
+
+        # Tests widgets sensitivity
+        flags = {
+            'enabled': not prod['done'].get_value(),
+            'name': prod['enabled'].get_value(),
+            'username': prod['enabled'].get_value(),
+            'password': prod['enabled'].get_value(),
+            'type': prod['enabled'].get_value(),
+            }
+        self.assert_widgets_sensitive_flag(view, flags)
+
+    def test_detail_database_gui_actions(self):
+        """
+        Tests that database detail component's view works as expected, and that
+        model attributes are set correspondingly to GUI actions.
+        """
+        config = ConfigurationManager.get_blank_configuration()
+        prod = config['databases']['prod']
+        controller = DetailDatabaseController(prod)
+        view = controller.get_view()
+        view['enabled'].set_active(True)
+        refresh_gui()
+
+        # All widgets should be enabled
+        flags = { 'enabled': not prod['done'].get_value() }
+        self.assert_widgets_sensitive_flag(view, flags)
+
+        # Enabled attribute should be set to True in configuraiton
+        self.assertTrue(prod['enabled'].get_value(),
+                        'database configuraiton is not enabled')
+
+        # When an entry is set, the model should have corresponding value set
+        for name in ('name', 'username', 'password'):
+            view[name].set_text('abc')
+            refresh_gui()
+            self.assertEquals(prod[name].get_value(), 'abc',
+                             'database %s attribute is wrong' % name)
+
+        # Comboboxes value should be reported to model
+        dbtype = ConfigurationManager.get_database_types().keys()[0]
+
+        view.set_combobox_selection(view['type'], dbtype)
+        refresh_gui()
+        self.assertEquals(prod['type'].get_value(), dbtype,
+                         'database type attribute is wrong')
+
+    def test_detail_database_model_actions(self):
+        """
+        Tests that database detail component's models changes are correctly
+        reported to GUI.
+        """
+        config = ConfigurationManager.get_blank_configuration()
+        prod = config['databases']['prod']
+        controller = DetailDatabaseController(prod)
+        view = controller.get_view()
+        prod['enabled'].set_value(True)
+        refresh_gui()
+
+        # All widgets should be enabled
+        flags = {
+            'enabled': not prod['done'].get_value(),
+            'name': prod['enabled'].get_value(),
+            'username': prod['enabled'].get_value(),
+            'password': prod['enabled'].get_value(),
+            'type': prod['enabled'].get_value(),
+            }
+        self.assert_widgets_sensitive_flag(view, flags)
+
+        # Enabled widget should be activated
+        self.assert_widgets_active_flag(view, {'enabled': True})
+
+        # When a name, username or password is set, correpsonding widget
+        # should follow
+        for name in ('name', 'username', 'password'):
+            prod[name].set_value('abc')
+            refresh_gui()
+            self.assertEquals(view[name].get_text(), 'abc',
+                             'database %s widget is wrong' % name)
+
+        # Comboboxes value should reflect model changes
+        dbtype = ConfigurationManager.get_database_types().keys()[0]
+
+        prod['type'].set_value(dbtype)
+        refresh_gui()
+        self.assertEquals(view.get_combobox_selection(view['type']),
+                dbtype, 'site type widget selection is wrong')
+
+    def test_detail_database_read_only(self):
+        """
+        Tests that database detail component's models changes are correctly
+        reported to GUI.
+        """
+        config = ConfigurationManager.get_blank_configuration()
+        prod = config['databases']['prod']
+        controller = DetailDatabaseController(prod, read_only=True)
+        view = controller.get_view()
+        refresh_gui()
+
+        # Ine read-only mode, all widgets should be disabled
+        flags = {
+            'enabled': False,
+            'name':  False,
+            'username':  False,
+            'password':  False,
+            'type':  False
             }
         self.assert_widgets_sensitive_flag(view, flags)
 

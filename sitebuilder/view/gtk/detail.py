@@ -35,6 +35,12 @@ class DetailMainView(GtkBaseView):
         """
         GtkBaseView.__init__(self, 'main', controller)
 
+    def set_ok_state(self, flag):
+        """
+        Enables or disabled OK button depending on flag state
+        """
+        self['ok'].set_sensitive(flag)
+
 
 class DetailSiteView(GtkBaseView, DataChangedListener):
     """

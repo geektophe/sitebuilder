@@ -6,10 +6,11 @@ Base view to be subclassed
 import pygtk
 import gtk
 import os
+from sitebuilder.utils.observer import ValidityChangedDispatcher
 
 pygtk.require("2.0")
 
-class GtkBaseView(object):
+class GtkBaseView(ValidityChangedDispatcher):
     """
     Main site add/edit/view interface.
 
@@ -25,11 +26,13 @@ class GtkBaseView(object):
         if not os.path.isfile(self.GLADE_FILE):
             raise RuntimeError("No glade file found.")
 
+        ValidityChangedDispatcher.__init__(self)
         self._controller = controller
         self._builder = gtk.Builder()
         self._builder.add_from_file(self.GLADE_FILE)
         self._toplevel_name = toplevel_name
         self._slaves = {}
+        self._attr_validity = {}
 
     def __getitem__(self, name):
         """
@@ -136,7 +139,7 @@ class GtkBaseView(object):
         else:
             combobox.set_active(-1)
 
-    def set_entry_attribute(self, widget, attribute):
+    def set_entry_attribute(self, widget, attr_name):
         """
         Retrieves an entry widget text, and tries to set it in the model.
 
@@ -147,10 +150,35 @@ class GtkBaseView(object):
         value = widget.get_text()
 
         try:
-            self._controller.set_attribute_value(attribute, value)
+            self._controller.set_attribute_value(attr_name, value)
             widget.set_tooltip_text('')
             widget.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('#90EE90'))
+            self.set_validity_flag(attr_name, True)
         except AttributeError, e:
             widget.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('#FFCCCC'))
             widget.set_tooltip_text(str(e))
+            self.set_validity_flag(attr_name, False)
 
+    def set_validity_flag(self, attr_name, flag):
+        """
+        When some widgets that require a validity check are set (typically,
+        widgets that ask user to enter text, such as entries), the validity
+        flag associated to it is saved.
+
+        It may be used to forbid composite form submition if a sub component
+        has an incorrect value set.
+        """
+        self._attr_validity[attr_name] = flag
+        self.notify_validity_changed()
+
+    def get_validity_flag(self):
+        """
+        Allows to know if the widgets composing a component are in a valid
+        state.
+        """
+        flag = True
+
+        for attr_validity in self._attr_validity.values():
+            flag = flag and attr_validity
+
+        return flag

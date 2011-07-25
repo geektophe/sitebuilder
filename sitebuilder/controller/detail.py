@@ -25,16 +25,21 @@ class DetailMainController(BaseController):
         self._read_only = read_only
         self._configuration = configuration
         self._view = DetailMainView(self)
+        self._slaves = []
 
         # Creates general component
         general = configuration.get_attribute('general')
         slave = DetailGeneralController(general, read_only)
+        slave.add_validity_changed_listener(self)
+        self._slaves.append(slave)
         self._view.attach_slave('general', 'hbox_general',
                                 slave.get_view())
 
         # Creates repository component
         repository = configuration.get_attribute('repository')
         slave = DetailRepositoryController(repository, read_only)
+        slave.add_validity_changed_listener(self)
+        self._slaves.append(slave)
         self._view.attach_slave('repository', 'hbox_repository',
                                 slave.get_view())
 
@@ -42,6 +47,8 @@ class DetailMainController(BaseController):
         for name in ConfigurationManager.get_site_platforms():
             platform = configuration.get_attribute('sites').get_attribute(name)
             slave = DetailSiteController(platform, read_only)
+            slave.add_validity_changed_listener(self)
+            self._slaves.append(slave)
             self._view.attach_slave('site_%s' % name, 'hbox_sites',
                                     slave.get_view())
 
@@ -49,6 +56,8 @@ class DetailMainController(BaseController):
         for name in ConfigurationManager.get_database_platforms():
             platform = configuration.get_attribute('databases').get_attribute(name)
             slave = DetailDatabaseController(platform, read_only)
+            slave.add_validity_changed_listener(self)
+            self._slaves.append(slave)
             self._view.attach_slave('database_%s' % name, 'hbox_databases',
                                     slave.get_view())
 
@@ -57,6 +66,21 @@ class DetailMainController(BaseController):
         DataChangedListerner trigger mmethod local implementation
         """
         pass
+
+    def validity_changed(self):
+        """
+        ValidityChangedListerner trigger mmethod local implementation
+
+        When a sub component has triggerd a state changed event, the mothod
+        enbles or disables the view's OK button depending on each component's
+        valid flag.
+        """
+        flag = True
+
+        for slave in self._slaves:
+            flag = flag and slave.get_validity_flag()
+
+        self._view.set_ok_state(flag)
 
     def get_read_only_flag(self):
         """
@@ -94,6 +118,18 @@ class DetailComponentController(BaseController):
         DataChangedListerner trigger mmethod local implementation
         """
         self.notify_data_changed()
+
+    def validity_changed(self):
+        """
+        DataChangedListerner trigger mmethod local implementation
+        """
+        self.notify_validity_changed()
+
+    def get_validity_flag(self):
+        """
+        Returns component's valididty flag
+        """
+        return self._view.get_validity_flag()
 
     def get_read_only_flag(self):
         """
@@ -140,6 +176,7 @@ class DetailSiteController(DetailComponentController):
     def __init__(self, configuration, read_only=False):
         DetailComponentController.__init__(self, configuration, read_only)
         self._view = DetailSiteView(self)
+        self._view.add_validity_changed_listener(self)
 
 
 class DetailDatabaseController(DetailComponentController):
@@ -150,6 +187,7 @@ class DetailDatabaseController(DetailComponentController):
     def __init__(self, configuration, read_only=False):
         DetailComponentController.__init__(self, configuration, read_only)
         self._view = DetailDatabaseView(self)
+        self._view.add_validity_changed_listener(self)
 
 
 class DetailRepositoryController(DetailComponentController):
@@ -160,6 +198,7 @@ class DetailRepositoryController(DetailComponentController):
     def __init__(self, configuration, read_only=False):
         DetailComponentController.__init__(self, configuration, read_only)
         self._view = DetailRepositoryView(self)
+        self._view.add_validity_changed_listener(self)
 
 
 class DetailGeneralController(DetailComponentController):
@@ -170,6 +209,7 @@ class DetailGeneralController(DetailComponentController):
     def __init__(self, configuration, read_only=False):
         DetailComponentController.__init__(self, configuration, read_only)
         self._view = DetailGeneralView(self)
+        self._view.add_validity_changed_listener(self)
 
 if __name__ == '__main__':
     config = ConfigurationManager.get_blank_configuration()

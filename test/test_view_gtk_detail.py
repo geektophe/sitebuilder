@@ -18,7 +18,7 @@ def get_default_site_controller():
 
 
 class BaseTestGtkView(unittest.TestCase):
-    """Unit tests for database detail gtk views"""
+    """Unit test base class to be subclassed by real test cases"""
 
     def assert_widgets_active_flag(self, view, flags):
         """
@@ -223,6 +223,28 @@ class TestDetailSiteGtkView(BaseTestGtkView):
             }
         self.assert_widgets_sensitive_flag(view, flags)
 
+    def test_detail_site_validity_flag(self):
+        """
+        Tests that the validity flag is correctly set and unset when a
+        component's widget value is set to a correct and incorrect value.
+        """
+        config = ConfigurationManager.get_blank_configuration()
+        prod = config['sites']['prod']
+        controller = DetailSiteController(prod, read_only=True)
+        view = controller.get_view()
+        prod['enabled'].set_value(True)
+        refresh_gui()
+
+        view['name'].set_text('abc')
+        refresh_gui()
+        self.assertTrue(view.get_validity_flag(),
+                        'site validity should be true')
+
+        view['name'].set_text('ab c')
+        refresh_gui()
+        self.assertFalse(view.get_validity_flag(),
+                        'dite validity should be false')
+
 
 class TestDetailDatabaseGtkView(BaseTestGtkView):
     """Unit tests for database detail gtk views"""
@@ -348,6 +370,29 @@ class TestDetailDatabaseGtkView(BaseTestGtkView):
             }
         self.assert_widgets_sensitive_flag(view, flags)
 
+    def test_detail_database_validity_flag(self):
+        """
+        Tests that the validity flag is correctly set and unset when a
+        component's widget value is set to a correct and incorrect value.
+        """
+        config = ConfigurationManager.get_blank_configuration()
+        prod = config['databases']['prod']
+        controller = DetailDatabaseController(prod, read_only=True)
+        view = controller.get_view()
+        prod['enabled'].set_value(True)
+        refresh_gui()
+
+        for widget in ('name', 'username'):
+            view[widget].set_text('abc')
+            refresh_gui()
+            self.assertTrue(view.get_validity_flag(),
+                            'database validity should be true')
+
+            view[widget].set_text('ab c')
+            refresh_gui()
+            self.assertFalse(view.get_validity_flag(),
+                            'database validity should be false')
+
 
 class TestDetailRepositoryGtkView(BaseTestGtkView):
     """Unit tests for repository detail gtk views"""
@@ -464,6 +509,28 @@ class TestDetailRepositoryGtkView(BaseTestGtkView):
             }
         self.assert_widgets_sensitive_flag(view, flags)
 
+    def test_detail_repository_validity_flag(self):
+        """
+        Tests that the validity flag is correctly set and unset when a
+        component's widget value is set to a correct and incorrect value.
+        """
+        config = ConfigurationManager.get_blank_configuration()
+        prod = config['repository']
+        controller = DetailRepositoryController(prod, read_only=True)
+        view = controller.get_view()
+        prod['enabled'].set_value(True)
+        refresh_gui()
+
+        view['name'].set_text('abc')
+        refresh_gui()
+        self.assertTrue(view.get_validity_flag(),
+                        'site validity should be true')
+
+        view['name'].set_text('ab c')
+        refresh_gui()
+        self.assertFalse(view.get_validity_flag(),
+                        'dite validity should be false')
+
 
 class TestDetailGeneralGtkView(BaseTestGtkView):
     """Unit tests for general detail gtk views"""
@@ -551,6 +618,26 @@ class TestDetailGeneralGtkView(BaseTestGtkView):
             'description':  False
             }
         self.assert_widgets_sensitive_flag(view, flags)
+
+    def test_detail_general_validity_flag(self):
+        """
+        Tests that the validity flag is correctly set and unset when a
+        component's widget value is set to a correct and incorrect value.
+        """
+        config = ConfigurationManager.get_blank_configuration()
+        prod = config['general']
+        controller = DetailGeneralController(prod, read_only=True)
+        view = controller.get_view()
+
+        view['name'].set_text('abc')
+        refresh_gui()
+        self.assertTrue(view.get_validity_flag(),
+                        'site validity should be true')
+
+        view['name'].set_text('@bc')
+        refresh_gui()
+        self.assertFalse(view.get_validity_flag(),
+                        'dite validity should be false')
 
 
 if __name__ == "__main__":

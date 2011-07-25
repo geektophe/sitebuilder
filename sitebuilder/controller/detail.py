@@ -4,8 +4,10 @@ Site details related controllers
 """
 
 from sitebuilder.view.gtk.detail import DetailMainView
-from sitebuilder.view.gtk.detail import DetailSiteView
 from sitebuilder.view.gtk.detail import DetailDatabaseView
+from sitebuilder.view.gtk.detail import DetailGeneralView
+from sitebuilder.view.gtk.detail import DetailSiteView
+from sitebuilder.view.gtk.detail import DetailRepositoryView
 from sitebuilder.model.configuration import ConfigurationManager
 from sitebuilder.controller.base import BaseController
 import gtk
@@ -24,12 +26,26 @@ class DetailMainController(BaseController):
         self._configuration = configuration
         self._view = DetailMainView(self)
 
+        # Creates general component
+        general = configuration.get_attribute('general')
+        slave = DetailGeneralController(general, read_only)
+        self._view.attach_slave('general', 'hbox_general',
+                                slave.get_view())
+
+        # Creates repository component
+        repository = configuration.get_attribute('repository')
+        slave = DetailRepositoryController(repository, read_only)
+        self._view.attach_slave('repository', 'hbox_repository',
+                                slave.get_view())
+
+        # Creates site components
         for name in ConfigurationManager.get_site_platforms():
             platform = configuration.get_attribute('sites').get_attribute(name)
             slave = DetailSiteController(platform, read_only)
             self._view.attach_slave('site_%s' % name, 'hbox_sites',
                                     slave.get_view())
 
+        # Creates database components
         for name in ConfigurationManager.get_database_platforms():
             platform = configuration.get_attribute('databases').get_attribute(name)
             slave = DetailDatabaseController(platform, read_only)
@@ -135,6 +151,25 @@ class DetailDatabaseController(DetailComponentController):
         DetailComponentController.__init__(self, configuration, read_only)
         self._view = DetailDatabaseView(self)
 
+
+class DetailRepositoryController(DetailComponentController):
+    """
+    Repository sub component controller
+    """
+
+    def __init__(self, configuration, read_only=False):
+        DetailComponentController.__init__(self, configuration, read_only)
+        self._view = DetailRepositoryView(self)
+
+
+class DetailGeneralController(DetailComponentController):
+    """
+    Repository sub component controller
+    """
+
+    def __init__(self, configuration, read_only=False):
+        DetailComponentController.__init__(self, configuration, read_only)
+        self._view = DetailGeneralView(self)
 
 if __name__ == '__main__':
     config = ConfigurationManager.get_blank_configuration()

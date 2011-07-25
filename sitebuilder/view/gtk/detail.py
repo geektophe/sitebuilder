@@ -323,3 +323,168 @@ class DetailDatabaseView(GtkBaseView, DataChangedListener):
         """
         type_name = self.get_combobox_selection(self['type'])
         self.set_attribute_value('type', type_name )
+
+
+class DetailRepositoryView(GtkBaseView, DataChangedListener):
+    """
+    Detail repository view composite widget.
+
+    The interface design is loaded from a glade file.
+    """
+
+    GLADE_FILE = "%s/%s" % (GLADE_BASEDIR, 'edit_repo.glade')
+
+    def __init__(self, controller):
+        """
+        Class initialization.
+        """
+        GtkBaseView.__init__(self, 'repository', controller)
+
+        # Sets widgets signal handlers
+        self['enabled'].connect('toggled', self.on_enabled_toggled)
+        self['name'].connect('changed', self.on_name_changed)
+        self['type'].connect('changed', self.on_type_changed)
+
+        # Loads comboboxes items
+        self.set_combobox_items(self['type'],
+                ConfigurationManager.get_repository_types())
+
+        # Loads widgets data from controller
+        self.load_widgets_data()
+
+        # Listens data changed events from from controller
+        controller.add_data_changed_listener(self)
+
+    def data_changed(self):
+        """
+        DataChangedListerner trigger mmethod local implementation
+        """
+        self.load_widgets_data()
+
+    def get_attribute_value(self, name):
+        """
+        Returns an attribute value from the controller
+        """
+        return self._controller.get_attribute_value(name)
+
+    def set_attribute_value(self, name, value):
+        """
+        Sets an attribute value on the controller
+        """
+        self._controller.set_attribute_value(name, value)
+
+    def load_widgets_data(self):
+        """
+        Updates view widgets based on configuraton settings
+        """
+        enabled = self.get_attribute_value('enabled')
+        done = self.get_attribute_value('done')
+        read_only = self._controller.get_read_only_flag()
+        sensitive = enabled and not done and not read_only
+
+        name = self.get_attribute_value('name')
+
+        # Loads enabled checkbox state
+        self['enabled'].set_active(enabled)
+        self['enabled'].set_sensitive(not done and not read_only)
+
+        # Loads name entry
+        self['name'].set_text(name)
+        self['name'].set_sensitive(sensitive)
+
+        # Loads type combobox selected option
+        self.set_combobox_selection(self['type'],
+                self.get_attribute_value('type'))
+        self['type'].set_sensitive(sensitive)
+
+    def on_enabled_toggled(self, widget):
+        """
+        Signal handler associated with the enabled checkbox
+        """
+        enabled = self['enabled'].get_active()
+        self.set_attribute_value('enabled', enabled)
+
+    def on_name_changed(self, widget):
+        """
+        Signal handler associated with the name text input
+        """
+        self.set_entry_attribute(widget, 'name')
+
+    def on_type_changed(self, widget):
+        """
+        Signal handler associated with the type combobox
+        """
+        type_name = self.get_combobox_selection(self['type'])
+        self.set_attribute_value('type', type_name )
+
+
+class DetailGeneralView(GtkBaseView, DataChangedListener):
+    """
+    Detail general view composite widget.
+
+    The interface design is loaded from a glade file.
+    """
+
+    GLADE_FILE = "%s/%s" % (GLADE_BASEDIR, 'edit_general.glade')
+
+    def __init__(self, controller):
+        """
+        Class initialization.
+        """
+        GtkBaseView.__init__(self, 'general', controller)
+
+        # Sets widgets signal handlers
+        self['name'].connect('changed', self.on_name_changed)
+        self['description'].connect('changed', self.on_description_changed)
+
+        # Loads widgets data from controller
+        self.load_widgets_data()
+
+        # Listens data changed events from from controller
+        controller.add_data_changed_listener(self)
+
+    def data_changed(self):
+        """
+        DataChangedListerner trigger mmethod local implementation
+        """
+        self.load_widgets_data()
+
+    def get_attribute_value(self, name):
+        """
+        Returns an attribute value from the controller
+        """
+        return self._controller.get_attribute_value(name)
+
+    def set_attribute_value(self, name, value):
+        """
+        Sets an attribute value on the controller
+        """
+        self._controller.set_attribute_value(name, value)
+
+    def load_widgets_data(self):
+        """
+        Updates view widgets based on configuraton settings
+        """
+        read_only = self._controller.get_read_only_flag()
+        name = self.get_attribute_value('name')
+        description = self.get_attribute_value('description')
+
+        # Loads name entry
+        self['name'].set_text(name)
+        self['name'].set_sensitive(not read_only)
+
+        # Loads description entry
+        self['description'].set_text(description)
+        self['description'].set_sensitive(not read_only)
+
+    def on_name_changed(self, widget):
+        """
+        Signal handler associated with the name text input
+        """
+        self.set_entry_attribute(widget, 'name')
+
+    def on_description_changed(self, widget):
+        """
+        Signal handler associated with the description text input
+        """
+        self.set_entry_attribute(widget, 'description')

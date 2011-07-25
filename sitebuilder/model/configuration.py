@@ -14,9 +14,11 @@ def get_default_config():
     """
     return {
         # General attributes
-        'id' : (None, int, 'Id should be a number'),
-        'reference' : ('', '^[\d\w\s_-]*$', 'Reference should be an alphanumeric string'),
-        'description' : ('', '^[\d\w\s_-]*$', 'Reference should be an alphanumeric string'),
+        'general' : {
+            'id' : (None, int, 'Id should be a number'),
+            'name' : ('', '^[\d\w\s_-]*$', 'Name should be an alphanumeric string'),
+            'description' : ('', '^[\d\w\s_-]*$', 'Reference should be an alphanumeric string'),
+            },
         # Repository related attriutes
         'repository' : {
             'enabled' : (False, bool),
@@ -90,9 +92,10 @@ def get_test_configuration(config_id):
     """
     config = ConfigurationManager.get_blank_configuration()
 
-    config.get_attribute('id').set_value(config_id)
-    config.get_attribute('reference').set_value('ref%d' % config_id)
-    config.get_attribute('description').set_value('desc%d' % config_id)
+    general = config.get_attribute('general')
+    general.get_attribute('id').set_value(config_id)
+    general.get_attribute('name').set_value('name%d' % config_id)
+    general.get_attribute('description').set_value('desc%d' % config_id)
 
     repository = config.get_attribute('repository')
     repository.get_attribute('enabled').set_value(True)

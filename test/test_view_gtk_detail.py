@@ -8,6 +8,8 @@ from gtktest import refresh_gui
 from sitebuilder.model.configuration import ConfigurationManager
 from sitebuilder.controller.detail import DetailSiteController
 from sitebuilder.controller.detail import DetailDatabaseController
+from sitebuilder.controller.detail import DetailRepositoryController
+from sitebuilder.controller.detail import DetailGeneralController
 
 def get_default_site_controller():
     """
@@ -343,6 +345,210 @@ class TestDetailDatabaseGtkView(BaseTestGtkView):
             'username':  False,
             'password':  False,
             'type':  False
+            }
+        self.assert_widgets_sensitive_flag(view, flags)
+
+
+class TestDetailRepositoryGtkView(BaseTestGtkView):
+    """Unit tests for repository detail gtk views"""
+
+    def test_detail_repository_init_state(self):
+        """
+        Tests repository detail component's view initial state
+        """
+        config = ConfigurationManager.get_test_configuration(1)
+        repo = config['repository']
+        controller = DetailRepositoryController(repo)
+        view = controller.get_view()
+        refresh_gui()
+
+        # Tests checkboxes state
+        flags = { 'enabled': repo['enabled'].get_value() }
+        self.assert_widgets_active_flag(view, flags)
+
+        # Tests widgets sensitivity
+        flags = {
+            'enabled': not repo['done'].get_value(),
+            'name': repo['enabled'].get_value(),
+            'type': repo['enabled'].get_value(),
+            }
+        self.assert_widgets_sensitive_flag(view, flags)
+
+    def test_detail_repository_gui_actions(self):
+        """
+        Tests that repository detail component's view works as expected, and
+        that model attributes are set correspondingly to GUI actions.
+        """
+        config = ConfigurationManager.get_blank_configuration()
+        repo = config['repository']
+        controller = DetailRepositoryController(repo)
+        view = controller.get_view()
+        view['enabled'].set_active(True)
+        refresh_gui()
+
+        # All widgets should be enabled
+        flags = { 'enabled': not repo['done'].get_value() }
+        self.assert_widgets_sensitive_flag(view, flags)
+
+        # Enabled attribute should be set to True in configuraiton
+        self.assertTrue(repo['enabled'].get_value(),
+                        'repository configuraiton is not enabled')
+
+        # When name entry is set, the model should have corresponding value set
+        view['name'].set_text('abc')
+        refresh_gui()
+        self.assertEquals(repo['name'].get_value(), 'abc',
+                             'repository name attribute is wrong')
+
+        # Comboboxes value should be reported to model
+        repotype = ConfigurationManager.get_repository_types().keys()[0]
+
+        view.set_combobox_selection(view['type'], repotype)
+        refresh_gui()
+        self.assertEquals(repo['type'].get_value(), repotype,
+                         'repository type attribute is wrong')
+
+    def test_detail_repository_model_actions(self):
+        """
+        Tests that database detail component's models changes are correctly
+        reported to GUI.
+        """
+        config = ConfigurationManager.get_blank_configuration()
+        repo = config['repository']
+        controller = DetailRepositoryController(repo)
+        view = controller.get_view()
+        repo['enabled'].set_value(True)
+        refresh_gui()
+
+        # All widgets should be enabled
+        flags = {
+            'enabled': not repo['done'].get_value(),
+            'name': repo['enabled'].get_value(),
+            'type': repo['enabled'].get_value(),
+            }
+        self.assert_widgets_sensitive_flag(view, flags)
+
+        # Enabled widget should be activated
+        self.assert_widgets_active_flag(view, {'enabled': True})
+
+        # When name is set, correpsonding widget should follow
+        repo['name'].set_value('abc')
+        refresh_gui()
+        self.assertEquals(view['name'].get_text(), 'abc',
+                         'repository name widget is wrong')
+
+        # Comboboxes value should reflect model changes
+        repotype = ConfigurationManager.get_repository_types().keys()[0]
+
+        repo['type'].set_value(repotype)
+        refresh_gui()
+        self.assertEquals(view.get_combobox_selection(view['type']),
+                repotype, 'site type widget selection is wrong')
+
+    def test_detail_repository_read_only(self):
+        """
+        Tests that database detail component's models changes are correctly
+        reported to GUI.
+        """
+        config = ConfigurationManager.get_blank_configuration()
+        repo = config['repository']
+        controller = DetailRepositoryController(repo, read_only=True)
+        view = controller.get_view()
+        refresh_gui()
+
+        # Ine read-only mode, all widgets should be disabled
+        flags = {
+            'enabled': False,
+            'name':  False,
+            'type':  False
+            }
+        self.assert_widgets_sensitive_flag(view, flags)
+
+
+class TestDetailGeneralGtkView(BaseTestGtkView):
+    """Unit tests for general detail gtk views"""
+
+    def test_detail_general_init_state(self):
+        """
+        Tests repository detail component's view initial state
+        """
+        config = ConfigurationManager.get_test_configuration(1)
+        general = config['general']
+        controller = DetailGeneralController(general)
+        view = controller.get_view()
+        refresh_gui()
+
+        # Tests widgets sensitivity
+        flags = {
+            'name': True,
+            'description': True,
+            }
+        self.assert_widgets_sensitive_flag(view, flags)
+
+    def test_detail_general_gui_actions(self):
+        """
+        Tests that repository detail component's view works as expected, and
+        that model attributes are set correspondingly to GUI actions.
+        """
+        config = ConfigurationManager.get_blank_configuration()
+        general = config['general']
+        controller = DetailGeneralController(general)
+        view = controller.get_view()
+        refresh_gui()
+
+        # When name entry is set, the model should have corresponding value set
+        view['name'].set_text('abc')
+        refresh_gui()
+        self.assertEquals(general['name'].get_value(), 'abc',
+                             'general name attribute is wrong')
+
+        view['description'].set_text('abc')
+        refresh_gui()
+        self.assertEquals(general['description'].get_value(), 'abc',
+                             'general description attribute is wrong')
+
+    def test_detail_general_model_actions(self):
+        """
+        Tests that database detail component's models changes are correctly
+        reported to GUI.
+        """
+        config = ConfigurationManager.get_blank_configuration()
+        general = config['general']
+        controller = DetailGeneralController(general)
+        view = controller.get_view()
+        refresh_gui()
+
+        # All widgets should be enabled
+        flags = { 'name': True, 'description': True }
+        self.assert_widgets_sensitive_flag(view, flags)
+
+        # When name is set, correpsonding widget should follow
+        general['name'].set_value('abc')
+        refresh_gui()
+        self.assertEquals(view['name'].get_text(), 'abc',
+                         'general name widget is wrong')
+
+        # When description is set, correpsonding widget should follow
+        general['description'].set_value('abc')
+        refresh_gui()
+        self.assertEquals(view['name'].get_text(), 'abc',
+                         'general description widget is wrong')
+
+    def test_detail_general_read_only(self):
+        """
+        Tests that database detail component's models changes are correctly
+        reported to GUI.
+        """
+        config = ConfigurationManager.get_blank_configuration()
+        general = config['general']
+        controller = DetailGeneralController(general, read_only=True)
+        view = controller.get_view()
+        refresh_gui()
+
+        # Ine read-only mode, all widgets should be disabled
+        flags = {
+            'name':  False,
+            'description':  False
             }
         self.assert_widgets_sensitive_flag(view, flags)
 

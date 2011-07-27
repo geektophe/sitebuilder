@@ -258,6 +258,7 @@ class AttributeSet(DataChangedListener,DataChangedDispatcher):
         DataChangedDispatcher.__init__(self)
         self._name = name
         self._attributes = {}
+        self._modified = False
 
         if  attributes is not None:
             self.load(attributes)
@@ -323,6 +324,11 @@ class AttributeSet(DataChangedListener,DataChangedDispatcher):
 
         The load operation is atomic. If an attribute loading fails, the whole
         loading should be rollbacked.
+
+        A loaded attribute set should have modified flag unset
+
+        >>> aset.is_modified()
+        False
         """
         new_attributes = {}
 
@@ -539,7 +545,37 @@ class AttributeSet(DataChangedListener,DataChangedDispatcher):
         """
         Listener trigger method implementation
         """
+        self._modified = True
         self.notify_data_changed(event)
+
+    def is_modified(self):
+        """
+        Returns the modified flag
+
+        When an attribute is changed, the whole up tree should be in changed
+        state:
+
+        >>> attrdict = {}
+        >>> attrdict['somename'] = ('somevalue', None, None)
+        >>> attrdict['sub'] = {}
+        >>> attrdict['sub']['someothername'] = ('someothervalue', '^[\w]+$',
+        ...                                       'Value should be a string')
+        >>> aset = AttributeSet('aset')
+        >>> aset.load(attrdict)
+        >>> aset.is_modified()
+        False
+        >>> attr = aset['sub']['someothername']
+        >>> attr.set_value('abc')
+        >>> aset.is_modified()
+        True
+        """
+        return self._modified
+
+    def clear_modified(self):
+        """
+        Resets the modified flag
+        """
+        self._modified = False
 
     def iteritems(self):
         """

@@ -5,20 +5,22 @@ Test classes for view.gtk.detail views classes
 
 import unittest
 from gtktest import refresh_gui
+from sitebuilder.utils.parameters import set_application_context
 from sitebuilder.model.configuration import ConfigurationManager
 from sitebuilder.controller.detail import DetailSiteController
 from sitebuilder.controller.detail import DetailDatabaseController
 from sitebuilder.controller.detail import DetailRepositoryController
 from sitebuilder.controller.detail import DetailGeneralController
 
-def get_default_site_controller():
-    """
-    Returns a DetailSiteController loaded with the default configuration
-    """
-
 
 class BaseTestGtkView(unittest.TestCase):
     """Unit test base class to be subclassed by real test cases"""
+
+    def setUp(self):
+        """
+        Enables test context
+        """
+        set_application_context('test')
 
     def assert_widgets_active_flag(self, view, flags):
         """
@@ -72,6 +74,30 @@ class TestDetailSiteGtkView(BaseTestGtkView):
             'name_cus': prod['enabled'].get_value(),
             'domain': prod['enabled'].get_value(),
             'template': prod['enabled'].get_value()
+            }
+        self.assert_widgets_sensitive_flag(view, flags)
+
+    def test_detail_site_done_state(self):
+        """
+        Tests site detail component's view in done state
+        """
+        config = ConfigurationManager.get_test_configuration(1)
+        prod = config['sites']['prod']
+        prod['done'].set_value(True)
+        controller = DetailSiteController(prod)
+        view = controller.get_view()
+        refresh_gui()
+
+        # Tests widgets sensitivity (in done state, all should be inactive
+        # except proxied and maintenance)
+        flags = {
+            'enabled': False,
+            'proxied': prod['enabled'].get_value(),
+            'maintenance': prod['enabled'].get_value(),
+            'name_def': False,
+            'name_cus': False,
+            'domain': False,
+            'template': False
             }
         self.assert_widgets_sensitive_flag(view, flags)
 
@@ -273,6 +299,27 @@ class TestDetailDatabaseGtkView(BaseTestGtkView):
             }
         self.assert_widgets_sensitive_flag(view, flags)
 
+    def test_detail_database_done_state(self):
+        """
+        Tests site detail component's view n done state
+        """
+        config = ConfigurationManager.get_test_configuration(1)
+        prod = config['databases']['prod']
+        prod['done'].set_value(True)
+        controller = DetailDatabaseController(prod)
+        view = controller.get_view()
+        refresh_gui()
+
+        # Tests widgets sensitivity
+        flags = {
+            'enabled': False,
+            'name': False,
+            'username': False,
+            'password': False,
+            'type': False
+            }
+        self.assert_widgets_sensitive_flag(view, flags)
+
     def test_detail_database_gui_actions(self):
         """
         Tests that database detail component's view works as expected, and that
@@ -416,6 +463,25 @@ class TestDetailRepositoryGtkView(BaseTestGtkView):
             'enabled': not repo['done'].get_value(),
             'name': repo['enabled'].get_value(),
             'type': repo['enabled'].get_value(),
+            }
+        self.assert_widgets_sensitive_flag(view, flags)
+
+    def test_detail_repository_done_state(self):
+        """
+        Tests repository detail component's view in done state
+        """
+        config = ConfigurationManager.get_test_configuration(1)
+        repo = config['repository']
+        repo['done'].set_value(True)
+        controller = DetailRepositoryController(repo)
+        view = controller.get_view()
+        refresh_gui()
+
+        # Tests widgets sensitivity (in done state, all should be inactive)
+        flags = {
+            'enabled': False,
+            'name': False,
+            'type': False
             }
         self.assert_widgets_sensitive_flag(view, flags)
 

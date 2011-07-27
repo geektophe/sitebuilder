@@ -5,6 +5,7 @@ Test classes for abstraction.configuration moodule
 
 import unittest
 import doctest
+from sitebuilder.utils.parameters import set_application_context
 from sitebuilder.model import configuration
 from sitebuilder.model.configuration import ConfigurationManager
 
@@ -12,6 +13,13 @@ class Test(unittest.TestCase):
     """
     Unist tests for configuration.
     """
+
+    def setUp(self):
+        """
+        Enables test context
+        """
+        set_application_context('test')
+
 
     def test_doctests(self):
         """
@@ -26,9 +34,10 @@ class Test(unittest.TestCase):
         """
         config = ConfigurationManager.get_blank_configuration()
 
-        self.assertEquals(config.get_attribute('id').get_value(), None)
-        self.assertEquals(config.get_attribute('reference').get_value(), '')
-        self.assertEquals(config.get_attribute('description').get_value(), '')
+        general = config.get_attribute('general')
+        self.assertEquals(general.get_attribute('id').get_value(), None)
+        self.assertEquals(general.get_attribute('name').get_value(), '')
+        self.assertEquals(general.get_attribute('description').get_value(), '')
 
         repository = config.get_attribute('repository')
         self.assertEquals(repository.get_attribute('enabled').get_value(), False)
@@ -76,17 +85,18 @@ class Test(unittest.TestCase):
         """
         config = ConfigurationManager.get_blank_configuration()
 
-        _id = config.get_attribute('id')
+        general = config.get_attribute('general')
+        _id = general.get_attribute('id')
         _id.set_value(1)
         self.assertEquals(_id.get_value(), 1)
         self.assertRaises(AttributeError, _id.set_value, '1')
 
-        ref = config.get_attribute('reference')
-        ref.set_value('ref')
-        self.assertEquals(ref.get_value(), 'ref')
+        ref = general.get_attribute('name')
+        ref.set_value('name')
+        self.assertEquals(ref.get_value(), 'name')
         self.assertRaises(AttributeError, ref.set_value, "'")
 
-        desc = config.get_attribute('description')
+        desc = general.get_attribute('description')
         desc.set_value('desc')
         self.assertEquals(desc.get_value(), 'desc')
         self.assertRaises(AttributeError, desc.set_value, "'")

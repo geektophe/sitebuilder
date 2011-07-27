@@ -469,7 +469,7 @@ class AttributeSet(DataChangedListener,DataChangedDispatcher):
         AttributeError: No attribute named 'somename'
         """
         attribute = self.get_attribute(name)
-        attribute.del_data_changed_listener(self)
+        attribute.remove_data_changed_listener(self)
         del self._attributes[name]
         self.notify_data_changed()
 

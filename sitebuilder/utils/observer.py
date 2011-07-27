@@ -4,13 +4,16 @@ This module defines sever listener classes used at different applicaiton
 levels.
 """
 
+from sitebuilder.utils.event import Event
+
+
 class DataChangedListener(object):
     """
     Listener object that may be called when a model data has been changed and
     an action is needed from other components to take it in account.
     """
 
-    def data_changed(self):
+    def data_changed(self, event=None):
         """
         This method has to be overridden by listeners implementations
         """
@@ -32,7 +35,7 @@ class DataChangedDispatcher(object):
 
     def add_data_changed_listener(self, listener):
         """
-        Adds a DataChangedListener listener boject to listeners list
+        Adds a DataChangedListener listener object to listeners list
 
         We may add a DataChangedListener instance
 
@@ -56,14 +59,20 @@ class DataChangedDispatcher(object):
 
     def remove_data_changed_listener(self, listener):
         """
-        Deletes a DataChangedListener listener boject to listeners list
+        Deletes a DataChangedListener listener object to listeners list
         """
         try:
             self._data_changed_listeners.remove(listener)
         except ValueError:
             pass
 
-    def notify_data_changed(self):
+    def clear_data_changed_listeners(self):
+        """
+        Deletes all DataChangedListener listeners object from listeners list
+        """
+        del self._data_changed_listeners[:]
+
+    def notify_data_changed(self, event=None):
         """
         Notifies all listeners that a data has changed
 
@@ -77,9 +86,27 @@ class DataChangedDispatcher(object):
         Traceback (most recent call last):
             ...
         NotImplementedError: This method has currently no implmentation and has to be overridden
+
+        An event containing the context that triggered the event may also be
+        passed to listeners
+
+        >>> event = Event('test')
+        >>> dispatcher.notify_data_changed(event)
+        Traceback (most recent call last):
+            ...
+        NotImplementedError: This method has currently no implmentation and has to be overridden
+
+        Using a parameter that is not an event shold raise en exception
+        >>> dispatcher.notify_data_changed('fake')
+        Traceback (most recent call last):
+            ...
+        AttributeError: event parameter should be an instance of Event
         """
+        if not event is None and not isinstance(event, Event):
+            raise AttributeError("event parameter should be an instance of Event")
+
         for listener in self._data_changed_listeners:
-            listener.data_changed()
+            listener.data_changed(event)
 
 
 class ValidityChangedListener(object):
@@ -89,7 +116,7 @@ class ValidityChangedListener(object):
     take it in account.
     """
 
-    def validity_changed(self):
+    def validity_changed(self, event=None):
         """
         This method has to be overridden by listeners implementations
         """
@@ -111,7 +138,7 @@ class ValidityChangedDispatcher(object):
 
     def add_validity_changed_listener(self, listener):
         """
-        Adds a ValidityChangedListener listener boject to listeners list
+        Adds a ValidityChangedListener listener object to listeners list
 
         We may add a DataChangedListener instance
 
@@ -135,14 +162,20 @@ class ValidityChangedDispatcher(object):
 
     def remove_validity_changed_listener(self, listener):
         """
-        Deletes a ValidityChangedListener listener boject to listeners list
+        Deletes a ValidityChangedListener listener object to listeners list
         """
         try:
             self._validity_changed_listeners.remove(listener)
         except ValueError:
             pass
 
-    def notify_validity_changed(self):
+    def clear_validity_changed_listeners(self):
+        """
+        Deletes all ValidityChangedListener listeners object from listeners list
+        """
+        del self._validity_changed_listeners[:]
+
+    def notify_validity_changed(self, event=None):
         """
         Notifies all listeners that a data has changed
 
@@ -157,9 +190,27 @@ class ValidityChangedDispatcher(object):
         Traceback (most recent call last):
             ...
         NotImplementedError: This method has currently no implmentation and has to be overridden
+
+        An event containing the context that triggered the event may also be
+        passed to listeners
+
+        >>> event = Event('test')
+        >>> dispatcher.notify_validity_changed(event)
+        Traceback (most recent call last):
+            ...
+        NotImplementedError: This method has currently no implmentation and has to be overridden
+
+        Using a parameter that is not an event shold raise en exception
+        >>> dispatcher.notify_validity_changed('fake')
+        Traceback (most recent call last):
+            ...
+        AttributeError: event parameter should be an instance of Event
         """
+        if not event is None and not isinstance(event, Event):
+            raise AttributeError("event parameter should be an instance of Event")
+
         for listener in self._validity_changed_listeners:
-            listener.validity_changed()
+            listener.validity_changed(event)
 
 
 class ViewActionListener(object):
@@ -168,7 +219,7 @@ class ViewActionListener(object):
     a view.
     """
 
-    def view_action_activated(self):
+    def view_action_activated(self, event=None):
         """
         This method has to be overridden by listeners implementations
         """
@@ -190,7 +241,7 @@ class ViewActionDispatcher(object):
 
     def add_view_action_activated_listener(self, listener):
         """
-        Adds a ViewActionListener listener boject to listeners list
+        Adds a ViewActionListener listener object to listeners list
 
         We may add a ViewActionListener instance
 
@@ -214,14 +265,21 @@ class ViewActionDispatcher(object):
 
     def remove_view_action_activated_listener(self, listener):
         """
-        Deletes a ViewActionListener listener boject to listeners list
+        Deletes a ViewActionListener listener object to listeners list
         """
         try:
             self._view_action_activated_listeners.remove(listener)
         except ValueError:
             pass
 
-    def notify_view_action_activated(self):
+    def clear_view_action_activated_listeners(self):
+        """
+        Deletes all ViewActionActivatedListener listeners object from listeners
+        list
+        """
+        del self._view_action_activated_listeners[:]
+
+    def notify_view_action_activated(self, event=None):
         """
         Notifies all listeners that a data has changed
 
@@ -236,9 +294,27 @@ class ViewActionDispatcher(object):
         Traceback (most recent call last):
             ...
         NotImplementedError: This method has currently no implmentation and has to be overridden
+
+        An event containing the context that triggered the event may also be
+        passed to listeners
+
+        >>> event = Event('test')
+        >>> dispatcher.notify_view_action_activated(event)
+        Traceback (most recent call last):
+            ...
+        NotImplementedError: This method has currently no implmentation and has to be overridden
+
+        Using a parameter that is not an event shold raise en exception
+        >>> dispatcher.notify_view_action_activated('fake')
+        Traceback (most recent call last):
+            ...
+        AttributeError: event parameter should be an instance of Event
         """
+        if not event is None and not isinstance(event, Event):
+            raise AttributeError("event parameter should be an instance of Event")
+
         for listener in self._view_action_activated_listeners:
-            listener.view_action_activated()
+            listener.view_action_activated(event)
 
 
 class AddActionListener(object):
@@ -247,7 +323,7 @@ class AddActionListener(object):
     a view.
     """
 
-    def add_action_activated(self):
+    def add_action_activated(self, event=None):
         """
         This method has to be overridden by listeners implementations
         """
@@ -269,7 +345,7 @@ class AddActionDispatcher(object):
 
     def add_add_action_activated_listener(self, listener):
         """
-        Adds a AddActionListener listener boject to listeners list
+        Adds a AddActionListener listener object to listeners list
 
         We may add a AddActionListener instance
 
@@ -293,14 +369,21 @@ class AddActionDispatcher(object):
 
     def remove_add_action_activated_listener(self, listener):
         """
-        Deletes a AddActionListener listener boject to listeners list
+        Deletes a AddActionListener listener object to listeners list
         """
         try:
             self._add_action_activated_listeners.remove(listener)
         except ValueError:
             pass
 
-    def notify_add_action_activated(self):
+    def clear_add_action_activated_listeners(self):
+        """
+        Deletes all AddActionActivatedListener listeners object from listeners
+        list
+        """
+        del self._add_action_activated_listeners[:]
+
+    def notify_add_action_activated(self, event=None):
         """
         Notifies all listeners that a data has changed
 
@@ -315,9 +398,27 @@ class AddActionDispatcher(object):
         Traceback (most recent call last):
             ...
         NotImplementedError: This method has currently no implmentation and has to be overridden
+
+        An event containing the context that triggered the event may also be
+        passed to listeners
+
+        >>> event = Event('test')
+        >>> dispatcher.notify_add_action_activated(event)
+        Traceback (most recent call last):
+            ...
+        NotImplementedError: This method has currently no implmentation and has to be overridden
+
+        Using a parameter that is not an event shold raise en exception
+        >>> dispatcher.notify_add_action_activated('fake')
+        Traceback (most recent call last):
+            ...
+        AttributeError: event parameter should be an instance of Event
         """
+        if not event is None and not isinstance(event, Event):
+            raise AttributeError("event parameter should be an instance of Event")
+
         for listener in self._add_action_activated_listeners:
-            listener.add_action_activated()
+            listener.add_action_activated(event)
 
 
 class EditActionListener(object):
@@ -326,7 +427,7 @@ class EditActionListener(object):
     a view.
     """
 
-    def edit_action_activated(self):
+    def edit_action_activated(self, event=None):
         """
         This method has to be overridden by listeners implementations
         """
@@ -348,7 +449,7 @@ class EditActionDispatcher(object):
 
     def add_edit_action_activated_listener(self, listener):
         """
-        Edits a EditActionListener listener boject to listeners list
+        Edits a EditActionListener listener object to listeners list
 
         We may edit a EditActionListener instance
 
@@ -372,14 +473,21 @@ class EditActionDispatcher(object):
 
     def remove_edit_action_activated_listener(self, listener):
         """
-        Deletes a EditActionListener listener boject to listeners list
+        Deletes a EditActionListener listener object to listeners list
         """
         try:
             self._edit_action_activated_listeners.remove(listener)
         except ValueError:
             pass
 
-    def notify_edit_action_activated(self):
+    def clear_edit_action_activated_listeners(self):
+        """
+        Deletes all EditActionActivatedListener listeners object from listeners
+        list
+        """
+        del self._edit_action_activated_listeners[:]
+
+    def notify_edit_action_activated(self, event=None):
         """
         Notifies all listeners that a data has changed
 
@@ -394,9 +502,27 @@ class EditActionDispatcher(object):
         Traceback (most recent call last):
             ...
         NotImplementedError: This method has currently no implmentation and has to be overridden
+
+        An event containing the context that triggered the event may also be
+        passed to listeners
+
+        >>> event = Event('test')
+        >>> dispatcher.notify_edit_action_activated(event)
+        Traceback (most recent call last):
+            ...
+        NotImplementedError: This method has currently no implmentation and has to be overridden
+
+        Using a parameter that is not an event shold raise en exception
+        >>> dispatcher.notify_edit_action_activated('fake')
+        Traceback (most recent call last):
+            ...
+        AttributeError: event parameter should be an instance of Event
         """
+        if not event is None and not isinstance(event, Event):
+            raise AttributeError("event parameter should be an instance of Event")
+
         for listener in self._edit_action_activated_listeners:
-            listener.edit_action_activated()
+            listener.edit_action_activated(event)
 
 
 class DeleteActionListener(object):
@@ -405,7 +531,7 @@ class DeleteActionListener(object):
     a view.
     """
 
-    def delete_action_activated(self):
+    def delete_action_activated(self, event=None):
         """
         This method has to be overridden by listeners implementations
         """
@@ -427,7 +553,7 @@ class DeleteActionDispatcher(object):
 
     def add_delete_action_activated_listener(self, listener):
         """
-        Deletes a DeleteActionListener listener boject to listeners list
+        Deletes a DeleteActionListener listener object to listeners list
 
         We may delete a DeleteActionListener instance
 
@@ -451,14 +577,21 @@ class DeleteActionDispatcher(object):
 
     def remove_delete_action_activated_listener(self, listener):
         """
-        Deletes a DeleteActionListener listener boject to listeners list
+        Deletes a DeleteActionListener listener object to listeners list
         """
         try:
             self._delete_action_activated_listeners.remove(listener)
         except ValueError:
             pass
 
-    def notify_delete_action_activated(self):
+    def clear_delete_action_activated_listeners(self):
+        """
+        Deletes all DeleteActionActivatedListener listeners object from
+        listeners list
+        """
+        del self._delete_action_activated_listeners[:]
+
+    def notify_delete_action_activated(self, event=None):
         """
         Notifies all listeners that a data has changed
 
@@ -473,9 +606,27 @@ class DeleteActionDispatcher(object):
         Traceback (most recent call last):
             ...
         NotImplementedError: This method has currently no implmentation and has to be overridden
+
+        An event containing the context that triggered the event may also be
+        passed to listeners
+
+        >>> event = Event('test')
+        >>> dispatcher.notify_delete_action_activated(event)
+        Traceback (most recent call last):
+            ...
+        NotImplementedError: This method has currently no implmentation and has to be overridden
+
+        Using a parameter that is not an event shold raise en exception
+        >>> dispatcher.notify_delete_action_activated('fake')
+        Traceback (most recent call last):
+            ...
+        AttributeError: event parameter should be an instance of Event
         """
+        if not event is None and not isinstance(event, Event):
+            raise AttributeError("event parameter should be an instance of Event")
+
         for listener in self._delete_action_activated_listeners:
-            listener.delete_action_activated()
+            listener.delete_action_activated(event)
 
 
 class SubmitActionListener(object):
@@ -484,7 +635,7 @@ class SubmitActionListener(object):
     a view.
     """
 
-    def submit_action_activated(self):
+    def submit_action_activated(self, event=None):
         """
         This method has to be overridden by listeners implementations
         """
@@ -506,7 +657,7 @@ class SubmitActionDispatcher(object):
 
     def add_submit_action_activated_listener(self, listener):
         """
-        Submits a SubmitActionListener listener boject to listeners list
+        Submits a SubmitActionListener listener object to listeners list
 
         We may submit a SubmitActionListener instance
 
@@ -530,14 +681,21 @@ class SubmitActionDispatcher(object):
 
     def remove_submit_action_activated_listener(self, listener):
         """
-        Submits a SubmitActionListener listener boject to listeners list
+        Submits a SubmitActionListener listener object to listeners list
         """
         try:
             self._submit_action_activated_listeners.remove(listener)
         except ValueError:
             pass
 
-    def notify_submit_action_activated(self):
+    def clear_submit_action_activated_listeners(self):
+        """
+        Deletes all SubmitActionActivatedListener listeners object from
+        listeners list
+        """
+        del self._submit_action_activated_listeners[:]
+
+    def notify_submit_action_activated(self, event=None):
         """
         Notifies all listeners that a data has changed
 
@@ -552,9 +710,131 @@ class SubmitActionDispatcher(object):
         Traceback (most recent call last):
             ...
         NotImplementedError: This method has currently no implmentation and has to be overridden
+
+        An event containing the context that triggered the event may also be
+        passed to listeners
+
+        >>> event = Event('test')
+        >>> dispatcher.notify_submit_action_activated(event)
+        Traceback (most recent call last):
+            ...
+        NotImplementedError: This method has currently no implmentation and has to be overridden
+
+        Using a parameter that is not an event shold raise en exception
+        >>> dispatcher.notify_submit_action_activated('fake')
+        Traceback (most recent call last):
+            ...
+        AttributeError: event parameter should be an instance of Event
         """
+        if not event is None and not isinstance(event, Event):
+            raise AttributeError("event parameter should be an instance of Event")
+
         for listener in self._submit_action_activated_listeners:
-            listener.submit_action_activated()
+            listener.submit_action_activated(event)
+
+
+class CancelActionListener(object):
+    """
+    Listener object that may be called when the view action is activated in
+    a view.
+    """
+
+    def cancel_action_activated(self, event=None):
+        """
+        This method has to be overridden by listeners implementations
+        """
+        raise NotImplementedError("This method has currently no " + \
+                                  "implmentation and has to be overridden")
+
+
+class CancelActionDispatcher(object):
+    """
+    Dispatcher base class that objects may subclass to dispatch
+    'cancel action activated' events.
+    """
+
+    def __init__(self):
+        """
+        Dispatcher initialization
+        """
+        self._cancel_action_activated_listeners = []
+
+    def add_cancel_action_activated_listener(self, listener):
+        """
+        Submits a CancelActionListener listener object to listeners list
+
+        We may cancel a CancelActionListener instance
+
+        >>> dispatcher = CancelActionDispatcher()
+        >>> listener = CancelActionListener()
+        >>> dispatcher.add_cancel_action_activated_listener(listener)
+
+        Submiting an object that is not a CancelActionListener should raise an
+        exception
+
+        >>> dispatcher = CancelActionDispatcher()
+        >>> dispatcher.add_cancel_action_activated_listener('fake')
+        Traceback (most recent call last):
+            ...
+        AttributeError: Listener must be an instance of CancelActionListener
+        """
+        if not isinstance(listener, CancelActionListener):
+            raise AttributeError(
+                "Listener must be an instance of CancelActionListener")
+        self._cancel_action_activated_listeners.append(listener)
+
+    def remove_cancel_action_activated_listener(self, listener):
+        """
+        Submits a CancelActionListener listener object to listeners list
+        """
+        try:
+            self._cancel_action_activated_listeners.remove(listener)
+        except ValueError:
+            pass
+
+    def clear_cancel_action_activated_listeners(self):
+        """
+        Deletes all CancelActionActivatedListener listeners object from
+        listeners list
+        """
+        del self._cancel_action_activated_listeners[:]
+
+    def notify_cancel_action_activated(self, event=None):
+        """
+        Notifies all listeners that a data has changed
+
+        As the CancelActionListener instance we use for the test is only
+        used as an abstract class, the notify method should raise a
+        NotImplementedError
+
+        >>> dispatcher = CancelActionDispatcher()
+        >>> listener = CancelActionListener()
+        >>> dispatcher.add_cancel_action_activated_listener(listener)
+        >>> dispatcher.notify_cancel_action_activated()
+        Traceback (most recent call last):
+            ...
+        NotImplementedError: This method has currently no implmentation and has to be overridden
+
+        An event containing the context that triggered the event may also be
+        passed to listeners
+
+        >>> event = Event('test')
+        >>> dispatcher.notify_cancel_action_activated(event)
+        Traceback (most recent call last):
+            ...
+        NotImplementedError: This method has currently no implmentation and has to be overridden
+
+        Using a parameter that is not an event shold raise en exception
+        >>> dispatcher.notify_cancel_action_activated('fake')
+        Traceback (most recent call last):
+            ...
+        AttributeError: event parameter should be an instance of Event
+        """
+        if not event is None and not isinstance(event, Event):
+            raise AttributeError("event parameter should be an instance of Event")
+
+        for listener in self._cancel_action_activated_listeners:
+            listener.cancel_action_activated(event)
 
 
 if __name__ == "__main__":

@@ -13,6 +13,7 @@ attributes. It has the necessary methods to manipulate attributes.
 import re
 from sitebuilder.utils.observer import DataChangedListener
 from sitebuilder.utils.observer import DataChangedDispatcher
+from sitebuilder.utils.event import Event
 
 class Attribute(DataChangedDispatcher):
     """
@@ -189,6 +190,24 @@ class Attribute(DataChangedDispatcher):
         >>> attr.set_value(5, False)
         >>> attr.is_modified()
         True
+
+        As a DataChangedDispatcher, when an attribute value is set, an event is
+        sent containing the attribute itself as context.
+
+        >>> class TestListener(DataChangedListener):
+        ...     def __init__(self):
+        ...         self._event = None
+        ...     def data_changed(self, event):
+        ...         self._event = event
+        ...     def get_event(self):
+        ...         return self._event
+        >>> listener = TestListener()
+        >>> attr = Attribute(name='somename')
+        >>> attr.add_data_changed_listener(listener)
+        >>> attr.set_value(5)
+        >>> context = listener.get_event().get_context()
+        >>> attr is context
+        True
         """
         if check is True and self.validate(value) is False:
             # TODO: be more descriptive
@@ -198,7 +217,7 @@ class Attribute(DataChangedDispatcher):
                 raise AttributeError(r"Value did not match '%s'" % self._validator)
         self._value = value
         self._modified = True
-        self.notify_data_changed()
+        self.notify_data_changed(Event(self))
 
     def is_modified(self):
         """
@@ -436,6 +455,25 @@ class AttributeSet(DataChangedListener,DataChangedDispatcher):
         Traceback (most recent call last):
             ...
         AttributeError: Attribute name 'somename' already exists.
+
+        As a DataChangedDispatcher, when an attribute is added, an event is
+        sent containing the attribute set itself as context.
+
+        >>> class TestListener(DataChangedListener):
+        ...     def __init__(self):
+        ...         self._event = None
+        ...     def data_changed(self, event):
+        ...         self._event = event
+        ...     def get_event(self):
+        ...         return self._event
+        >>> listener = TestListener()
+        >>> aset = AttributeSet('aset')
+        >>> aset.add_data_changed_listener(listener)
+        >>> attr = Attribute(name='somename')
+        >>> aset.add_attribute(attr)
+        >>> context = listener.get_event().get_context()
+        >>> aset is context
+        True
         """
         if not isinstance(attribute, Attribute) and \
                 not isinstance(attribute, AttributeSet):
@@ -450,7 +488,7 @@ class AttributeSet(DataChangedListener,DataChangedDispatcher):
 
         self._attributes[attribute.get_name()] = attribute
         attribute.add_data_changed_listener(self)
-        self.notify_data_changed()
+        self.notify_data_changed(Event(self))
 
     def remove_attribute(self, name):
         """
@@ -467,17 +505,41 @@ class AttributeSet(DataChangedListener,DataChangedDispatcher):
         Traceback (most recent call last):
             ...
         AttributeError: No attribute named 'somename'
+
+        As a DataChangedDispatcher, when an attribute is removed, an event is
+        sent containing the attribute set itself as context.
+
+        >>> class TestListener(DataChangedListener):
+        ...     def __init__(self):
+        ...         self._event = None
+        ...     def data_changed(self, event):
+        ...         self._event = event
+        ...     def get_event(self):
+        ...         return self._event
+        >>> listener = TestListener()
+        >>> aset = AttributeSet('aset')
+        >>> aset.add_data_changed_listener(listener)
+        >>> attr = Attribute(name='somename')
+        >>> aset.add_attribute(attr)
+        >>> context = listener.get_event().get_context()
+        >>> aset is context
+        True
         """
         attribute = self.get_attribute(name)
+
+        if isinstance(attribute, AttributeSet):
+            for attrname in attribute.get_attribute_names():
+                attribute.remove_attribute(attrname)
+
         attribute.remove_data_changed_listener(self)
         del self._attributes[name]
-        self.notify_data_changed()
+        self.notify_data_changed(Event(self))
 
-    def data_changed(self):
+    def data_changed(self, event=None):
         """
         Listener trigger method implementation
         """
-        self.notify_data_changed()
+        self.notify_data_changed(event)
 
     def iteritems(self):
         """

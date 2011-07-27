@@ -6,6 +6,7 @@ Base view to be subclassed
 import pygtk
 import gtk
 import os
+from sitebuilder.utils.event import Event
 from sitebuilder.utils.observer import ValidityChangedDispatcher
 
 pygtk.require("2.0")
@@ -45,6 +46,12 @@ class GtkBaseView(ValidityChangedDispatcher):
             return self._slaves[name]
 
         return None
+
+    def get_controller(self):
+        """
+        Returns controller instance
+        """
+        return self._controller
 
     def get_toplevel(self):
         """
@@ -169,7 +176,7 @@ class GtkBaseView(ValidityChangedDispatcher):
         has an incorrect value set.
         """
         self._attr_validity[attr_name] = flag
-        self.notify_validity_changed()
+        self.notify_validity_changed(Event(self))
 
     def get_validity_flag(self):
         """
@@ -182,3 +189,11 @@ class GtkBaseView(ValidityChangedDispatcher):
             flag = flag and attr_validity
 
         return flag
+
+    def destroy(self):
+        """
+        Cleanly destroyes components
+        """
+        # Clears listeners lists
+        self.clear_validity_changed_listeners()
+        self.get_toplevel().destroy()

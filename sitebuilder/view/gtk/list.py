@@ -117,3 +117,14 @@ class ListView(GtkBaseView, ViewActionDispatcher, AddActionDispatcher,
         Signal handler associated with the view action
         """
         self.notify_delete_action_activated()
+
+    def destroy(self):
+        """
+        Cleanly destroyes components
+        """
+        # Clears listeners lists
+        self.clear_add_action_activated_listeners()
+        self.clear_view_action_activated_listeners()
+        self.clear_edit_action_activated_listeners()
+        self.clear_delete_action_activated_listeners()
+        GtkBaseView.destroy(self)

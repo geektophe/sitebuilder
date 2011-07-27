@@ -21,7 +21,7 @@ class TestListener(DataChangedListener):
         """
         self._flag = False
 
-    def data_changed(self):
+    def data_changed(self, event=None):
         """
         Sets flag to true when notified
         """

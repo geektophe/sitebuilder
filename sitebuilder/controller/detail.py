@@ -3,6 +3,7 @@
 Site details related controllers
 """
 
+from sitebuilder.utils.event import Event
 from sitebuilder.view.gtk.detail import DetailMainView
 from sitebuilder.view.gtk.detail import DetailDatabaseView
 from sitebuilder.view.gtk.detail import DetailGeneralView
@@ -10,9 +11,13 @@ from sitebuilder.view.gtk.detail import DetailSiteView
 from sitebuilder.view.gtk.detail import DetailRepositoryView
 from sitebuilder.model.configuration import ConfigurationManager
 from sitebuilder.controller.base import BaseController
+from sitebuilder.utils.observer import SubmitActionListener
+from sitebuilder.utils.observer import SubmitActionDispatcher
+from sitebuilder.utils.observer import CancelActionListener
 import gtk
 
-class DetailMainController(BaseController):
+class DetailMainController(BaseController, SubmitActionListener,
+                           SubmitActionDispatcher, CancelActionListener):
     """
     Site details main interface's controller
     """
@@ -22,9 +27,12 @@ class DetailMainController(BaseController):
         Controller initialization
         """
         BaseController.__init__(self)
+        SubmitActionDispatcher.__init__(self)
         self._read_only = read_only
         self._configuration = configuration
         self._view = DetailMainView(self)
+        self._view.add_submit_action_activated_listener(self)
+        self._view.add_cancel_action_activated_listener(self)
         self._slaves = []
 
         # Creates general component
@@ -61,13 +69,17 @@ class DetailMainController(BaseController):
             self._view.attach_slave('database_%s' % name, 'hbox_databases',
                                     slave.get_view())
 
-    def data_changed(self):
+    def data_changed(self, event=None):
         """
         DataChangedListerner trigger mmethod local implementation
+
+        As this class is not sensible to DataChanged events (only sub
+        components are), because of DataCHangedListener dependcy, this method
+        is nulled
         """
         pass
 
-    def validity_changed(self):
+    def validity_changed(self, event=None):
         """
         ValidityChangedListerner trigger mmethod local implementation
 
@@ -80,7 +92,20 @@ class DetailMainController(BaseController):
         for slave in self._slaves:
             flag = flag and slave.get_validity_flag()
 
-        self._view.set_ok_state(flag)
+        self._view.set_submit_state(flag)
+
+    def submit_action_activated(self, event=None):
+        """
+        SubmitActionActivatedListerner trigger mmethod local implementation
+        """
+        self.notify_submit_action_activated(Event(self._configuration))
+        self.destroy()
+
+    def cancel_action_activated(self, event=None):
+        """
+        SubmitActionActivatedListerner trigger mmethod local implementation
+        """
+        self.destroy()
 
     def get_read_only_flag(self):
         """
@@ -93,6 +118,22 @@ class DetailMainController(BaseController):
         Returns view
         """
         return self._view
+
+    def destroy(self):
+        """
+        Cleanly destroyes all components
+        """
+        # Destroyes slave components
+        for slave in self._slaves:
+            slave.destroy()
+
+        # Clears listeners lists
+        self.clear_data_changed_listeners()
+        self.clear_validity_changed_listeners()
+        self.clear_submit_action_activated_listeners()
+
+        # Destroyes view
+        self.get_view().destroy()
 
 
 class DetailComponentController(BaseController):
@@ -113,17 +154,17 @@ class DetailComponentController(BaseController):
         self._view = None
         configuration.add_data_changed_listener(self)
 
-    def data_changed(self):
+    def data_changed(self, event=None):
         """
         DataChangedListerner trigger mmethod local implementation
         """
-        self.notify_data_changed()
+        self.notify_data_changed(event)
 
-    def validity_changed(self):
+    def validity_changed(self, event=None):
         """
         DataChangedListerner trigger mmethod local implementation
         """
-        self.notify_validity_changed()
+        self.notify_validity_changed(event)
 
     def get_validity_flag(self):
         """
@@ -166,6 +207,20 @@ class DetailComponentController(BaseController):
         Returns platform anme, that is in fact the configuration name
         """
         return self._configuration.get_name()
+
+    def destroy(self):
+        """
+        Cleanly destroyes all components
+        """
+        # Unsubscribes from configuration data changed events
+        self._configuration.remove_data_changed_listener(self)
+
+        # Clears listeners lists
+        self.clear_data_changed_listeners()
+        self.clear_validity_changed_listeners()
+
+        # Destroyes view
+        self.get_view().destroy()
 
 
 class DetailSiteController(DetailComponentController):

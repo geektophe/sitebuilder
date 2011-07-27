@@ -287,12 +287,14 @@
         <child>
           <object class="GtkHButtonBox" id="hbuttonbox">
             <property name="visible">True</property>
+            <property name="layout_style">end</property>
             <child>
-              <object class="GtkButton" id="ok">
+              <object class="GtkButton" id="ok_btn">
                 <property name="label" translatable="yes">OK</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="related_action">submit</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -301,11 +303,12 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="cancel">
+              <object class="GtkButton" id="cancel_btn">
                 <property name="label" translatable="yes">Cancel</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="related_action">cancel</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -320,5 +323,11 @@
         </child>
       </object>
     </child>
+  </object>
+  <object class="GtkAction" id="submit">
+    <property name="stock_id">gtk-ok</property>
+  </object>
+  <object class="GtkAction" id="cancel">
+    <property name="stock_id">gtk-delete</property>
   </object>
 </interface>

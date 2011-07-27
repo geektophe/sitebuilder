@@ -5,10 +5,13 @@ Site editing interface. Supports Create, View and Update modes.
 
 from sitebuilder.utils.parameters import GLADE_BASEDIR
 from sitebuilder.utils.observer import DataChangedListener
+from sitebuilder.utils.observer import SubmitActionDispatcher
+from sitebuilder.utils.observer import CancelActionDispatcher
 from sitebuilder.view.gtk.base import GtkBaseView
 from sitebuilder.model.configuration import ConfigurationManager
 
-class DetailMainView(GtkBaseView):
+class DetailMainView(GtkBaseView, SubmitActionDispatcher,
+                     CancelActionDispatcher):
     """
     DetailMainView site add/edit/view interface.
 
@@ -20,26 +23,40 @@ class DetailMainView(GtkBaseView):
     def __init__(self, controller):
         """
         Class initialization.
-
-        The mandatory mode parameter defines whether the view mode to be used.
-        Allowed mode values are add, edit, view.
-
-        - In add mode, the widgets are set in intearcative mode, and a blank
-        configuration is used.
-
-        - In edit mode, the widgets are set in interacative mode, and
-        configuration loaded from the database is used to fill the widgets.
-
-        - In view mode, the widgets are set non interactive, and
-        configuration loaded from the database is used to fill the widgets.
         """
         GtkBaseView.__init__(self, 'main', controller)
+        SubmitActionDispatcher.__init__(self)
+        CancelActionDispatcher.__init__(self)
+        self['submit'].connect('activate', self.on_submit_activate)
+        self['cancel'].connect('activate', self.on_cancel_activate)
+        self.get_toplevel().connect('destroy', self.on_cancel_activate)
 
-    def set_ok_state(self, flag):
+    def set_submit_state(self, flag):
         """
         Enables or disabled OK button depending on flag state
         """
-        self['ok'].set_sensitive(flag)
+        self['submit'].set_sensitive(flag)
+
+    def on_submit_activate(self, widget):
+        """
+        Signal handler associated with the submit action
+        """
+        self.notify_submit_action_activated()
+
+    def on_cancel_activate(self, widget):
+        """
+        Signal handler associated with the canhcel action
+        """
+        self.notify_cancel_action_activated()
+
+    def destroy(self):
+        """
+        Cleanly destroyes components
+        """
+        # Clears listeners lists
+        self.clear_submit_action_activated_listeners()
+        self.clear_cancel_action_activated_listeners()
+        GtkBaseView.destroy(self)
 
 
 class DetailSiteView(GtkBaseView, DataChangedListener):
@@ -56,6 +73,9 @@ class DetailSiteView(GtkBaseView, DataChangedListener):
         Class initialization.
         """
         GtkBaseView.__init__(self, 'site', controller)
+
+        # Listens data changed events from from controller
+        controller.add_data_changed_listener(self)
 
         # Sets widget title
         self['label_site'].set_markup(
@@ -81,10 +101,7 @@ class DetailSiteView(GtkBaseView, DataChangedListener):
         # Loads widgets data from controller
         self.load_widgets_data()
 
-        # Listens data changed events from from controller
-        controller.add_data_changed_listener(self)
-
-    def data_changed(self):
+    def data_changed(self, event=None):
         """
         DataChangedListerner trigger mmethod local implementation
         """
@@ -94,13 +111,13 @@ class DetailSiteView(GtkBaseView, DataChangedListener):
         """
         Returns an attribute value from the controller
         """
-        return self._controller.get_attribute_value(name)
+        return self.get_controller().get_attribute_value(name)
 
     def set_attribute_value(self, name, value):
         """
         Sets an attribute value on the controller
         """
-        self._controller.set_attribute_value(name, value)
+        self.get_controller().set_attribute_value(name, value)
 
     def load_widgets_data(self):
         """
@@ -108,7 +125,7 @@ class DetailSiteView(GtkBaseView, DataChangedListener):
         """
         enabled = self.get_attribute_value('enabled')
         done = self.get_attribute_value('done')
-        read_only = self._controller.get_read_only_flag()
+        read_only = self.get_controller().get_read_only_flag()
         sensitive = enabled and not done and not read_only
 
         maintenance = self.get_attribute_value('maintenance')
@@ -209,6 +226,13 @@ class DetailSiteView(GtkBaseView, DataChangedListener):
         domain_name = self.get_combobox_selection(self['domain'])
         self.set_attribute_value('domain', domain_name )
 
+    def destroy(self):
+        """
+        Cleanly destroyes components
+        """
+        self.get_controller().remove_data_changed_listener(self)
+        GtkBaseView.destroy(self)
+
 
 class DetailDatabaseView(GtkBaseView, DataChangedListener):
     """
@@ -224,6 +248,9 @@ class DetailDatabaseView(GtkBaseView, DataChangedListener):
         Class initialization.
         """
         GtkBaseView.__init__(self, 'database', controller)
+
+        # Listens data changed events from from controller
+        controller.add_data_changed_listener(self)
 
         # Sets widget title
         self['label_database'].set_markup(
@@ -243,10 +270,7 @@ class DetailDatabaseView(GtkBaseView, DataChangedListener):
         # Loads widgets data from controller
         self.load_widgets_data()
 
-        # Listens data changed events from from controller
-        controller.add_data_changed_listener(self)
-
-    def data_changed(self):
+    def data_changed(self, event=None):
         """
         DataChangedListerner trigger mmethod local implementation
         """
@@ -256,13 +280,13 @@ class DetailDatabaseView(GtkBaseView, DataChangedListener):
         """
         Returns an attribute value from the controller
         """
-        return self._controller.get_attribute_value(name)
+        return self.get_controller().get_attribute_value(name)
 
     def set_attribute_value(self, name, value):
         """
         Sets an attribute value on the controller
         """
-        self._controller.set_attribute_value(name, value)
+        self.get_controller().set_attribute_value(name, value)
 
     def load_widgets_data(self):
         """
@@ -270,7 +294,7 @@ class DetailDatabaseView(GtkBaseView, DataChangedListener):
         """
         enabled = self.get_attribute_value('enabled')
         done = self.get_attribute_value('done')
-        read_only = self._controller.get_read_only_flag()
+        read_only = self.get_controller().get_read_only_flag()
         sensitive = enabled and not done and not read_only
 
         name = self.get_attribute_value('name')
@@ -330,6 +354,13 @@ class DetailDatabaseView(GtkBaseView, DataChangedListener):
         type_name = self.get_combobox_selection(self['type'])
         self.set_attribute_value('type', type_name )
 
+    def destroy(self):
+        """
+        Cleanly destroyes components
+        """
+        self.get_controller().remove_data_changed_listener(self)
+        GtkBaseView.destroy(self)
+
 
 class DetailRepositoryView(GtkBaseView, DataChangedListener):
     """
@@ -346,6 +377,9 @@ class DetailRepositoryView(GtkBaseView, DataChangedListener):
         """
         GtkBaseView.__init__(self, 'repository', controller)
 
+        # Listens data changed events from from controller
+        controller.add_data_changed_listener(self)
+
         # Sets widgets signal handlers
         self['enabled'].connect('toggled', self.on_enabled_toggled)
         self['name'].connect('changed', self.on_name_changed)
@@ -358,10 +392,7 @@ class DetailRepositoryView(GtkBaseView, DataChangedListener):
         # Loads widgets data from controller
         self.load_widgets_data()
 
-        # Listens data changed events from from controller
-        controller.add_data_changed_listener(self)
-
-    def data_changed(self):
+    def data_changed(self, event=None):
         """
         DataChangedListerner trigger mmethod local implementation
         """
@@ -371,13 +402,13 @@ class DetailRepositoryView(GtkBaseView, DataChangedListener):
         """
         Returns an attribute value from the controller
         """
-        return self._controller.get_attribute_value(name)
+        return self.get_controller().get_attribute_value(name)
 
     def set_attribute_value(self, name, value):
         """
         Sets an attribute value on the controller
         """
-        self._controller.set_attribute_value(name, value)
+        self.get_controller().set_attribute_value(name, value)
 
     def load_widgets_data(self):
         """
@@ -385,7 +416,7 @@ class DetailRepositoryView(GtkBaseView, DataChangedListener):
         """
         enabled = self.get_attribute_value('enabled')
         done = self.get_attribute_value('done')
-        read_only = self._controller.get_read_only_flag()
+        read_only = self.get_controller().get_read_only_flag()
         sensitive = enabled and not done and not read_only
 
         name = self.get_attribute_value('name')
@@ -423,6 +454,13 @@ class DetailRepositoryView(GtkBaseView, DataChangedListener):
         type_name = self.get_combobox_selection(self['type'])
         self.set_attribute_value('type', type_name )
 
+    def destroy(self):
+        """
+        Cleanly destroyes components
+        """
+        self.get_controller().remove_data_changed_listener(self)
+        GtkBaseView.destroy(self)
+
 
 class DetailGeneralView(GtkBaseView, DataChangedListener):
     """
@@ -439,6 +477,9 @@ class DetailGeneralView(GtkBaseView, DataChangedListener):
         """
         GtkBaseView.__init__(self, 'general', controller)
 
+        # Listens data changed events from from controller
+        controller.add_data_changed_listener(self)
+
         # Sets widgets signal handlers
         self['name'].connect('changed', self.on_name_changed)
         self['description'].connect('changed', self.on_description_changed)
@@ -446,10 +487,7 @@ class DetailGeneralView(GtkBaseView, DataChangedListener):
         # Loads widgets data from controller
         self.load_widgets_data()
 
-        # Listens data changed events from from controller
-        controller.add_data_changed_listener(self)
-
-    def data_changed(self):
+    def data_changed(self, event=None):
         """
         DataChangedListerner trigger mmethod local implementation
         """
@@ -459,19 +497,19 @@ class DetailGeneralView(GtkBaseView, DataChangedListener):
         """
         Returns an attribute value from the controller
         """
-        return self._controller.get_attribute_value(name)
+        return self.get_controller().get_attribute_value(name)
 
     def set_attribute_value(self, name, value):
         """
         Sets an attribute value on the controller
         """
-        self._controller.set_attribute_value(name, value)
+        self.get_controller().set_attribute_value(name, value)
 
     def load_widgets_data(self):
         """
         Updates view widgets based on configuraton settings
         """
-        read_only = self._controller.get_read_only_flag()
+        read_only = self.get_controller().get_read_only_flag()
         name = self.get_attribute_value('name')
         description = self.get_attribute_value('description')
 
@@ -494,3 +532,10 @@ class DetailGeneralView(GtkBaseView, DataChangedListener):
         Signal handler associated with the description text input
         """
         self.set_entry_attribute(widget, 'description')
+
+    def destroy(self):
+        """
+        Cleanly destroyes components
+        """
+        self.get_controller().remove_data_changed_listener(self)
+        GtkBaseView.destroy(self)

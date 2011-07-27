@@ -7,7 +7,6 @@ from gtktest import refresh_gui
 from sitebuilder.utils.parameters import set_application_context
 from sitebuilder.controller.list import ListController
 from sitebuilder.model.configuration import ConfigurationManager
-import gtk
 
 
 class ListTestController(ListController):
@@ -94,7 +93,7 @@ class TestGtkListView(unittest.TestCase):
         view = controller.get_view()
         view['add'].activate()
         refresh_gui()
-        configuration, read_only = controller.get_detail_configuraiton_data()
+        configuration, read_only = controller.get_detail_configuration_data()
         confid = configuration['general']['id'].get_value()
         self.assertFalse(read_only)
         self.assertTrue(confid is None)
@@ -111,7 +110,7 @@ class TestGtkListView(unittest.TestCase):
         view['site_list'].get_selection().select_path((row,))
         view['view'].activate()
         refresh_gui()
-        configuration, read_only = controller.get_detail_configuraiton_data()
+        configuration, read_only = controller.get_detail_configuration_data()
         confid = configuration['general']['id'].get_value()
 
         testconf = ConfigurationManager.get_configuration_all()[row]
@@ -132,7 +131,7 @@ class TestGtkListView(unittest.TestCase):
         view['site_list'].get_selection().select_path((row,))
         view['edit'].activate()
         refresh_gui()
-        configuration, read_only = controller.get_detail_configuraiton_data()
+        configuration, read_only = controller.get_detail_configuration_data()
         confid = configuration['general']['id'].get_value()
 
         testconf = ConfigurationManager.get_configuration_all()[row]

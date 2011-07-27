@@ -3,18 +3,20 @@
 Main list interface controller
 """
 
+from sitebuilder.utils.event import Event
 from sitebuilder.view.gtk.list import ListView
+from sitebuilder.model.configuration import AttributeSet
 from sitebuilder.controller.detail import DetailMainController
 from sitebuilder.model.configuration import ConfigurationManager
 from sitebuilder.utils.observer import ViewActionListener
 from sitebuilder.utils.observer import AddActionListener
 from sitebuilder.utils.observer import EditActionListener
 from sitebuilder.utils.observer import DeleteActionListener
-from sitebuilder.utils.observer import SubmitActionListener
 from sitebuilder.utils.observer import ViewActionDispatcher
 from sitebuilder.utils.observer import AddActionDispatcher
 from sitebuilder.utils.observer import EditActionDispatcher
 from sitebuilder.utils.observer import DeleteActionDispatcher
+from sitebuilder.utils.observer import SubmitActionListener
 import gtk
 
 
@@ -57,6 +59,7 @@ class ListController(ViewActionListener, AddActionListener, EditActionListener,
         Shows detail dialog for the specified configuration
         """
         detail = DetailMainController(configuration, read_only)
+        detail.add_submit_action_activated_listener(self)
         view = detail.get_view()
         view.show()
 
@@ -77,9 +80,9 @@ class ListController(ViewActionListener, AddActionListener, EditActionListener,
         dialog.destroy()
 
         if response == gtk.RESPONSE_YES:
-            print "delete"
+            self.notify_delete_action_activated(Event(configuration))
 
-    def view_action_activated(self):
+    def view_action_activated(self, event=None):
         """
         ViewActionListerner trigger mmethod local implementation
         """
@@ -89,14 +92,14 @@ class ListController(ViewActionListener, AddActionListener, EditActionListener,
             configuration = ConfigurationManager.get_configuration_by_id(identifier)
             self.show_detail_dialog(configuration, True)
 
-    def add_action_activated(self):
+    def add_action_activated(self, event=None):
         """
         AddActionListerner trigger mmethod local implementation
         """
         configuration = ConfigurationManager.get_blank_configuration()
         self.show_detail_dialog(configuration)
 
-    def edit_action_activated(self):
+    def edit_action_activated(self, event=None):
         """
         EditActionListerner trigger mmethod local implementation
         """
@@ -106,7 +109,7 @@ class ListController(ViewActionListener, AddActionListener, EditActionListener,
             configuration = ConfigurationManager.get_configuration_by_id(identifier)
             self.show_detail_dialog(configuration)
 
-    def delete_action_activated(self):
+    def delete_action_activated(self, event=None):
         """
         DeleteActionListerner trigger mmethod local implementation
         """
@@ -115,6 +118,33 @@ class ListController(ViewActionListener, AddActionListener, EditActionListener,
         for identifier in selection:
             configuration = ConfigurationManager.get_configuration_by_id(identifier)
             self.show_delete_dialog(configuration)
+
+    def submit_action_activated(self, event=None):
+        """
+        SubmitActionListerner trigger mmethod local implementation
+
+        Here, event should contain the child configuration instance as context
+        attribute.
+        """
+        if event is not None:
+            context = event.get_context()
+
+            if isinstance(context, AttributeSet):
+                print "configuration submitted: %d" % \
+                       context['general']['id'].get_value()
+
+    def destroy(self):
+        """
+        Cleanly destroyes components
+        """
+        # Clears listeners lists
+        self.clear_add_action_activated_listeners()
+        self.clear_view_action_activated_listeners()
+        self.clear_edit_action_activated_listeners()
+        self.clear_delete_action_activated_listeners()
+
+        # Destroyes view
+        self.get_view().destroy()
 
 
 if __name__ == '__main__':

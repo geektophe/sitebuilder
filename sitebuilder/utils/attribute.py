@@ -571,11 +571,47 @@ class AttributeSet(DataChangedListener,DataChangedDispatcher):
         """
         return self._modified
 
-    def clear_modified(self):
+    def clear_modified(self, recurse=False):
         """
         Resets the modified flag
+
+        >>> attrdict = {}
+        >>> attrdict['somename'] = ('somevalue', None, None)
+        >>> attrdict['sub'] = {}
+        >>> attrdict['sub']['someothername'] = ('someothervalue', '^[\w]+$',
+        ...                                       'Value should be a string')
+        >>> aset = AttributeSet('aset')
+        >>> aset.load(attrdict)
+        >>> attr = aset['sub']['someothername']
+        >>> attr.set_value('abc')
+        >>> aset.is_modified()
+        True
+        >>> aset.clear_modified()
+        >>> aset.is_modified()
+        False
+
+        If is_modified is not called with recurse flag, only the current
+        attribute is cleared its modified state
+
+        >>> attr.is_modified()
+        True
+
+        If is_modified is called with recurse flag, all the subtree is cleared
+        its modified state
+
+        >>> aset.clear_modified(recurse=True)
+        >>> attr.is_modified()
+        False
         """
         self._modified = False
+
+        if recurse is True:
+
+            for attribute in self._attributes.values():
+                if isinstance(attribute, Attribute):
+                    attribute.clear_modified()
+                elif isinstance(attribute, AttributeSet):
+                    attribute.clear_modified(recurse=True)
 
     def iteritems(self):
         """

@@ -11,9 +11,9 @@ from sitebuilder.view.gtk.detail import DetailSiteView
 from sitebuilder.view.gtk.detail import DetailRepositoryView
 from sitebuilder.model.configuration import ConfigurationManager
 from sitebuilder.controller.base import BaseController
-from sitebuilder.utils.observer import SubmitActionListener
-from sitebuilder.utils.observer import SubmitActionDispatcher
-from sitebuilder.utils.observer import CancelActionListener
+from sitebuilder.observer.submitaction import SubmitActionListener
+from sitebuilder.observer.submitaction import SubmitActionDispatcher
+from sitebuilder.observer.cancelaction import CancelActionListener
 import gtk
 
 class DetailMainController(BaseController, SubmitActionListener,

@@ -3,10 +3,10 @@
 Base controller class to be subclassed
 """
 
-from sitebuilder.utils.observer import DataChangedListener
-from sitebuilder.utils.observer import DataChangedDispatcher
-from sitebuilder.utils.observer import ValidityChangedListener
-from sitebuilder.utils.observer import ValidityChangedDispatcher
+from sitebuilder.observer.datachanged import DataChangedListener
+from sitebuilder.observer.datachanged  import DataChangedDispatcher
+from sitebuilder.observer.validitychanged  import ValidityChangedListener
+from sitebuilder.observer.validitychanged  import ValidityChangedDispatcher
 
 
 class BaseController(DataChangedDispatcher, DataChangedListener,

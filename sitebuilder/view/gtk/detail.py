@@ -4,9 +4,9 @@ Site editing interface. Supports Create, View and Update modes.
 """
 
 from sitebuilder.utils.parameters import GLADE_BASEDIR
-from sitebuilder.utils.observer import DataChangedListener
-from sitebuilder.utils.observer import SubmitActionDispatcher
-from sitebuilder.utils.observer import CancelActionDispatcher
+from sitebuilder.observer.datachanged import DataChangedListener
+from sitebuilder.observer.submitaction import SubmitActionDispatcher
+from sitebuilder.observer.cancelaction import CancelActionDispatcher
 from sitebuilder.view.gtk.base import GtkBaseView
 from sitebuilder.model.configuration import ConfigurationManager
 

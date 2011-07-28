@@ -11,8 +11,8 @@ attributes. It has the necessary methods to manipulate attributes.
 """
 
 import re
-from sitebuilder.utils.observer import DataChangedListener
-from sitebuilder.utils.observer import DataChangedDispatcher
+from sitebuilder.observer.datachanged import DataChangedListener
+from sitebuilder.observer.datachanged import DataChangedDispatcher
 from sitebuilder.utils.event import Event
 
 class Attribute(DataChangedDispatcher):

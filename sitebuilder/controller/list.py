@@ -8,15 +8,15 @@ from sitebuilder.view.gtk.list import ListView
 from sitebuilder.model.configuration import AttributeSet
 from sitebuilder.controller.detail import DetailMainController
 from sitebuilder.model.configuration import ConfigurationManager
-from sitebuilder.utils.observer import ViewActionListener
-from sitebuilder.utils.observer import AddActionListener
-from sitebuilder.utils.observer import EditActionListener
-from sitebuilder.utils.observer import DeleteActionListener
-from sitebuilder.utils.observer import ViewActionDispatcher
-from sitebuilder.utils.observer import AddActionDispatcher
-from sitebuilder.utils.observer import EditActionDispatcher
-from sitebuilder.utils.observer import DeleteActionDispatcher
-from sitebuilder.utils.observer import SubmitActionListener
+from sitebuilder.observer.viewaction import ViewActionListener
+from sitebuilder.observer.viewaction import ViewActionDispatcher
+from sitebuilder.observer.addaction import AddActionListener
+from sitebuilder.observer.addaction import AddActionDispatcher
+from sitebuilder.observer.editaction import EditActionListener
+from sitebuilder.observer.editaction import EditActionDispatcher
+from sitebuilder.observer.deleteaction import DeleteActionListener
+from sitebuilder.observer.deleteaction import DeleteActionDispatcher
+from sitebuilder.observer.submitaction import SubmitActionListener
 import gtk
 
 

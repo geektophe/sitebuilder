@@ -7,7 +7,7 @@ import unittest
 import doctest
 from sitebuilder.utils import attribute
 from sitebuilder.utils.attribute import AttributeSet
-from sitebuilder.utils.observer import DataChangedListener
+from sitebuilder.observer.datachanged import DataChangedListener
 
 
 class TestListener(DataChangedListener):

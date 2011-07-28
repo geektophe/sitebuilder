@@ -7,7 +7,7 @@ import pygtk
 import gtk
 import os
 from sitebuilder.utils.event import Event
-from sitebuilder.utils.observer import ValidityChangedDispatcher
+from sitebuilder.observer.validitychanged import ValidityChangedDispatcher
 
 pygtk.require("2.0")
 

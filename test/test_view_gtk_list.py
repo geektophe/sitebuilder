@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Test classes for view.gtk.detail views classes
 """

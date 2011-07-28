@@ -7,24 +7,25 @@ from sitebuilder.utils.parameters import GLADE_BASEDIR
 from sitebuilder.observer.datachanged import DataChangedListener
 from sitebuilder.observer.submitaction import SubmitActionDispatcher
 from sitebuilder.observer.cancelaction import CancelActionDispatcher
-from sitebuilder.view.gtk.base import GtkBaseView
-from sitebuilder.model.configuration import ConfigurationManager
+from sitebuilder.presentation.gtk.base import GtkBasePresentationAgent
+from sitebuilder.abstraction.configuration import ConfigurationManager
 
-class DetailMainView(GtkBaseView, SubmitActionDispatcher,
-                     CancelActionDispatcher):
+class DetailMainPresentationAgent(GtkBasePresentationAgent,
+                                  SubmitActionDispatcher,
+                                  CancelActionDispatcher):
     """
-    DetailMainView site add/edit/view interface.
+    DetailMainPresentationAgent site add/edit/view interface.
 
     The interface design is loaded from a glade file.
     """
 
     GLADE_FILE = "%s/%s" % (GLADE_BASEDIR, 'edit.glade')
 
-    def __init__(self, controller):
+    def __init__(self, control_agent):
         """
         Class initialization.
         """
-        GtkBaseView.__init__(self, 'main', controller)
+        GtkBasePresentationAgent.__init__(self, 'main', control_agent)
         SubmitActionDispatcher.__init__(self)
         CancelActionDispatcher.__init__(self)
         self['submit'].connect('activate', self.on_submit_activate)
@@ -56,30 +57,31 @@ class DetailMainView(GtkBaseView, SubmitActionDispatcher,
         # Clears listeners lists
         self.clear_submit_action_activated_listeners()
         self.clear_cancel_action_activated_listeners()
-        GtkBaseView.destroy(self)
+        GtkBasePresentationAgent.destroy(self)
 
 
-class DetailSiteView(GtkBaseView, DataChangedListener):
+class DetailSitePresentationAgent(GtkBasePresentationAgent,
+                                  DataChangedListener):
     """
-    Detail site view composite widget.
+    Detail site presentation agent composite widget.
 
     The interface design is loaded from a glade file.
     """
 
     GLADE_FILE = "%s/%s" % (GLADE_BASEDIR, 'edit_site.glade')
 
-    def __init__(self, controller):
+    def __init__(self, control_agent):
         """
         Class initialization.
         """
-        GtkBaseView.__init__(self, 'site', controller)
+        GtkBasePresentationAgent.__init__(self, 'site', control_agent)
 
-        # Listens data changed events from from controller
-        controller.add_data_changed_listener(self)
+        # Listens data changed events from from control agent
+        control_agent.add_data_changed_listener(self)
 
         # Sets widget title
         self['label_site'].set_markup(
-            "<b>%s site</b>" % controller.get_platform_name().capitalize())
+            "<b>%s site</b>" % control_agent.get_platform_name().capitalize())
 
         # Sets widgets signal handlers
         #self._builder.connect_signals(self)
@@ -98,7 +100,7 @@ class DetailSiteView(GtkBaseView, DataChangedListener):
         self.set_combobox_items(self['domain'],
                 ConfigurationManager.get_site_domains())
 
-        # Loads widgets data from controller
+        # Loads widgets data from control agent
         self.load_widgets_data()
 
     def data_changed(self, event=None):
@@ -109,23 +111,23 @@ class DetailSiteView(GtkBaseView, DataChangedListener):
 
     def get_attribute_value(self, name):
         """
-        Returns an attribute value from the controller
+        Returns an attribute value from the control agent
         """
-        return self.get_controller().get_attribute_value(name)
+        return self.get_control_agent().get_attribute_value(name)
 
     def set_attribute_value(self, name, value):
         """
-        Sets an attribute value on the controller
+        Sets an attribute value on the control agent
         """
-        self.get_controller().set_attribute_value(name, value)
+        self.get_control_agent().set_attribute_value(name, value)
 
     def load_widgets_data(self):
         """
-        Updates view widgets based on configuraton settings
+        Updates presentation agent widgets based on configuraton settings
         """
         enabled = self.get_attribute_value('enabled')
         done = self.get_attribute_value('done')
-        read_only = self.get_controller().get_read_only_flag()
+        read_only = self.get_control_agent().get_read_only_flag()
         sensitive = enabled and not done and not read_only
 
         maintenance = self.get_attribute_value('maintenance')
@@ -135,7 +137,7 @@ class DetailSiteView(GtkBaseView, DataChangedListener):
         self['enabled'].set_active(enabled)
         self['enabled'].set_sensitive(not done and not read_only)
 
-        # Loads proxied checkbox state (may not be defined in model)
+        # Loads proxied checkbox state (may not be defined in abstraction)
         try:
             proxied = self.get_attribute_value('proxied')
             self['proxied'].set_active(proxied)
@@ -153,7 +155,7 @@ class DetailSiteView(GtkBaseView, DataChangedListener):
         if name == '__DEFAULT__':
             self['name_def'].set_active(True)
             # Disabled to prevent name input deletion if default name is clicked
-            #self['name'].set_text('')
+            # self['name'].set_text('')
         else:
             self['name_cus'].set_active(True)
             self['name'].set_text(name)
@@ -230,31 +232,34 @@ class DetailSiteView(GtkBaseView, DataChangedListener):
         """
         Cleanly destroyes components
         """
-        self.get_controller().remove_data_changed_listener(self)
-        GtkBaseView.destroy(self)
+        self.get_control_agent().remove_data_changed_listener(self)
+        GtkBasePresentationAgent.destroy(self)
 
 
-class DetailDatabaseView(GtkBaseView, DataChangedListener):
+class DetailDatabasePresentationAgent(GtkBasePresentationAgent,
+                                      DataChangedListener):
     """
-    Detail database view composite widget.
+    Detail database presentation agent composite widget.
 
     The interface design is loaded from a glade file.
     """
 
     GLADE_FILE = "%s/%s" % (GLADE_BASEDIR, 'edit_db.glade')
 
-    def __init__(self, controller):
+    def __init__(self, control_agent):
         """
         Class initialization.
         """
-        GtkBaseView.__init__(self, 'database', controller)
+        GtkBasePresentationAgent.__init__(self, 'database',
+                                              control_agent)
 
-        # Listens data changed events from from controller
-        controller.add_data_changed_listener(self)
+        # Listens data changed events from from control agent
+        control_agent.add_data_changed_listener(self)
 
         # Sets widget title
         self['label_database'].set_markup(
-            "<b>%s database</b>" % controller.get_platform_name().capitalize())
+            "<b>%s database</b>" % \
+            control_agent.get_platform_name().capitalize())
 
         # Sets widgets signal handlers
         self['enabled'].connect('toggled', self.on_enabled_toggled)
@@ -267,7 +272,7 @@ class DetailDatabaseView(GtkBaseView, DataChangedListener):
         self.set_combobox_items(self['type'],
                 ConfigurationManager.get_database_types())
 
-        # Loads widgets data from controller
+        # Loads widgets data from control agent
         self.load_widgets_data()
 
     def data_changed(self, event=None):
@@ -278,23 +283,23 @@ class DetailDatabaseView(GtkBaseView, DataChangedListener):
 
     def get_attribute_value(self, name):
         """
-        Returns an attribute value from the controller
+        Returns an attribute value from the control agent
         """
-        return self.get_controller().get_attribute_value(name)
+        return self.get_control_agent().get_attribute_value(name)
 
     def set_attribute_value(self, name, value):
         """
-        Sets an attribute value on the controller
+        Sets an attribute value on the control agent
         """
-        self.get_controller().set_attribute_value(name, value)
+        self.get_control_agent().set_attribute_value(name, value)
 
     def load_widgets_data(self):
         """
-        Updates view widgets based on configuraton settings
+        Updates presentation agent widgets based on configuraton settings
         """
         enabled = self.get_attribute_value('enabled')
         done = self.get_attribute_value('done')
-        read_only = self.get_controller().get_read_only_flag()
+        read_only = self.get_control_agent().get_read_only_flag()
         sensitive = enabled and not done and not read_only
 
         name = self.get_attribute_value('name')
@@ -358,27 +363,28 @@ class DetailDatabaseView(GtkBaseView, DataChangedListener):
         """
         Cleanly destroyes components
         """
-        self.get_controller().remove_data_changed_listener(self)
-        GtkBaseView.destroy(self)
+        self.get_control_agent().remove_data_changed_listener(self)
+        GtkBasePresentationAgent.destroy(self)
 
 
-class DetailRepositoryView(GtkBaseView, DataChangedListener):
+class DetailRepositoryPresentationAgent(GtkBasePresentationAgent,
+                                        DataChangedListener):
     """
-    Detail repository view composite widget.
+    Detail repository presentation agent composite widget.
 
     The interface design is loaded from a glade file.
     """
 
     GLADE_FILE = "%s/%s" % (GLADE_BASEDIR, 'edit_repo.glade')
 
-    def __init__(self, controller):
+    def __init__(self, control_agent):
         """
         Class initialization.
         """
-        GtkBaseView.__init__(self, 'repository', controller)
+        GtkBasePresentationAgent.__init__(self, 'repository', control_agent)
 
-        # Listens data changed events from from controller
-        controller.add_data_changed_listener(self)
+        # Listens data changed events from from control agent
+        control_agent.add_data_changed_listener(self)
 
         # Sets widgets signal handlers
         self['enabled'].connect('toggled', self.on_enabled_toggled)
@@ -389,7 +395,7 @@ class DetailRepositoryView(GtkBaseView, DataChangedListener):
         self.set_combobox_items(self['type'],
                 ConfigurationManager.get_repository_types())
 
-        # Loads widgets data from controller
+        # Loads widgets data from control agent
         self.load_widgets_data()
 
     def data_changed(self, event=None):
@@ -400,23 +406,23 @@ class DetailRepositoryView(GtkBaseView, DataChangedListener):
 
     def get_attribute_value(self, name):
         """
-        Returns an attribute value from the controller
+        Returns an attribute value from the control agent
         """
-        return self.get_controller().get_attribute_value(name)
+        return self.get_control_agent().get_attribute_value(name)
 
     def set_attribute_value(self, name, value):
         """
-        Sets an attribute value on the controller
+        Sets an attribute value on the control agent
         """
-        self.get_controller().set_attribute_value(name, value)
+        self.get_control_agent().set_attribute_value(name, value)
 
     def load_widgets_data(self):
         """
-        Updates view widgets based on configuraton settings
+        Updates presentation agent widgets based on configuraton settings
         """
         enabled = self.get_attribute_value('enabled')
         done = self.get_attribute_value('done')
-        read_only = self.get_controller().get_read_only_flag()
+        read_only = self.get_control_agent().get_read_only_flag()
         sensitive = enabled and not done and not read_only
 
         name = self.get_attribute_value('name')
@@ -458,33 +464,34 @@ class DetailRepositoryView(GtkBaseView, DataChangedListener):
         """
         Cleanly destroyes components
         """
-        self.get_controller().remove_data_changed_listener(self)
-        GtkBaseView.destroy(self)
+        self.get_control_agent().remove_data_changed_listener(self)
+        GtkBasePresentationAgent.destroy(self)
 
 
-class DetailGeneralView(GtkBaseView, DataChangedListener):
+class DetailGeneralPresentationAgent(GtkBasePresentationAgent,
+                                     DataChangedListener):
     """
-    Detail general view composite widget.
+    Detail general presentation agent composite widget.
 
     The interface design is loaded from a glade file.
     """
 
     GLADE_FILE = "%s/%s" % (GLADE_BASEDIR, 'edit_general.glade')
 
-    def __init__(self, controller):
+    def __init__(self, control_agent):
         """
         Class initialization.
         """
-        GtkBaseView.__init__(self, 'general', controller)
+        GtkBasePresentationAgent.__init__(self, 'general', control_agent)
 
-        # Listens data changed events from from controller
-        controller.add_data_changed_listener(self)
+        # Listens data changed events from from control agent
+        control_agent.add_data_changed_listener(self)
 
         # Sets widgets signal handlers
         self['name'].connect('changed', self.on_name_changed)
         self['description'].connect('changed', self.on_description_changed)
 
-        # Loads widgets data from controller
+        # Loads widgets data from control agent
         self.load_widgets_data()
 
     def data_changed(self, event=None):
@@ -495,21 +502,21 @@ class DetailGeneralView(GtkBaseView, DataChangedListener):
 
     def get_attribute_value(self, name):
         """
-        Returns an attribute value from the controller
+        Returns an attribute value from the control agent
         """
-        return self.get_controller().get_attribute_value(name)
+        return self.get_control_agent().get_attribute_value(name)
 
     def set_attribute_value(self, name, value):
         """
-        Sets an attribute value on the controller
+        Sets an attribute value on the control agent
         """
-        self.get_controller().set_attribute_value(name, value)
+        self.get_control_agent().set_attribute_value(name, value)
 
     def load_widgets_data(self):
         """
-        Updates view widgets based on configuraton settings
+        Updates presentation agent widgets based on configuraton settings
         """
-        read_only = self.get_controller().get_read_only_flag()
+        read_only = self.get_control_agent().get_read_only_flag()
         name = self.get_attribute_value('name')
         description = self.get_attribute_value('description')
 
@@ -537,5 +544,5 @@ class DetailGeneralView(GtkBaseView, DataChangedListener):
         """
         Cleanly destroyes components
         """
-        self.get_controller().remove_data_changed_listener(self)
-        GtkBaseView.destroy(self)
+        self.get_control_agent().remove_data_changed_listener(self)
+        GtkBasePresentationAgent.destroy(self)

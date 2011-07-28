@@ -11,7 +11,7 @@ from sitebuilder.observer.validitychanged import ValidityChangedDispatcher
 
 pygtk.require("2.0")
 
-class GtkBaseView(ValidityChangedDispatcher):
+class GtkBasePresentationAgent(ValidityChangedDispatcher):
     """
     Main site add/edit/view interface.
 
@@ -20,7 +20,7 @@ class GtkBaseView(ValidityChangedDispatcher):
 
     GLADE_FILE = ""
 
-    def __init__(self, toplevel_name, controller):
+    def __init__(self, toplevel_name, control_agent):
         """
         Basic view to be subclassed.
         """
@@ -28,7 +28,7 @@ class GtkBaseView(ValidityChangedDispatcher):
             raise RuntimeError("No glade file found.")
 
         ValidityChangedDispatcher.__init__(self)
-        self._controller = controller
+        self._control_agent = control_agent
         self._builder = gtk.Builder()
         self._builder.add_from_file(self.GLADE_FILE)
         self._toplevel_name = toplevel_name
@@ -47,11 +47,11 @@ class GtkBaseView(ValidityChangedDispatcher):
 
         return None
 
-    def get_controller(self):
+    def get_control_agent(self):
         """
-        Returns controller instance
+        Returns control agent instance
         """
-        return self._controller
+        return self._control_agent
 
     def get_toplevel(self):
         """
@@ -69,9 +69,10 @@ class GtkBaseView(ValidityChangedDispatcher):
         """
         Attach a slave view to the master view.
         """
-        if not isinstance(slave, GtkBaseView):
-            raise TypeError("slave must be a GtkBaseView, not a %s" %
-                            type(slave))
+        if not isinstance(slave, GtkBasePresentationAgent):
+            raise TypeError(
+                "slave must be a GtkBasePresentationAgent, not a %s" % \
+                type(slave))
 
         container = self._builder.get_object(container_name)
 
@@ -157,7 +158,7 @@ class GtkBaseView(ValidityChangedDispatcher):
         value = widget.get_text()
 
         try:
-            self._controller.set_attribute_value(attr_name, value)
+            self.get_control_agent().set_attribute_value(attr_name, value)
             widget.set_tooltip_text('')
             widget.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('#90EE90'))
             self.set_validity_flag(attr_name, True)

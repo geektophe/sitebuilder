@@ -1,73 +1,73 @@
 #!/usr/bin/env python
 """
-Site details related controllers
+Site details related control components
 """
 
 from sitebuilder.utils.event import Event
-from sitebuilder.view.gtk.detail import DetailMainView
-from sitebuilder.view.gtk.detail import DetailDatabaseView
-from sitebuilder.view.gtk.detail import DetailGeneralView
-from sitebuilder.view.gtk.detail import DetailSiteView
-from sitebuilder.view.gtk.detail import DetailRepositoryView
-from sitebuilder.model.configuration import ConfigurationManager
-from sitebuilder.controller.base import BaseController
+from sitebuilder.presentation.gtk.detail import DetailMainPresentationAgent
+from sitebuilder.presentation.gtk.detail import DetailDatabasePresentationAgent
+from sitebuilder.presentation.gtk.detail import DetailGeneralPresentationAgent
+from sitebuilder.presentation.gtk.detail import DetailSitePresentationAgent
+from sitebuilder.presentation.gtk.detail import DetailRepositoryPresentationAgent
+from sitebuilder.abstraction.configuration import ConfigurationManager
+from sitebuilder.control.base import BaseControlAgent
 from sitebuilder.observer.submitaction import SubmitActionListener
 from sitebuilder.observer.submitaction import SubmitActionDispatcher
 from sitebuilder.observer.cancelaction import CancelActionListener
 import gtk
 
-class DetailMainController(BaseController, SubmitActionListener,
-                           SubmitActionDispatcher, CancelActionListener):
+class DetailMainControlAgent(BaseControlAgent, SubmitActionListener,
+                             SubmitActionDispatcher, CancelActionListener):
     """
-    Site details main interface's controller
+    Site details main interface's control agent
     """
 
     def __init__(self, configuration, read_only):
         """
-        Controller initialization
+        ControlAgent initialization
         """
-        BaseController.__init__(self)
+        BaseControlAgent.__init__(self)
         SubmitActionDispatcher.__init__(self)
         self._read_only = read_only
         self._configuration = configuration
-        self._view = DetailMainView(self)
-        self._view.add_submit_action_activated_listener(self)
-        self._view.add_cancel_action_activated_listener(self)
+        self._presentation_agent = DetailMainPresentationAgent(self)
+        self._presentation_agent.add_submit_action_activated_listener(self)
+        self._presentation_agent.add_cancel_action_activated_listener(self)
         self._slaves = []
 
         # Creates general component
         general = configuration.get_attribute('general')
-        slave = DetailGeneralController(general, read_only)
+        slave = DetailGeneralControlAgent(general, read_only)
         slave.add_validity_changed_listener(self)
         self._slaves.append(slave)
-        self._view.attach_slave('general', 'hbox_general',
-                                slave.get_view())
+        self._presentation_agent.attach_slave('general', 'hbox_general',
+                slave.get_presentation_agent())
 
         # Creates repository component
         repository = configuration.get_attribute('repository')
-        slave = DetailRepositoryController(repository, read_only)
+        slave = DetailRepositoryControlAgent(repository, read_only)
         slave.add_validity_changed_listener(self)
         self._slaves.append(slave)
-        self._view.attach_slave('repository', 'hbox_repository',
-                                slave.get_view())
+        self._presentation_agent.attach_slave('repository', 'hbox_repository',
+                slave.get_presentation_agent())
 
         # Creates site components
         for name in ConfigurationManager.get_site_platforms():
             platform = configuration.get_attribute('sites').get_attribute(name)
-            slave = DetailSiteController(platform, read_only)
+            slave = DetailSiteControlAgent(platform, read_only)
             slave.add_validity_changed_listener(self)
             self._slaves.append(slave)
-            self._view.attach_slave('site_%s' % name, 'hbox_sites',
-                                    slave.get_view())
+            self._presentation_agent.attach_slave('site_%s' % name, 'hbox_sites',
+                    slave.get_presentation_agent())
 
         # Creates database components
         for name in ConfigurationManager.get_database_platforms():
             platform = configuration.get_attribute('databases').get_attribute(name)
-            slave = DetailDatabaseController(platform, read_only)
+            slave = DetailDatabaseControlAgent(platform, read_only)
             slave.add_validity_changed_listener(self)
             self._slaves.append(slave)
-            self._view.attach_slave('database_%s' % name, 'hbox_databases',
-                                    slave.get_view())
+            self._presentation_agent.attach_slave('database_%s' % name,
+                    'hbox_databases', slave.get_presentation_agent())
 
     def data_changed(self, event=None):
         """
@@ -84,21 +84,23 @@ class DetailMainController(BaseController, SubmitActionListener,
         ValidityChangedListerner trigger mmethod local implementation
 
         When a sub component has triggerd a state changed event, the mothod
-        enbles or disables the view's OK button depending on each component's
-        valid flag.
+        enbles or disables the presentation agent's OK button depending on each
+        component's valid flag.
         """
         flag = True
 
         for slave in self._slaves:
             flag = flag and slave.get_validity_flag()
 
-        self._view.set_submit_state(flag)
+        self.get_presentation_agent().set_submit_state(flag)
 
     def submit_action_activated(self, event=None):
         """
         SubmitActionActivatedListerner trigger mmethod local implementation
         """
-        self.notify_submit_action_activated(Event(self._configuration))
+        if self._read_only is False:
+            self.notify_submit_action_activated(Event(self._configuration))
+
         self.destroy()
 
     def cancel_action_activated(self, event=None):
@@ -113,11 +115,11 @@ class DetailMainController(BaseController, SubmitActionListener,
         """
         return self._read_only
 
-    def get_view(self):
+    def get_presentation_agent(self):
         """
-        Returns view
+        Returns presentation
         """
-        return self._view
+        return self._presentation_agent
 
     def destroy(self):
         """
@@ -132,26 +134,27 @@ class DetailMainController(BaseController, SubmitActionListener,
         self.clear_validity_changed_listeners()
         self.clear_submit_action_activated_listeners()
 
-        # Destroyes view
-        self.get_view().destroy()
+        # Destroyes presentation
+        self.get_presentation_agent().destroy()
 
 
-class DetailComponentController(BaseController):
+class DetailBaseControlAgent(BaseControlAgent):
     """
-    Generic sub component controller
+    Generic sub component control agent
     """
 
     def __init__(self, configuration, read_only=False):
         """
-        Initializes controller.
+        Initializes control agent.
 
-        The read_only attribute indocates to the view that none of then widgets
-        should be sensitive. The user is then not allowed to change any value.
+        The read_only attribute indocates to the presentation that none of then
+        widgets should be sensitive. The user is then not allowed to change any
+        value.
         """
-        BaseController.__init__(self)
+        BaseControlAgent.__init__(self)
         self._read_only = read_only
         self._configuration = configuration
-        self._view = None
+        self._presentation_agent = None
         configuration.add_data_changed_listener(self)
 
     def data_changed(self, event=None):
@@ -170,7 +173,7 @@ class DetailComponentController(BaseController):
         """
         Returns component's valididty flag
         """
-        return self._view.get_validity_flag()
+        return self.get_presentation_agent().get_validity_flag()
 
     def get_read_only_flag(self):
         """
@@ -178,11 +181,11 @@ class DetailComponentController(BaseController):
         """
         return self._read_only
 
-    def get_view(self):
+    def get_presentation_agent(self):
         """
-        Returns DetailSiteView view instance
+        Returns local PresentationAgent implementation instance
         """
-        return self._view
+        return self._presentation_agent
 
     def get_configuratuon(self):
         """
@@ -219,57 +222,57 @@ class DetailComponentController(BaseController):
         self.clear_data_changed_listeners()
         self.clear_validity_changed_listeners()
 
-        # Destroyes view
-        self.get_view().destroy()
+        # Destroyes presentation
+        self.get_presentation_agent().destroy()
 
 
-class DetailSiteController(DetailComponentController):
+class DetailSiteControlAgent(DetailBaseControlAgent):
     """
-    Site sub component controller
-    """
-
-    def __init__(self, configuration, read_only=False):
-        DetailComponentController.__init__(self, configuration, read_only)
-        self._view = DetailSiteView(self)
-        self._view.add_validity_changed_listener(self)
-
-
-class DetailDatabaseController(DetailComponentController):
-    """
-    Database sub component controller
+    Site sub component control agent
     """
 
     def __init__(self, configuration, read_only=False):
-        DetailComponentController.__init__(self, configuration, read_only)
-        self._view = DetailDatabaseView(self)
-        self._view.add_validity_changed_listener(self)
+        DetailBaseControlAgent.__init__(self, configuration, read_only)
+        self._presentation_agent = DetailSitePresentationAgent(self)
+        self._presentation_agent.add_validity_changed_listener(self)
 
 
-class DetailRepositoryController(DetailComponentController):
+class DetailDatabaseControlAgent(DetailBaseControlAgent):
     """
-    Repository sub component controller
-    """
-
-    def __init__(self, configuration, read_only=False):
-        DetailComponentController.__init__(self, configuration, read_only)
-        self._view = DetailRepositoryView(self)
-        self._view.add_validity_changed_listener(self)
-
-
-class DetailGeneralController(DetailComponentController):
-    """
-    Repository sub component controller
+    Database sub component control agent
     """
 
     def __init__(self, configuration, read_only=False):
-        DetailComponentController.__init__(self, configuration, read_only)
-        self._view = DetailGeneralView(self)
-        self._view.add_validity_changed_listener(self)
+        DetailBaseControlAgent.__init__(self, configuration, read_only)
+        self._presentation_agent = DetailDatabasePresentationAgent(self)
+        self._presentation_agent.add_validity_changed_listener(self)
+
+
+class DetailRepositoryControlAgent(DetailBaseControlAgent):
+    """
+    Repository sub component control agent
+    """
+
+    def __init__(self, configuration, read_only=False):
+        DetailBaseControlAgent.__init__(self, configuration, read_only)
+        self._presentation_agent = DetailRepositoryPresentationAgent(self)
+        self._presentation_agent.add_validity_changed_listener(self)
+
+
+class DetailGeneralControlAgent(DetailBaseControlAgent):
+    """
+    Repository sub component control agent
+    """
+
+    def __init__(self, configuration, read_only=False):
+        DetailBaseControlAgent.__init__(self, configuration, read_only)
+        self._presentation_agent = DetailGeneralPresentationAgent(self)
+        self._presentation_agent.add_validity_changed_listener(self)
 
 if __name__ == '__main__':
     config = ConfigurationManager.get_blank_configuration()
-    controller = DetailMainController(config, False)
-    view = controller.get_view()
-    view.get_toplevel().connect("destroy", gtk.main_quit)
-    view.show()
+    control = DetailMainControlAgent(config, False)
+    presentation = control.get_presentation_agent()
+    presentation.get_toplevel().connect("destroy", gtk.main_quit)
+    presentation.show()
     gtk.main()

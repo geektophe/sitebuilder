@@ -4,28 +4,29 @@ Site editing interface. Supports Create, View and Update modes.
 """
 
 from sitebuilder.utils.parameters import GLADE_BASEDIR
-from sitebuilder.view.gtk.base import GtkBaseView
+from sitebuilder.presentation.gtk.base import GtkBasePresentationAgent
 from sitebuilder.observer.viewaction import ViewActionDispatcher
 from sitebuilder.observer.addaction import AddActionDispatcher
 from sitebuilder.observer.editaction import EditActionDispatcher
 from sitebuilder.observer.deleteaction import DeleteActionDispatcher
 import gtk
 
-class ListView(GtkBaseView, ViewActionDispatcher, AddActionDispatcher,
-              EditActionDispatcher, DeleteActionDispatcher):
+class ListPresentationAgent(GtkBasePresentationAgent,
+                            ViewActionDispatcher, AddActionDispatcher,
+                            EditActionDispatcher, DeleteActionDispatcher):
     """
-    ListView site add/edit/view interface.
+    ListPresentationAgent site add/edit/view interface.
 
     The interface design is loaded from a glade file.
     """
 
     GLADE_FILE = "%s/%s" % (GLADE_BASEDIR, 'list.glade')
 
-    def __init__(self, controller):
+    def __init__(self, control_agent):
         """
         Class initialization.
         """
-        GtkBaseView.__init__(self, 'list', controller)
+        GtkBasePresentationAgent.__init__(self, 'list', control_agent)
         ViewActionDispatcher.__init__(self)
         AddActionDispatcher.__init__(self)
         EditActionDispatcher.__init__(self)
@@ -60,7 +61,7 @@ class ListView(GtkBaseView, ViewActionDispatcher, AddActionDispatcher,
         # Appends items to the site_list
         model = self['site_list'].get_model()
         model.clear()
-        sites = self._controller.get_configuration_all()
+        sites = self.get_control_agent().get_configuration_all()
 
         for site in sites:
             general = site.get_attribute('general')
@@ -75,7 +76,7 @@ class ListView(GtkBaseView, ViewActionDispatcher, AddActionDispatcher,
 
         As the treeview component used to display configuration list
         behaves exactly as a combobox item (thay share the same internal
-        model), we may use the GtkBaseView get_combobox_selection method
+        model), we may use the GtkBasePresentationAgent get_combobox_selection method
         to read it.
         """
         model, rows = self['site_list'].get_selection().get_selected_rows()
@@ -127,4 +128,4 @@ class ListView(GtkBaseView, ViewActionDispatcher, AddActionDispatcher,
         self.clear_view_action_activated_listeners()
         self.clear_edit_action_activated_listeners()
         self.clear_delete_action_activated_listeners()
-        GtkBaseView.destroy(self)
+        GtkBasePresentationAgent.destroy(self)

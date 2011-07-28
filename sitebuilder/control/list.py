@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 """
-Main list interface controller
+Main list interface control agent
 """
 
 from sitebuilder.utils.event import Event
-from sitebuilder.view.gtk.list import ListView
-from sitebuilder.model.configuration import AttributeSet
-from sitebuilder.controller.detail import DetailMainController
-from sitebuilder.model.configuration import ConfigurationManager
+from sitebuilder.presentation.gtk.list import ListPresentationAgent
+from sitebuilder.utils.attribute import AttributeSet
+from sitebuilder.control.detail import DetailMainControlAgent
+from sitebuilder.abstraction.configuration import ConfigurationManager
 from sitebuilder.observer.viewaction import ViewActionListener
 from sitebuilder.observer.viewaction import ViewActionDispatcher
 from sitebuilder.observer.addaction import AddActionListener
@@ -20,37 +20,38 @@ from sitebuilder.observer.submitaction import SubmitActionListener
 import gtk
 
 
-class ListController(ViewActionListener, AddActionListener, EditActionListener,
-                     DeleteActionListener, SubmitActionListener,
-                     ViewActionDispatcher, AddActionDispatcher,
-                     EditActionDispatcher, DeleteActionDispatcher):
+class ListControlAgent(ViewActionListener, AddActionListener,
+                       EditActionListener, DeleteActionListener,
+                       SubmitActionListener, ViewActionDispatcher,
+                       AddActionDispatcher, EditActionDispatcher,
+                       DeleteActionDispatcher):
     """
-    List main component controller
+    List main component control agent
     """
 
     def __init__(self):
         """
-        Initializes controller.
+        Initializes control agent.
         """
         ViewActionDispatcher.__init__(self)
         AddActionDispatcher.__init__(self)
         EditActionDispatcher.__init__(self)
         DeleteActionDispatcher.__init__(self)
-        self._view = ListView(self)
-        self._view.add_view_action_activated_listener(self)
-        self._view.add_add_action_activated_listener(self)
-        self._view.add_edit_action_activated_listener(self)
-        self._view.add_delete_action_activated_listener(self)
+        self._presentation_agent = ListPresentationAgent(self)
+        self._presentation_agent.add_view_action_activated_listener(self)
+        self._presentation_agent.add_add_action_activated_listener(self)
+        self._presentation_agent.add_edit_action_activated_listener(self)
+        self._presentation_agent.add_delete_action_activated_listener(self)
 
-    def get_view(self):
+    def get_presentation_agent(self):
         """
-        Returns ListView view instance
+        Returns ListPresentationAgent presentation instance
         """
-        return self._view
+        return self._presentation_agent
 
     def get_configuration_all(self):
         """
-        Retrieves all the configuraiton items from the model
+        Retrieves all the configuraiton items from the abstraction
         """
         return ConfigurationManager.get_configuration_all()
 
@@ -58,10 +59,10 @@ class ListController(ViewActionListener, AddActionListener, EditActionListener,
         """
         Shows detail dialog for the specified configuration
         """
-        detail = DetailMainController(configuration, read_only)
+        detail = DetailMainControlAgent(configuration, read_only)
         detail.add_submit_action_activated_listener(self)
-        view = detail.get_view()
-        view.show()
+        presentation = detail.get_presentation_agent()
+        presentation.show()
 
     def show_delete_dialog(self, configuration):
         """
@@ -71,7 +72,7 @@ class ListController(ViewActionListener, AddActionListener, EditActionListener,
         conf_name = configuration['general']['name'].get_value()
 
         dialog = gtk.MessageDialog(
-            self._view.get_toplevel(),
+            self.get_presentation_agent().get_toplevel(),
             gtk.DIALOG_MODAL|gtk.DIALOG_DESTROY_WITH_PARENT,
             gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO,
             "Are you sure you want to delete configuraiton '%s' ?" % conf_name)
@@ -86,7 +87,7 @@ class ListController(ViewActionListener, AddActionListener, EditActionListener,
         """
         ViewActionListerner trigger mmethod local implementation
         """
-        selection = self._view.get_selected_items()
+        selection = self.get_presentation_agent().get_selected_items()
 
         for identifier in selection:
             configuration = ConfigurationManager.get_configuration_by_id(identifier)
@@ -103,7 +104,7 @@ class ListController(ViewActionListener, AddActionListener, EditActionListener,
         """
         EditActionListerner trigger mmethod local implementation
         """
-        selection = self._view.get_selected_items()
+        selection = self.get_presentation_agent().get_selected_items()
 
         for identifier in selection:
             configuration = ConfigurationManager.get_configuration_by_id(identifier)
@@ -113,7 +114,7 @@ class ListController(ViewActionListener, AddActionListener, EditActionListener,
         """
         DeleteActionListerner trigger mmethod local implementation
         """
-        selection = self._view.get_selected_items()
+        selection = self.get_presentation_agent().get_selected_items()
 
         for identifier in selection:
             configuration = ConfigurationManager.get_configuration_by_id(identifier)
@@ -143,13 +144,13 @@ class ListController(ViewActionListener, AddActionListener, EditActionListener,
         self.clear_edit_action_activated_listeners()
         self.clear_delete_action_activated_listeners()
 
-        # Destroyes view
-        self.get_view().destroy()
+        # Destroyes presentation
+        self.get_presentation_agent().destroy()
 
 
 if __name__ == '__main__':
-    controller = ListController()
-    view = controller.get_view()
-    view.get_toplevel().connect("destroy", gtk.main_quit)
-    view.show()
+    control = ListControlAgent()
+    presentation = control.get_presentation_agent()
+    presentation.get_toplevel().connect("destroy", gtk.main_quit)
+    presentation.show()
     gtk.main()

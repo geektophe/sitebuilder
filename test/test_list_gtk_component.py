@@ -6,20 +6,20 @@ Test classes for view.gtk.detail views classes
 import unittest
 from gtktest import refresh_gui
 from sitebuilder.utils.parameters import set_application_context
-from sitebuilder.controller.list import ListController
-from sitebuilder.model.configuration import ConfigurationManager
+from sitebuilder.control.list import ListControlAgent
+from sitebuilder.abstraction.configuration import ConfigurationManager
 
 
-class ListTestController(ListController):
+class ListTestControlAgent(ListControlAgent):
     """
-    List test controller used to test view behaviour
+    List test control agent used to test presentation_agent behaviour
     """
 
     def __init__(self):
         """
-        Initializes controller.
+        Initializes control agent.
         """
-        ListController.__init__(self)
+        ListControlAgent.__init__(self)
         self._detail_dialog_data = ()
         self._detail_delete_id = None
 
@@ -37,18 +37,18 @@ class ListTestController(ListController):
 
     def get_detail_configuration_data(self):
         """
-        Returns data that should have been passed to detail main controller
+        Returns data that should have been passed to detail main control agent
         """
         return self._detail_dialog_data
 
     def get_delete_configuration_data(self):
         """
-        Returns data that should have been passed to detail main controller
+        Returns data that should have been passed to detail main control agent
         """
         return self._detail_delete_id
 
 
-class TestGtkListView(unittest.TestCase):
+class TestGtkListPresentationAgent(unittest.TestCase):
     """Unit test base class to be subclassed by real test cases"""
 
     def setUp(self):
@@ -62,9 +62,9 @@ class TestGtkListView(unittest.TestCase):
         Tests that test configuration is correctly loaded into interface's
         treeview component
         """
-        controller = ListTestController()
-        view = controller.get_view()
-        model = view['site_list'].get_model()
+        control_agent = ListTestControlAgent()
+        presentation_agent = control_agent.get_presentation_agent()
+        model = presentation_agent['site_list'].get_model()
 
         configurations = ConfigurationManager.get_configuration_all()
         self.assertEquals(len(configurations), len(model))
@@ -87,31 +87,31 @@ class TestGtkListView(unittest.TestCase):
 
     def test_list_add_action(self):
         """
-        Tests that the correct parameters are sent by controller when add
+        Tests that the correct parameters are sent by control agent when add
         action is activated.
         """
-        controller = ListTestController()
-        view = controller.get_view()
-        view['add'].activate()
+        control_agent = ListTestControlAgent()
+        presentation_agent = control_agent.get_presentation_agent()
+        presentation_agent['add'].activate()
         refresh_gui()
-        configuration, read_only = controller.get_detail_configuration_data()
+        configuration, read_only = control_agent.get_detail_configuration_data()
         confid = configuration['general']['id'].get_value()
         self.assertFalse(read_only)
         self.assertTrue(confid is None)
 
     def test_list_view_action(self):
         """
-        Tests that the correct parameters are sent by controller when add
+        Tests that the correct parameters are sent by control agent when add
         action is activated.
         """
 
         row = 0
-        controller = ListTestController()
-        view = controller.get_view()
-        view['site_list'].get_selection().select_path((row,))
-        view['view'].activate()
+        control_agent = ListTestControlAgent()
+        presentation_agent = control_agent.get_presentation_agent()
+        presentation_agent['site_list'].get_selection().select_path((row,))
+        presentation_agent['view'].activate()
         refresh_gui()
-        configuration, read_only = controller.get_detail_configuration_data()
+        configuration, read_only = control_agent.get_detail_configuration_data()
         confid = configuration['general']['id'].get_value()
 
         testconf = ConfigurationManager.get_configuration_all()[row]
@@ -122,17 +122,17 @@ class TestGtkListView(unittest.TestCase):
 
     def test_list_edit_action(self):
         """
-        Tests that the correct parameters are sent by controller when add
+        Tests that the correct parameters are sent by control agent when add
         action is activated.
         """
 
         row = 0
-        controller = ListTestController()
-        view = controller.get_view()
-        view['site_list'].get_selection().select_path((row,))
-        view['edit'].activate()
+        control_agent = ListTestControlAgent()
+        presentation_agent = control_agent.get_presentation_agent()
+        presentation_agent['site_list'].get_selection().select_path((row,))
+        presentation_agent['edit'].activate()
         refresh_gui()
-        configuration, read_only = controller.get_detail_configuration_data()
+        configuration, read_only = control_agent.get_detail_configuration_data()
         confid = configuration['general']['id'].get_value()
 
         testconf = ConfigurationManager.get_configuration_all()[row]

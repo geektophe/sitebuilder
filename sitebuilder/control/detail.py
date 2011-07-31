@@ -9,7 +9,7 @@ from sitebuilder.presentation.gtk.detail import DetailDatabasePresentationAgent
 from sitebuilder.presentation.gtk.detail import DetailGeneralPresentationAgent
 from sitebuilder.presentation.gtk.detail import DetailSitePresentationAgent
 from sitebuilder.presentation.gtk.detail import DetailRepositoryPresentationAgent
-from sitebuilder.abstraction.configuration import ConfigurationManager
+from sitebuilder.abstraction.site import SiteConfigurationManager
 from sitebuilder.control.base import BaseControlAgent
 from sitebuilder.observer.submitaction import SubmitActionListener
 from sitebuilder.observer.submitaction import SubmitActionDispatcher
@@ -52,7 +52,7 @@ class DetailMainControlAgent(BaseControlAgent, SubmitActionListener,
                 slave.get_presentation_agent())
 
         # Creates site components
-        for name in ConfigurationManager.get_site_platforms():
+        for name in SiteConfigurationManager.get_site_platforms():
             platform = configuration.get_attribute('sites').get_attribute(name)
             slave = DetailSiteControlAgent(platform, read_only)
             slave.add_validity_changed_listener(self)
@@ -61,7 +61,7 @@ class DetailMainControlAgent(BaseControlAgent, SubmitActionListener,
                     slave.get_presentation_agent())
 
         # Creates database components
-        for name in ConfigurationManager.get_database_platforms():
+        for name in SiteConfigurationManager.get_database_platforms():
             platform = configuration.get_attribute('databases').get_attribute(name)
             slave = DetailDatabaseControlAgent(platform, read_only)
             slave.add_validity_changed_listener(self)
@@ -270,7 +270,7 @@ class DetailGeneralControlAgent(DetailBaseControlAgent):
         self._presentation_agent.add_validity_changed_listener(self)
 
 if __name__ == '__main__':
-    config = ConfigurationManager.get_blank_configuration()
+    config = SiteConfigurationManager.get_blank_configuration()
     control = DetailMainControlAgent(config, False)
     presentation = control.get_presentation_agent()
     presentation.get_toplevel().connect("destroy", gtk.main_quit)

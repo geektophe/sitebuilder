@@ -8,7 +8,7 @@ from sitebuilder.observer.datachanged import DataChangedListener
 from sitebuilder.observer.submitaction import SubmitActionDispatcher
 from sitebuilder.observer.cancelaction import CancelActionDispatcher
 from sitebuilder.presentation.gtk.base import GtkBasePresentationAgent
-from sitebuilder.abstraction.configuration import ConfigurationManager
+from sitebuilder.abstraction.site import SiteConfigurationManager
 
 class DetailMainPresentationAgent(GtkBasePresentationAgent,
                                   SubmitActionDispatcher,
@@ -96,9 +96,9 @@ class DetailSitePresentationAgent(GtkBasePresentationAgent,
 
         # Loads comboboxes items
         self.set_combobox_items(self['template'],
-                ConfigurationManager.get_site_templates())
+                SiteConfigurationManager.get_site_templates())
         self.set_combobox_items(self['domain'],
-                ConfigurationManager.get_site_domains())
+                SiteConfigurationManager.get_site_domains())
 
         # Loads widgets data from control agent
         self.load_widgets_data()
@@ -270,7 +270,7 @@ class DetailDatabasePresentationAgent(GtkBasePresentationAgent,
 
         # Loads comboboxes items
         self.set_combobox_items(self['type'],
-                ConfigurationManager.get_database_types())
+                SiteConfigurationManager.get_database_types())
 
         # Loads widgets data from control agent
         self.load_widgets_data()
@@ -393,7 +393,7 @@ class DetailRepositoryPresentationAgent(GtkBasePresentationAgent,
 
         # Loads comboboxes items
         self.set_combobox_items(self['type'],
-                ConfigurationManager.get_repository_types())
+                SiteConfigurationManager.get_repository_types())
 
         # Loads widgets data from control agent
         self.load_widgets_data()

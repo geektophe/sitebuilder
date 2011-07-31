@@ -7,7 +7,7 @@ from sitebuilder.utils.event import Event
 from sitebuilder.presentation.gtk.list import ListPresentationAgent
 from sitebuilder.utils.attribute import AttributeSet
 from sitebuilder.control.detail import DetailMainControlAgent
-from sitebuilder.abstraction.configuration import ConfigurationManager
+from sitebuilder.abstraction.site import SiteConfigurationManager
 from sitebuilder.observer.viewaction import ViewActionListener
 from sitebuilder.observer.viewaction import ViewActionDispatcher
 from sitebuilder.observer.addaction import AddActionListener
@@ -53,7 +53,7 @@ class ListControlAgent(ViewActionListener, AddActionListener,
         """
         Retrieves all the configuraiton items from the abstraction
         """
-        return ConfigurationManager.get_configuration_all()
+        return SiteConfigurationManager.get_configuration_all()
 
     def show_detail_dialog(self, configuration, read_only=False):
         """
@@ -90,14 +90,14 @@ class ListControlAgent(ViewActionListener, AddActionListener,
         selection = self.get_presentation_agent().get_selected_items()
 
         for identifier in selection:
-            configuration = ConfigurationManager.get_configuration_by_id(identifier)
+            configuration = SiteConfigurationManager.get_configuration_by_id(identifier)
             self.show_detail_dialog(configuration, True)
 
     def add_action_activated(self, event=None):
         """
         AddActionListerner trigger mmethod local implementation
         """
-        configuration = ConfigurationManager.get_blank_configuration()
+        configuration = SiteConfigurationManager.get_blank_configuration()
         self.show_detail_dialog(configuration)
 
     def edit_action_activated(self, event=None):
@@ -107,7 +107,7 @@ class ListControlAgent(ViewActionListener, AddActionListener,
         selection = self.get_presentation_agent().get_selected_items()
 
         for identifier in selection:
-            configuration = ConfigurationManager.get_configuration_by_id(identifier)
+            configuration = SiteConfigurationManager.get_configuration_by_id(identifier)
             self.show_detail_dialog(configuration)
 
     def delete_action_activated(self, event=None):
@@ -117,7 +117,7 @@ class ListControlAgent(ViewActionListener, AddActionListener,
         selection = self.get_presentation_agent().get_selected_items()
 
         for identifier in selection:
-            configuration = ConfigurationManager.get_configuration_by_id(identifier)
+            configuration = SiteConfigurationManager.get_configuration_by_id(identifier)
             self.show_delete_dialog(configuration)
 
     def submit_action_activated(self, event=None):

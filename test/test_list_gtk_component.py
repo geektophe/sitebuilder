@@ -7,7 +7,7 @@ import unittest
 from gtktest import refresh_gui
 from sitebuilder.utils.parameters import set_application_context
 from sitebuilder.control.list import ListControlAgent
-from sitebuilder.abstraction.configuration import ConfigurationManager
+from sitebuilder.abstraction.site import SiteConfigurationManager
 
 
 class ListTestControlAgent(ListControlAgent):
@@ -66,7 +66,7 @@ class TestGtkListPresentationAgent(unittest.TestCase):
         presentation_agent = control_agent.get_presentation_agent()
         model = presentation_agent['site_list'].get_model()
 
-        configurations = ConfigurationManager.get_configuration_all()
+        configurations = SiteConfigurationManager.get_configuration_all()
         self.assertEquals(len(configurations), len(model))
 
         for i in range(len(configurations)):
@@ -114,7 +114,7 @@ class TestGtkListPresentationAgent(unittest.TestCase):
         configuration, read_only = control_agent.get_detail_configuration_data()
         confid = configuration['general']['id'].get_value()
 
-        testconf = ConfigurationManager.get_configuration_all()[row]
+        testconf = SiteConfigurationManager.get_configuration_all()[row]
         testid = testconf['general']['id'].get_value()
 
         self.assertEquals(confid, testid)
@@ -135,7 +135,7 @@ class TestGtkListPresentationAgent(unittest.TestCase):
         configuration, read_only = control_agent.get_detail_configuration_data()
         confid = configuration['general']['id'].get_value()
 
-        testconf = ConfigurationManager.get_configuration_all()[row]
+        testconf = SiteConfigurationManager.get_configuration_all()[row]
         testid = testconf['general']['id'].get_value()
 
         self.assertEquals(confid, testid)

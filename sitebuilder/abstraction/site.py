@@ -23,7 +23,7 @@ def get_default_config_data():
         # Repository related attriutes
         'repository' : {
             'enabled' : (False, bool),
-            'type' : ('svn', ConfigurationManager.get_repository_types().keys(), 'Unsupported RCS type'),
+            'type' : ('svn', SiteConfigurationManager.get_repository_types().keys(), 'Unsupported RCS type'),
             'name' : ('', '^[\d\w_-]*$', 'Name should be an alphanumeric string or _, without spaces'),
             'done' : (False, bool)
             },
@@ -34,8 +34,8 @@ def get_default_config_data():
                 'proxied' : (False, bool),
                 'maintenance' : (False, bool),
                 'done' : (False, bool),
-                'template' : ('standard', ConfigurationManager.get_site_templates().keys(), 'Unsupported site template'),
-                'domain' : ('bpinet.com', ConfigurationManager.get_site_domains().keys(), 'Unknown domain'),
+                'template' : ('standard', SiteConfigurationManager.get_site_templates().keys(), 'Unsupported site template'),
+                'domain' : ('bpinet.com', SiteConfigurationManager.get_site_domains().keys(), 'Unknown domain'),
                 'name' : ('__DEFAULT__', '^([a-z0-9_-]+|__DEFAULT__)$', 'Name should be a simple alphanumeric string without spaces')
                 },
             'test' : {
@@ -43,16 +43,16 @@ def get_default_config_data():
                 'proxied' : (False, bool),
                 'maintenance' : (False, bool),
                 'done' : (False, bool),
-                'template' : ('standard', ConfigurationManager.get_site_templates().keys(), 'Unsupported site template'),
-                'domain' : ('bpinet.com', ConfigurationManager.get_site_domains().keys(), 'Unknown domain'),
+                'template' : ('standard', SiteConfigurationManager.get_site_templates().keys(), 'Unsupported site template'),
+                'domain' : ('bpinet.com', SiteConfigurationManager.get_site_domains().keys(), 'Unknown domain'),
                 'name' : ('__DEFAULT__', '^([a-z0-9_-]+|__DEFAULT__)$', 'Name should be a simple alphanumeric string without spaces')
                 },
             'dev' : {
                 'enabled' : (False, bool),
                 'maintenance' : (False, bool),
                 'done' : (False, bool),
-                'template' : ('standard', ConfigurationManager.get_site_templates().keys(), 'Unsupported site template'),
-                'domain' : ('bpinet.com', ConfigurationManager.get_site_domains().keys(), 'Unknown domain'),
+                'template' : ('standard', SiteConfigurationManager.get_site_templates().keys(), 'Unsupported site template'),
+                'domain' : ('bpinet.com', SiteConfigurationManager.get_site_domains().keys(), 'Unknown domain'),
                 'name' : ('__DEFAULT__', '^([a-z0-9_-]+|__DEFAULT__)$', 'Name should be a simple alphanumeric string without spaces')
                 },
             },
@@ -61,7 +61,7 @@ def get_default_config_data():
             'prod' : {
                 'enabled' : (False, bool),
                 'done' : (False, bool),
-                'type' : ('mysql', ConfigurationManager.get_database_types().keys(), 'Unsupported database type'),
+                'type' : ('mysql', SiteConfigurationManager.get_database_types().keys(), 'Unsupported database type'),
                 'name' : ('', '^[a-z0-9_]+$', 'Name should be a simple alphanumeric string without spaces'),
                 'username' : ('', '^[a-z0-9_]+$', 'Username should be a simple alphanumeric string without spaces'),
                 'password' : ('', None)
@@ -69,7 +69,7 @@ def get_default_config_data():
             'test' : {
                 'enabled' : (False, bool),
                 'done' : (False, bool),
-                'type' : ('mysql', ConfigurationManager.get_database_types().keys(), 'Unsupported database type'),
+                'type' : ('mysql', SiteConfigurationManager.get_database_types().keys(), 'Unsupported database type'),
                 'name' : ('', '^[a-z0-9_]+$', 'Name should be a simple alphanumeric string without spaces'),
                 'username' : ('', '^[a-z0-9_]+$', 'Username should be a simple alphanumeric string without spaces'),
                 'password' : ('', None)
@@ -77,7 +77,7 @@ def get_default_config_data():
             'dev' : {
                 'enabled' : (False, bool),
                 'done' : (False, bool),
-                'type' : ('mysql', ConfigurationManager.get_database_types().keys(), 'Unsupported database type'),
+                'type' : ('mysql', SiteConfigurationManager.get_database_types().keys(), 'Unsupported database type'),
                 'name' : ('', '^[a-z0-9_]+$', 'Name should be a simple alphanumeric string without spaces'),
                 'username' : ('', '^[a-z0-9_]+$', 'Username should be a simple alphanumeric string without spaces'),
                 'password' : ('', None)
@@ -91,7 +91,7 @@ def get_test_configuration(config_id):
     Generates the default configuration used to initialize internal
     configuration structures
     """
-    config = ConfigurationManager.get_blank_configuration()
+    config = SiteConfigurationManager.get_blank_configuration()
 
     general = config.get_attribute('general')
     general.get_attribute('id').set_value(config_id)
@@ -152,7 +152,7 @@ def get_test_configuration(config_id):
     return config
 
 
-class ConfigurationManager(object):
+class SiteConfigurationManager(object):
     """
     Configuration class that handles configuration read an write operations
     relative to sitebuilder queries.
@@ -184,7 +184,7 @@ class ConfigurationManager(object):
         """
         Returns the hash of available databases technologies supported
 
-        The hash key is the type mnemonique, and the value is the label to be 
+        The hash key is the type mnemonique, and the value is the label to be
         diaplayed.
         """
         return {
@@ -197,7 +197,7 @@ class ConfigurationManager(object):
         """
         Returns the hash of available RCS repositories technologies supported
 
-        The hash key is the type mnemonique, and the value is the label to be 
+        The hash key is the type mnemonique, and the value is the label to be
         diaplayed.
         """
         return {
@@ -274,9 +274,11 @@ class ConfigurationManager(object):
         context = get_application_context()
 
         if context == 'normal':
-            return ConfigurationManager.get_test_configuration_by_id(identifier)
+            return SiteConfigurationManager.get_test_configuration_by_id(
+                    identifier)
         elif context == 'test':
-            return ConfigurationManager.get_real_configuration_by_id(identifier)
+            return SiteConfigurationManager.get_real_configuration_by_id(
+                    identifier)
         else:
             return None
 
@@ -303,9 +305,9 @@ class ConfigurationManager(object):
         context = get_application_context()
 
         if context == 'normal':
-            return ConfigurationManager.get_test_configuration_all()
+            return SiteConfigurationManager.get_test_configuration_all()
         elif context == 'test':
-            return ConfigurationManager.get_real_configuration_all()
+            return SiteConfigurationManager.get_real_configuration_all()
         else:
             return None
 

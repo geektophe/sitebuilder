@@ -6,7 +6,7 @@ Test classes for view.gtk.detail views classes
 import unittest
 from gtktest import refresh_gui
 from sitebuilder.utils.parameters import set_application_context
-from sitebuilder.abstraction.configuration import ConfigurationManager
+from sitebuilder.abstraction.site import SiteConfigurationManager
 from sitebuilder.control.detail import DetailSiteControlAgent
 from sitebuilder.control.detail import DetailDatabaseControlAgent
 from sitebuilder.control.detail import DetailRepositoryControlAgent
@@ -49,7 +49,7 @@ class TestDetailSiteGtkPresentationAgent(BaseTestGtkPresentationAgent):
         """
         Tests site detail component's presentation_agent initial state
         """
-        config = ConfigurationManager.get_test_configuration(1)
+        config = SiteConfigurationManager.get_configuration_by_id(1)
         prod = config['sites']['prod']
         control_agent = DetailSiteControlAgent(prod)
         presentation_agent = control_agent.get_presentation_agent()
@@ -81,7 +81,7 @@ class TestDetailSiteGtkPresentationAgent(BaseTestGtkPresentationAgent):
         """
         Tests site detail component's presentation_agent in done state
         """
-        config = ConfigurationManager.get_test_configuration(1)
+        config = SiteConfigurationManager.get_configuration_by_id(1)
         prod = config['sites']['prod']
         prod['done'].set_value(True)
         control_agent = DetailSiteControlAgent(prod)
@@ -107,7 +107,7 @@ class TestDetailSiteGtkPresentationAgent(BaseTestGtkPresentationAgent):
         expected, and that abstraction attributes are set correspondingly to
         GUI actions.
         """
-        config = ConfigurationManager.get_blank_configuration()
+        config = SiteConfigurationManager.get_blank_configuration()
         prod = config['sites']['prod']
         control_agent = DetailSiteControlAgent(prod)
         presentation_agent = control_agent.get_presentation_agent()
@@ -160,8 +160,8 @@ class TestDetailSiteGtkPresentationAgent(BaseTestGtkPresentationAgent):
                         'site name attribute is wrong')
 
         # Comboboxes value should be reported to abstraction
-        template = ConfigurationManager.get_site_templates().keys()[0]
-        domain = ConfigurationManager.get_site_domains().keys()[0]
+        template = SiteConfigurationManager.get_site_templates().keys()[0]
+        domain = SiteConfigurationManager.get_site_domains().keys()[0]
 
         for name, value in (('template', template), ('domain', domain)):
             presentation_agent.set_combobox_selection(presentation_agent[name],
@@ -176,7 +176,7 @@ class TestDetailSiteGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests that site detail component's abstractions changes are correctly
         reported to GUI.
         """
-        config = ConfigurationManager.get_blank_configuration()
+        config = SiteConfigurationManager.get_blank_configuration()
         prod = config['sites']['prod']
         control_agent = DetailSiteControlAgent(prod)
         presentation_agent = control_agent.get_presentation_agent()
@@ -223,8 +223,8 @@ class TestDetailSiteGtkPresentationAgent(BaseTestGtkPresentationAgent):
         self.assert_widgets_sensitive_flag(presentation_agent, {'name': False})
 
         # Comboboxes value should reflect abstraction changes
-        template = ConfigurationManager.get_site_templates().keys()[0]
-        domain = ConfigurationManager.get_site_domains().keys()[0]
+        template = SiteConfigurationManager.get_site_templates().keys()[0]
+        domain = SiteConfigurationManager.get_site_domains().keys()[0]
 
         for name, value in {'template': template, 'domain': domain}.items():
             prod[name].set_value(value)
@@ -238,7 +238,7 @@ class TestDetailSiteGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests that site detail component's abstractions changes are correctly
         reported to GUI.
         """
-        config = ConfigurationManager.get_blank_configuration()
+        config = SiteConfigurationManager.get_blank_configuration()
         prod = config['sites']['prod']
         control_agent = DetailSiteControlAgent(prod, read_only=True)
         presentation_agent = control_agent.get_presentation_agent()
@@ -261,7 +261,7 @@ class TestDetailSiteGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests that the validity flag is correctly set and unset when a
         component's widget value is set to a correct and incorrect value.
         """
-        config = ConfigurationManager.get_blank_configuration()
+        config = SiteConfigurationManager.get_blank_configuration()
         prod = config['sites']['prod']
         control_agent = DetailSiteControlAgent(prod, read_only=True)
         presentation_agent = control_agent.get_presentation_agent()
@@ -286,7 +286,7 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
         """
         Tests site detail component's presentation_agent initial state
         """
-        config = ConfigurationManager.get_test_configuration(1)
+        config = SiteConfigurationManager.get_configuration_by_id(1)
         prod = config['databases']['prod']
         control_agent = DetailDatabaseControlAgent(prod)
         presentation_agent = control_agent.get_presentation_agent()
@@ -310,7 +310,7 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
         """
         Tests site detail component's presentation_agent n done state
         """
-        config = ConfigurationManager.get_test_configuration(1)
+        config = SiteConfigurationManager.get_configuration_by_id(1)
         prod = config['databases']['prod']
         prod['done'].set_value(True)
         control_agent = DetailDatabaseControlAgent(prod)
@@ -333,7 +333,7 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
         expected, and that abstraction attributes are set correspondingly to
         GUI actions.
         """
-        config = ConfigurationManager.get_blank_configuration()
+        config = SiteConfigurationManager.get_blank_configuration()
         prod = config['databases']['prod']
         control_agent = DetailDatabaseControlAgent(prod)
         presentation_agent = control_agent.get_presentation_agent()
@@ -357,7 +357,7 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
                              'database %s attribute is wrong' % name)
 
         # Comboboxes value should be reported to abstraction
-        dbtype = ConfigurationManager.get_database_types().keys()[0]
+        dbtype = SiteConfigurationManager.get_database_types().keys()[0]
 
         presentation_agent.set_combobox_selection(presentation_agent['type'],
                                                   dbtype)
@@ -370,7 +370,7 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests that database detail component's abstractions changes are
         correctly reported to GUI.
         """
-        config = ConfigurationManager.get_blank_configuration()
+        config = SiteConfigurationManager.get_blank_configuration()
         prod = config['databases']['prod']
         control_agent = DetailDatabaseControlAgent(prod)
         presentation_agent = control_agent.get_presentation_agent()
@@ -399,7 +399,7 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
                              'database %s widget is wrong' % name)
 
         # Comboboxes value should reflect abstraction changes
-        dbtype = ConfigurationManager.get_database_types().keys()[0]
+        dbtype = SiteConfigurationManager.get_database_types().keys()[0]
 
         prod['type'].set_value(dbtype)
         refresh_gui()
@@ -413,7 +413,7 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests that database detail component's abstractions changes are
         correctly reported to GUI.
         """
-        config = ConfigurationManager.get_blank_configuration()
+        config = SiteConfigurationManager.get_blank_configuration()
         prod = config['databases']['prod']
         control_agent = DetailDatabaseControlAgent(prod, read_only=True)
         presentation_agent = control_agent.get_presentation_agent()
@@ -434,7 +434,7 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests that the validity flag is correctly set and unset when a
         component's widget value is set to a correct and incorrect value.
         """
-        config = ConfigurationManager.get_blank_configuration()
+        config = SiteConfigurationManager.get_blank_configuration()
         prod = config['databases']['prod']
         control_agent = DetailDatabaseControlAgent(prod, read_only=True)
         presentation_agent = control_agent.get_presentation_agent()
@@ -460,7 +460,7 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
         """
         Tests repository detail component's presentation_agent initial state
         """
-        config = ConfigurationManager.get_test_configuration(1)
+        config = SiteConfigurationManager.get_configuration_by_id(1)
         repo = config['repository']
         control_agent = DetailRepositoryControlAgent(repo)
         presentation_agent = control_agent.get_presentation_agent()
@@ -482,7 +482,7 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
         """
         Tests repository detail component's presentation_agent in done state
         """
-        config = ConfigurationManager.get_test_configuration(1)
+        config = SiteConfigurationManager.get_configuration_by_id(1)
         repo = config['repository']
         repo['done'].set_value(True)
         control_agent = DetailRepositoryControlAgent(repo)
@@ -503,7 +503,7 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
         expected, and that abstraction attributes are set correspondingly to
         GUI actions.
         """
-        config = ConfigurationManager.get_blank_configuration()
+        config = SiteConfigurationManager.get_blank_configuration()
         repo = config['repository']
         control_agent = DetailRepositoryControlAgent(repo)
         presentation_agent = control_agent.get_presentation_agent()
@@ -526,7 +526,7 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
                              'repository name attribute is wrong')
 
         # Comboboxes value should be reported to abstraction
-        repotype = ConfigurationManager.get_repository_types().keys()[0]
+        repotype = SiteConfigurationManager.get_repository_types().keys()[0]
 
         presentation_agent.set_combobox_selection(presentation_agent['type'],
                                                   repotype)
@@ -539,7 +539,7 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests that database detail component's abstractions changes are
         correctly reported to GUI.
         """
-        config = ConfigurationManager.get_blank_configuration()
+        config = SiteConfigurationManager.get_blank_configuration()
         repo = config['repository']
         control_agent = DetailRepositoryControlAgent(repo)
         presentation_agent = control_agent.get_presentation_agent()
@@ -564,7 +564,7 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
                          'repository name widget is wrong')
 
         # Comboboxes value should reflect abstraction changes
-        repotype = ConfigurationManager.get_repository_types().keys()[0]
+        repotype = SiteConfigurationManager.get_repository_types().keys()[0]
 
         repo['type'].set_value(repotype)
         refresh_gui()
@@ -578,7 +578,7 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests that database detail component's abstractions changes are
         correctly reported to GUI.
         """
-        config = ConfigurationManager.get_blank_configuration()
+        config = SiteConfigurationManager.get_blank_configuration()
         repo = config['repository']
         control_agent = DetailRepositoryControlAgent(repo, read_only=True)
         presentation_agent = control_agent.get_presentation_agent()
@@ -597,7 +597,7 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests that the validity flag is correctly set and unset when a
         component's widget value is set to a correct and incorrect value.
         """
-        config = ConfigurationManager.get_blank_configuration()
+        config = SiteConfigurationManager.get_blank_configuration()
         prod = config['repository']
         control_agent = DetailRepositoryControlAgent(prod, read_only=True)
         presentation_agent = control_agent.get_presentation_agent()
@@ -622,7 +622,7 @@ class TestDetailGeneralGtkPresentationAgent(BaseTestGtkPresentationAgent):
         """
         Tests repository detail component's presentation_agent initial state
         """
-        config = ConfigurationManager.get_test_configuration(1)
+        config = SiteConfigurationManager.get_configuration_by_id(1)
         general = config['general']
         control_agent = DetailGeneralControlAgent(general)
         presentation_agent = control_agent.get_presentation_agent()
@@ -641,7 +641,7 @@ class TestDetailGeneralGtkPresentationAgent(BaseTestGtkPresentationAgent):
         expected, and that abstraction attributes are set correspondingly to
         GUI actions.
         """
-        config = ConfigurationManager.get_blank_configuration()
+        config = SiteConfigurationManager.get_blank_configuration()
         general = config['general']
         control_agent = DetailGeneralControlAgent(general)
         presentation_agent = control_agent.get_presentation_agent()
@@ -664,7 +664,7 @@ class TestDetailGeneralGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests that database detail component's abstractions changes are
         correctly reported to GUI.
         """
-        config = ConfigurationManager.get_blank_configuration()
+        config = SiteConfigurationManager.get_blank_configuration()
         general = config['general']
         control_agent = DetailGeneralControlAgent(general)
         presentation_agent = control_agent.get_presentation_agent()
@@ -691,7 +691,7 @@ class TestDetailGeneralGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests that database detail component's abstractions changes are
         correctly reported to GUI.
         """
-        config = ConfigurationManager.get_blank_configuration()
+        config = SiteConfigurationManager.get_blank_configuration()
         general = config['general']
         control_agent = DetailGeneralControlAgent(general, read_only=True)
         presentation_agent = control_agent.get_presentation_agent()
@@ -709,7 +709,7 @@ class TestDetailGeneralGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests that the validity flag is correctly set and unset when a
         component's widget value is set to a correct and incorrect value.
         """
-        config = ConfigurationManager.get_blank_configuration()
+        config = SiteConfigurationManager.get_blank_configuration()
         prod = config['general']
         control_agent = DetailGeneralControlAgent(prod, read_only=True)
         presentation_agent = control_agent.get_presentation_agent()

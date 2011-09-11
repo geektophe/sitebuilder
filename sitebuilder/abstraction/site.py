@@ -17,72 +17,45 @@ def get_default_config_data():
         # General attributes
         'general' : {
             'id' : (None, int, 'Id should be a number'),
+            'platform' : (SiteConfigurationManager.get_default_platform(),
+                          SiteConfigurationManager.get_platforms().keys(),
+                          'Unknown platform'),
+            'domain' : (SiteConfigurationManager.get_default_domain(),
+                        SiteConfigurationManager.get_domains().keys(),
+                        'Unknown domain'),
             'name' : ('', '^[\d\w\s_-]*$', 'Name should be an alphanumeric string'),
-            'description' : ('', '^[\d\w\s_-]*$', 'Reference should be an alphanumeric string')
+            'description' : ('', None),
             },
         # Repository related attriutes
         'repository' : {
             'enabled' : (False, bool),
-            'type' : ('svn', SiteConfigurationManager.get_repository_types().keys(), 'Unsupported RCS type'),
+            'type' : (SiteConfigurationManager.get_default_repository_type(),
+                      SiteConfigurationManager.get_repository_types().keys(),
+                      'Unsupported RCS type'),
             'name' : ('', '^[\d\w_-]*$', 'Name should be an alphanumeric string or _, without spaces'),
             'done' : (False, bool)
             },
         # Sites related attributes (for each available platform)
-        'sites' : {
-            'prod' : {
-                'enabled' : (False, bool),
-                'proxied' : (False, bool),
-                'maintenance' : (False, bool),
-                'done' : (False, bool),
-                'template' : ('standard', SiteConfigurationManager.get_site_templates().keys(), 'Unsupported site template'),
-                'domain' : ('bpinet.com', SiteConfigurationManager.get_site_domains().keys(), 'Unknown domain'),
-                'name' : ('__DEFAULT__', '^([a-z0-9_-]+|__DEFAULT__)$', 'Name should be a simple alphanumeric string without spaces')
-                },
-            'test' : {
-                'enabled' : (False, bool),
-                'proxied' : (False, bool),
-                'maintenance' : (False, bool),
-                'done' : (False, bool),
-                'template' : ('standard', SiteConfigurationManager.get_site_templates().keys(), 'Unsupported site template'),
-                'domain' : ('bpinet.com', SiteConfigurationManager.get_site_domains().keys(), 'Unknown domain'),
-                'name' : ('__DEFAULT__', '^([a-z0-9_-]+|__DEFAULT__)$', 'Name should be a simple alphanumeric string without spaces')
-                },
-            'dev' : {
-                'enabled' : (False, bool),
-                'maintenance' : (False, bool),
-                'done' : (False, bool),
-                'template' : ('standard', SiteConfigurationManager.get_site_templates().keys(), 'Unsupported site template'),
-                'domain' : ('bpinet.com', SiteConfigurationManager.get_site_domains().keys(), 'Unknown domain'),
-                'name' : ('__DEFAULT__', '^([a-z0-9_-]+|__DEFAULT__)$', 'Name should be a simple alphanumeric string without spaces')
-                },
+        'website' : {
+            'enabled' : (False, bool),
+            'access' : (SiteConfigurationManager.get_default_access(),
+                        SiteConfigurationManager.get_accesses().keys(),
+                        'Unsupported access'),
+            'maintenance' : (False, bool),
+            'done' : (False, bool),
+            'template' : ('standard', SiteConfigurationManager.get_site_templates().keys(), 'Unsupported site template'),
             },
         # Databases related attributes (for each available platform)
-        'databases' : {
-            'prod' : {
-                'enabled' : (False, bool),
-                'done' : (False, bool),
-                'type' : ('mysql', SiteConfigurationManager.get_database_types().keys(), 'Unsupported database type'),
-                'name' : ('', '^[a-z0-9_]+$', 'Name should be a simple alphanumeric string without spaces'),
-                'username' : ('', '^[a-z0-9_]+$', 'Username should be a simple alphanumeric string without spaces'),
-                'password' : ('', None)
-                },
-            'test' : {
-                'enabled' : (False, bool),
-                'done' : (False, bool),
-                'type' : ('mysql', SiteConfigurationManager.get_database_types().keys(), 'Unsupported database type'),
-                'name' : ('', '^[a-z0-9_]+$', 'Name should be a simple alphanumeric string without spaces'),
-                'username' : ('', '^[a-z0-9_]+$', 'Username should be a simple alphanumeric string without spaces'),
-                'password' : ('', None)
-                },
-            'dev' : {
-                'enabled' : (False, bool),
-                'done' : (False, bool),
-                'type' : ('mysql', SiteConfigurationManager.get_database_types().keys(), 'Unsupported database type'),
-                'name' : ('', '^[a-z0-9_]+$', 'Name should be a simple alphanumeric string without spaces'),
-                'username' : ('', '^[a-z0-9_]+$', 'Username should be a simple alphanumeric string without spaces'),
-                'password' : ('', None)
-                },
-            }
+        'database' : {
+            'enabled' : (False, bool),
+            'done' : (False, bool),
+            'type' : (SiteConfigurationManager.get_default_database_type(),
+                      SiteConfigurationManager.get_database_types().keys(),
+                      'Unsupported database type'),
+            'name' : ('', '^[a-z0-9_]+$', 'Name should be a simple alphanumeric string without spaces'),
+            'username' : ('', '^[a-z0-9_]+$', 'Username should be a simple alphanumeric string without spaces'),
+            'password' : ('', None)
+            },
         }
 
 
@@ -100,54 +73,24 @@ def get_test_configuration(config_id):
 
     repository = config.get_attribute('repository')
     repository.get_attribute('enabled').set_value(True)
-    repository.get_attribute('name').set_value('repo%d' % config_id)
     repository.get_attribute('done').set_value(False)
 
-    i = 0
-    sites = config.get_attribute('sites')
+    website = config.get_attribute('website')
 
-    for platform in sites.get_attribute_names():
-        site = sites.get_attribute(platform)
+    website.get_attribute('enabled').set_value(True)
 
-        if i % 2 == 0:
-            site.get_attribute('enabled').set_value(True)
+    if 'proxied' in website.get_attribute_names():
+        website.get_attribute('proxied').set_value(True)
 
-            if 'proxied' in site.get_attribute_names():
-                site.get_attribute('proxied').set_value(True)
+    website.get_attribute('maintenance').set_value(True)
+    website.get_attribute('done').set_value(True)
+    website.get_attribute('name').set_value('%s_website' % config_id)
 
-            site.get_attribute('maintenance').set_value(True)
-            site.get_attribute('done').set_value(True)
-            site.get_attribute('name').set_value('%s_site' % platform)
-
-        else:
-            site.get_attribute('enabled').set_value(False)
-
-            if 'proxied' in site.get_attribute_names():
-                site.get_attribute('proxied').set_value(False)
-
-            site.get_attribute('maintenance').set_value(False)
-            site.get_attribute('done').set_value(False)
-            site.get_attribute('name').set_value('__DEFAULT__')
-
-        site.get_attribute('domain').set_value('groupe-bpi.com')
-        site.get_attribute('template').set_value('symfony')
-        i += 1
-
-    i = 0
-    databases = config.get_attribute('databases')
-
-    for platform in databases.get_attribute_names():
-        database = databases.get_attribute(platform)
-
-        if i % 2 == 0:
-            database.get_attribute('enabled').set_value(True)
-        else:
-            database.get_attribute('enabled').set_value(False)
-
-        database.get_attribute('name').set_value('%s_name' % platform)
-        database.get_attribute('username').set_value('%s_username' % platform)
-        database.get_attribute('password').set_value('%s_password' % platform)
-        i += 1
+    database = config.get_attribute('database')
+    database.get_attribute('enabled').set_value(True)
+    database.get_attribute('name').set_value('%s_name' % config_id)
+    database.get_attribute('username').set_value('%s_username' % config_id)
+    database.get_attribute('password').set_value('%s_password' % config_id)
 
     return config
 
@@ -193,6 +136,15 @@ class SiteConfigurationManager(object):
             }
 
     @staticmethod
+    def get_default_database_type():
+        """
+        Returns the default databases technology.
+
+        Note that only the mnemonique is returned, not the associated label
+        """
+        return 'mysql'
+
+    @staticmethod
     def get_repository_types():
         """
         Returns the hash of available RCS repositories technologies supported
@@ -207,22 +159,31 @@ class SiteConfigurationManager(object):
             }
 
     @staticmethod
-    def get_site_platforms():
+    def get_default_repository_type():
+        """
+        Returns the hash of available RCS repositories technologies supported
+
+        Note that only the mnemonique is returned, not the associated label
+        """
+        return 'svn'
+
+    @staticmethod
+    def get_platforms():
         """
         Returns a sorted list of available site platfoms.
 
         The sorted list is mainly used to order components in applicaiton views
         """
-        return [ 'prod', 'test', 'dev' ]
+        return { 'prod': 'Prod', 'test': 'Test', 'dev': 'Dev' }
 
     @staticmethod
-    def get_database_platforms():
+    def get_default_platform():
         """
-        Returns a sorted list of available database platfoms.
+        Returns the default platform name.
 
-        The sorted list is mainly used to order components in applicaiton views
+        Note that only the mnemonique is returned, not the associated label
         """
-        return [ 'prod', 'test', 'dev' ]
+        return 'prod'
 
     @staticmethod
     def get_site_templates():
@@ -239,7 +200,39 @@ class SiteConfigurationManager(object):
             }
 
     @staticmethod
-    def get_site_domains():
+    def get_default_site_template():
+        """
+        Returns the default site template
+
+        Note that only the mnemonique is returned, not the associated label
+        """
+        return 'standard'
+
+    @staticmethod
+    def get_accesses():
+        """
+        Returns the hash of available web sutes access types supported
+
+        The hash key is the template mnemonique, and the value is the label to
+        be diaplayed.
+        """
+        return {
+            'internal': 'Internal only',
+            'external': 'Internal / External',
+            'custom': 'Custom'
+            }
+
+    @staticmethod
+    def get_default_access():
+        """
+        Returns the default site access type
+
+        Note that only the mnemonique is returned, not the associated label
+        """
+        return 'internal'
+
+    @staticmethod
+    def get_domains():
         """
         Returns the hash of available site domains supported
 
@@ -251,6 +244,15 @@ class SiteConfigurationManager(object):
             'groupe-bpi.com': 'groupe-bpi.com',
             'bpi-group.com': 'bpi-group.com'
             }
+
+    @staticmethod
+    def get_default_domain():
+        """
+        Returns the available domain name
+
+        Note that only the mnemonique is returned, not the associated label
+        """
+        return 'bpinet.com'
 
     @staticmethod
     def get_blank_configuration():

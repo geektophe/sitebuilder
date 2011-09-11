@@ -20,7 +20,6 @@ class Test(unittest.TestCase):
         """
         set_application_context('test')
 
-
     def test_doctests(self):
         """
         Run configuration doctests
@@ -36,47 +35,47 @@ class Test(unittest.TestCase):
 
         general = config.get_attribute('general')
         self.assertEquals(general.get_attribute('id').get_value(), None)
+        self.assertEquals(general.get_attribute('domain').get_value(),
+                          SiteConfigurationManager.get_default_domain())
         self.assertEquals(general.get_attribute('name').get_value(), '')
+        self.assertEquals(general.get_attribute('platform').get_value(),
+                          SiteConfigurationManager.get_default_platform())
+        self.assertTrue(general.get_attribute('platform').get_value() in \
+                       SiteConfigurationManager.get_platforms())
         self.assertEquals(general.get_attribute('description').get_value(), '')
 
         repository = config.get_attribute('repository')
         self.assertEquals(repository.get_attribute('enabled').get_value(), False)
         self.assertEquals(repository.get_attribute('done').get_value(), False)
         self.assertEquals(repository.get_attribute('name').get_value(), '')
-        self.assertEquals(repository.get_attribute('type').get_value(), 'svn')
-        self.assertEquals(repository.get_attribute('type').get_value(), 'svn')
+        self.assertEquals(repository.get_attribute('type').get_value(),
+                          SiteConfigurationManager.get_default_repository_type())
         self.assertTrue(repository.get_attribute('type').get_value() in \
                        SiteConfigurationManager.get_repository_types())
 
-        sites = config.get_attribute('sites')
+        site = config.get_attribute('website')
+        self.assertEquals(site.get_attribute('enabled').get_value(), False)
+        self.assertEquals(site.get_attribute('done').get_value(), False)
+        self.assertEquals(site.get_attribute('maintenance').get_value(), False)
+        self.assertEquals(site.get_attribute('template').get_value(),
+                          SiteConfigurationManager.get_default_site_template())
+        self.assertTrue(site.get_attribute('template').get_value() in \
+                        SiteConfigurationManager.get_site_templates())
+        self.assertEquals(site.get_attribute('access').get_value(),
+                          SiteConfigurationManager.get_default_access())
+        self.assertTrue(site.get_attribute('access').get_value() in \
+                        SiteConfigurationManager.get_accesses())
 
-        for platform in sites.get_attribute_names():
-            site = sites.get_attribute(platform)
-            self.assertEquals(site.get_attribute('enabled').get_value(), False)
-            self.assertEquals(site.get_attribute('done').get_value(), False)
-            self.assertEquals(site.get_attribute('maintenance').get_value(), False)
-            self.assertEquals(site.get_attribute('domain').get_value(), 'bpinet.com')
-            self.assertTrue(site.get_attribute('domain').get_value() in \
-                            SiteConfigurationManager.get_site_domains())
-            self.assertEquals(site.get_attribute('template').get_value(), 'standard')
-            self.assertTrue(site.get_attribute('template').get_value() in \
-                            SiteConfigurationManager.get_site_templates())
-
-            if 'proxied' in site.get_attribute_names():
-                self.assertEquals(site.get_attribute('proxied').get_value(), False)
-
-        databases = config.get_attribute('databases')
-
-        for platform in databases.get_attribute_names():
-            database = databases.get_attribute(platform)
-            self.assertEquals(database.get_attribute('enabled').get_value(), False)
-            self.assertEquals(database.get_attribute('done').get_value(), False)
-            self.assertEquals(database.get_attribute('name').get_value(), '')
-            self.assertEquals(database.get_attribute('username').get_value(), '')
-            self.assertEquals(database.get_attribute('password').get_value(), '')
-            self.assertEquals(database.get_attribute('type').get_value(), 'mysql')
-            self.assertTrue(database.get_attribute('type').get_value() in \
-                            SiteConfigurationManager.get_database_types())
+        database = config.get_attribute('database')
+        self.assertEquals(database.get_attribute('enabled').get_value(), False)
+        self.assertEquals(database.get_attribute('done').get_value(), False)
+        self.assertEquals(database.get_attribute('name').get_value(), '')
+        self.assertEquals(database.get_attribute('username').get_value(), '')
+        self.assertEquals(database.get_attribute('password').get_value(), '')
+        self.assertEquals(database.get_attribute('type').get_value(),
+                          SiteConfigurationManager.get_default_database_type())
+        self.assertTrue(database.get_attribute('type').get_value() in \
+                        SiteConfigurationManager.get_database_types())
 
     def test_set_configuration(self):
         """
@@ -85,113 +84,115 @@ class Test(unittest.TestCase):
         """
         config = SiteConfigurationManager.get_blank_configuration()
 
+        # General attributes
         general = config.get_attribute('general')
         _id = general.get_attribute('id')
         _id.set_value(1)
         self.assertEquals(_id.get_value(), 1)
         self.assertRaises(AttributeError, _id.set_value, '1')
 
-        ref = general.get_attribute('name')
-        ref.set_value('name')
-        self.assertEquals(ref.get_value(), 'name')
-        self.assertRaises(AttributeError, ref.set_value, "'")
-
         desc = general.get_attribute('description')
         desc.set_value('desc')
         self.assertEquals(desc.get_value(), 'desc')
-        self.assertRaises(AttributeError, desc.set_value, "'")
 
+        name = general.get_attribute('name')
+        name.set_value('name')
+        self.assertEquals(name.get_value(), 'name')
+        self.assertRaises(AttributeError, name.set_value, "'")
+
+        dom = general.get_attribute('domain')
+        dom.set_value(SiteConfigurationManager.get_default_domain())
+        self.assertEquals(dom.get_value(),
+                          SiteConfigurationManager.get_default_domain())
+        self.assertRaises(AttributeError, dom.set_value, "fake")
+
+        # Repository related attributes
         repository = config.get_attribute('repository')
 
         name = repository.get_attribute('name')
         name.set_value('name')
         self.assertEquals(name.get_value(), 'name')
-        self.assertRaises(AttributeError, name.set_value, "'")
+        self.assertRaises(AttributeError, name.set_value, " fake ")
 
         _type = repository.get_attribute('type')
-        _type.set_value('git')
-        self.assertEquals(_type.get_value(), 'git')
-        self.assertRaises(AttributeError, _type.set_value, "type")
+        _type.set_value(SiteConfigurationManager.get_default_repository_type())
+        self.assertEquals(_type.get_value(),
+                          SiteConfigurationManager.get_default_repository_type())
+        self.assertRaises(AttributeError, _type.set_value, "fake")
 
         enabled = repository.get_attribute('enabled')
         enabled.set_value(True)
         self.assertEquals(enabled.get_value(), True)
-        self.assertRaises(AttributeError, enabled.set_value, 'enabled')
+        self.assertRaises(AttributeError, enabled.set_value, 'fake')
 
         done = repository.get_attribute('done')
         done.set_value(True)
         self.assertEquals(done.get_value(), True)
+        self.assertRaises(AttributeError, done.set_value, 'fake')
+
+
+        # Web site related attributes
+        site = config.get_attribute('website')
+
+        tmpl = site.get_attribute('template')
+        tmpl.set_value(SiteConfigurationManager.get_default_site_template())
+        self.assertEquals(tmpl.get_value(),
+                          SiteConfigurationManager.get_default_site_template())
+        self.assertRaises(AttributeError, tmpl.set_value, "fake")
+
+        access = site.get_attribute('access')
+        access.set_value(SiteConfigurationManager.get_default_access())
+        self.assertEquals(access.get_value(),
+                          SiteConfigurationManager.get_default_access())
+        self.assertRaises(AttributeError, access.set_value, "fake")
+
+        enabled = site.get_attribute('enabled')
+        enabled.set_value(True)
+        self.assertEquals(enabled.get_value(), True)
+        self.assertRaises(AttributeError, enabled.set_value, 'enabled')
+
+        done = site.get_attribute('done')
+        done.set_value(True)
+        self.assertEquals(done.get_value(), True)
         self.assertRaises(AttributeError, done.set_value, 'done')
 
-        sites = config.get_attribute('sites')
+        maint = site.get_attribute('maintenance')
+        maint.set_value(True)
+        self.assertEquals(maint.get_value(), True)
+        self.assertRaises(AttributeError, maint.set_value, "maintenance")
 
-        for platform in sites.get_attribute_names():
-            site = sites.get_attribute(platform)
+        # Database related attribute
+        database = config.get_attribute('database')
 
-            name = site.get_attribute('name')
-            name.set_value('name')
-            self.assertEquals(name.get_value(), 'name')
-            self.assertRaises(AttributeError, name.set_value, "'")
+        _type = database.get_attribute('type')
+        _type.set_value(SiteConfigurationManager.get_default_database_type())
+        self.assertEquals(_type.get_value(),
+                          SiteConfigurationManager.get_default_database_type())
+        self.assertRaises(AttributeError, _type.set_value, "fake")
 
-            tmpl = site.get_attribute('template')
-            tmpl.set_value('symfony')
-            self.assertEquals(tmpl.get_value(), 'symfony')
-            self.assertRaises(AttributeError, tmpl.set_value, "fake")
+        name = database.get_attribute('name')
+        name.set_value('name')
+        self.assertEquals(name.get_value(), 'name')
+        self.assertRaises(AttributeError, name.set_value, "'")
 
-            dom = site.get_attribute('domain')
-            dom.set_value('groupe-bpi.com')
-            self.assertEquals(dom.get_value(), 'groupe-bpi.com')
-            self.assertRaises(AttributeError, dom.set_value, "fake")
+        username = database.get_attribute('username')
+        username.set_value('username')
+        self.assertEquals(username.get_value(), 'username')
+        self.assertRaises(AttributeError, username.set_value, "'")
 
-            enabled = site.get_attribute('enabled')
-            enabled.set_value(True)
-            self.assertEquals(enabled.get_value(), True)
-            self.assertRaises(AttributeError, enabled.set_value, 'enabled')
+        password = database.get_attribute('password')
+        password.set_value('password')
+        self.assertEquals(password.get_value(), 'password')
 
-            done = site.get_attribute('done')
-            done.set_value(True)
-            self.assertEquals(done.get_value(), True)
-            self.assertRaises(AttributeError, done.set_value, 'done')
+        enabled = database.get_attribute('enabled')
+        enabled.set_value(True)
+        self.assertEquals(enabled.get_value(), True)
+        self.assertRaises(AttributeError, enabled.set_value, 'enabled')
 
-            maint = site.get_attribute('maintenance')
-            maint.set_value(True)
-            self.assertEquals(maint.get_value(), True)
-            self.assertRaises(AttributeError, maint.set_value, "maintenance")
-
-            if 'proxied' in site.get_attribute_names():
-                proxied = site.get_attribute('proxied')
-                proxied.set_value(True)
-                self.assertEquals(proxied.get_value(), True)
-                self.assertRaises(AttributeError, proxied.set_value, 'proxied')
-
-        databases = config.get_attribute('databases')
-
-        for platform in databases.get_attribute_names():
-            database = databases.get_attribute(platform)
-
-            name = database.get_attribute('name')
-            name.set_value('name')
-            self.assertEquals(name.get_value(), 'name')
-            self.assertRaises(AttributeError, name.set_value, "'")
-
-            username = database.get_attribute('username')
-            username.set_value('username')
-            self.assertEquals(username.get_value(), 'username')
-            self.assertRaises(AttributeError, username.set_value, "'")
-
-            password = database.get_attribute('password')
-            password.set_value('password')
-            self.assertEquals(password.get_value(), 'password')
-
-            enabled = database.get_attribute('enabled')
-            enabled.set_value(True)
-            self.assertEquals(enabled.get_value(), True)
-            self.assertRaises(AttributeError, enabled.set_value, 'enabled')
-
-            done = database.get_attribute('done')
-            done.set_value(True)
-            self.assertEquals(done.get_value(), True)
-            self.assertRaises(AttributeError, done.set_value, 'done')
+        done = database.get_attribute('done')
+        done.set_value(True)
+        self.assertEquals(done.get_value(), True)
+        self.assertRaises(AttributeError, done.set_value, 'done')
 
 
 if __name__ == "__main__":

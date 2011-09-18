@@ -23,8 +23,9 @@ def get_default_config_data():
             'domain' : (SiteConfigurationManager.get_default_domain(),
                         SiteConfigurationManager.get_domains().keys(),
                         'Unknown domain'),
-            'name' : ('', '^[\d\w\s_-]*$', 'Name should be an alphanumeric string'),
+            'name' : ('', '^[\d\w_-]*$', 'Name should be an alphanumeric string'),
             'description' : ('', None),
+            'done' : (False, bool),
             },
         # Repository related attriutes
         'repository' : {
@@ -39,22 +40,24 @@ def get_default_config_data():
         'website' : {
             'enabled' : (False, bool),
             'access' : (SiteConfigurationManager.get_default_access(),
-                        SiteConfigurationManager.get_accesses().keys(),
+                        SiteConfigurationManager.get_site_accesses().keys(),
                         'Unsupported access'),
             'maintenance' : (False, bool),
-            'done' : (False, bool),
-            'template' : ('standard', SiteConfigurationManager.get_site_templates().keys(), 'Unsupported site template'),
+            'template' : ('standard',
+                          SiteConfigurationManager.get_site_templates().keys(),
+                          'Unsupported site template'),
+            'done' : (False, bool)
             },
         # Databases related attributes (for each available platform)
         'database' : {
             'enabled' : (False, bool),
-            'done' : (False, bool),
             'type' : (SiteConfigurationManager.get_default_database_type(),
                       SiteConfigurationManager.get_database_types().keys(),
                       'Unsupported database type'),
             'name' : ('', '^[a-z0-9_]+$', 'Name should be a simple alphanumeric string without spaces'),
             'username' : ('', '^[a-z0-9_]+$', 'Username should be a simple alphanumeric string without spaces'),
-            'password' : ('', None)
+            'password' : ('', None),
+            'done' : (False, bool)
             },
         }
 
@@ -73,24 +76,19 @@ def get_test_configuration(config_id):
 
     repository = config.get_attribute('repository')
     repository.get_attribute('enabled').set_value(True)
-    repository.get_attribute('done').set_value(False)
+    repository.get_attribute('done').set_value(True)
 
     website = config.get_attribute('website')
-
     website.get_attribute('enabled').set_value(True)
-
-    if 'proxied' in website.get_attribute_names():
-        website.get_attribute('proxied').set_value(True)
-
     website.get_attribute('maintenance').set_value(True)
     website.get_attribute('done').set_value(True)
-    website.get_attribute('name').set_value('%s_website' % config_id)
 
     database = config.get_attribute('database')
     database.get_attribute('enabled').set_value(True)
     database.get_attribute('name').set_value('%s_name' % config_id)
     database.get_attribute('username').set_value('%s_username' % config_id)
     database.get_attribute('password').set_value('%s_password' % config_id)
+    database.get_attribute('done').set_value(True)
 
     return config
 
@@ -209,7 +207,7 @@ class SiteConfigurationManager(object):
         return 'standard'
 
     @staticmethod
-    def get_accesses():
+    def get_site_accesses():
         """
         Returns the hash of available web sutes access types supported
 

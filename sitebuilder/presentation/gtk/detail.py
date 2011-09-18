@@ -79,26 +79,18 @@ class DetailSitePresentationAgent(GtkBasePresentationAgent,
         # Listens data changed events from from control agent
         control_agent.add_data_changed_listener(self)
 
-        # Sets widget title
-        self['label_site'].set_markup(
-            "<b>%s site</b>" % control_agent.get_platform_name().capitalize())
-
         # Sets widgets signal handlers
         #self._builder.connect_signals(self)
         self['enabled'].connect('toggled', self.on_enabled_toggled)
-        self['proxied'].connect('toggled', self.on_proxied_toggled)
         self['maintenance'].connect('toggled', self.on_maintenance_toggled)
-        self['name_cus'].connect('toggled', self.on_name_cus_toggled)
-        self['name_def'].connect('toggled', self.on_name_def_toggled)
-        self['name'].connect('changed', self.on_name_changed)
         self['template'].connect('changed', self.on_template_changed)
-        self['domain'].connect('changed', self.on_domain_changed)
+        self['access'].connect('changed', self.on_access_changed)
 
         # Loads comboboxes items
         self.set_combobox_items(self['template'],
                 SiteConfigurationManager.get_site_templates())
-        self.set_combobox_items(self['domain'],
-                SiteConfigurationManager.get_site_domains())
+        self.set_combobox_items(self['access'],
+                SiteConfigurationManager.get_site_accesses())
 
         # Loads widgets data from control agent
         self.load_widgets_data()
@@ -130,49 +122,26 @@ class DetailSitePresentationAgent(GtkBasePresentationAgent,
         read_only = self.get_control_agent().get_read_only_flag()
         sensitive = enabled and not done and not read_only
 
-        maintenance = self.get_attribute_value('maintenance')
-        name = self.get_attribute_value('name')
-
         # Loads enabled checkbox state
         self['enabled'].set_active(enabled)
         self['enabled'].set_sensitive(not done and not read_only)
 
-        # Loads proxied checkbox state (may not be defined in abstraction)
-        try:
-            proxied = self.get_attribute_value('proxied')
-            self['proxied'].set_active(proxied)
-            # Proxied should be changeable even if site is in done state
-            self['proxied'].set_sensitive(enabled and not read_only)
-        except AttributeError:
-            self['proxied'].set_sensitive(False)
-
         # Loads maintenance checkbox state
+        maintenance = self.get_attribute_value('maintenance')
         self['maintenance'].set_active(maintenance)
         # Maintenance should be changeable even if site is in done state
         self['maintenance'].set_sensitive(enabled and not read_only)
-
-        # Loads site name, and sets appropriate state on name related widgets
-        if name == '__DEFAULT__':
-            self['name_def'].set_active(True)
-            # Disabled to prevent name input deletion if default name is clicked
-            # self['name'].set_text('')
-        else:
-            self['name_cus'].set_active(True)
-            self['name'].set_text(name)
-
-        self['name_def'].set_sensitive(sensitive)
-        self['name_cus'].set_sensitive(sensitive)
-        self['name'].set_sensitive(sensitive and name != '__DEFAULT__')
 
         # Loads template combobox selected option
         self.set_combobox_selection(self['template'],
                 self.get_attribute_value('template'))
         self['template'].set_sensitive(sensitive)
 
-        # Loads domain combobox selected option
-        self.set_combobox_selection(self['domain'],
-                self.get_attribute_value('domain'))
-        self['domain'].set_sensitive(sensitive)
+        # Loads access combobox selected option
+        self.set_combobox_selection(self['access'],
+                self.get_attribute_value('access'))
+        # Access should be changeable even if site is in done state
+        self['access'].set_sensitive(enabled and not read_only)
 
     def on_enabled_toggled(self, widget):
         """
@@ -181,38 +150,12 @@ class DetailSitePresentationAgent(GtkBasePresentationAgent,
         enabled = self['enabled'].get_active()
         self.set_attribute_value('enabled', enabled)
 
-    def on_proxied_toggled(self, widget):
-        """
-        Signal handler associated with the proxied checkbox
-        """
-        proxied = self['proxied'].get_active()
-        self.set_attribute_value('proxied', proxied)
-
     def on_maintenance_toggled(self, widget):
         """
         Signal handler associated with the maintenance checkbox
         """
         maintenance = self['maintenance'].get_active()
         self.set_attribute_value('maintenance', maintenance)
-
-    def on_name_def_toggled(self, widget):
-        """
-        Signal handler associated with the named_def radio button
-        """
-        if widget.get_active() == True:
-            self.set_attribute_value('name', '__DEFAULT__')
-
-    def on_name_cus_toggled(self, widget):
-        """
-        Signal handler associated with the named_cus radio button
-        """
-        self['name'].set_sensitive(True)
-
-    def on_name_changed(self, widget):
-        """
-        Signal handler associated with the name text input
-        """
-        self.set_entry_attribute(widget, 'name')
 
     def on_template_changed(self, widget):
         """
@@ -221,12 +164,12 @@ class DetailSitePresentationAgent(GtkBasePresentationAgent,
         template_name = self.get_combobox_selection(self['template'])
         self.set_attribute_value('template', template_name )
 
-    def on_domain_changed(self, widget):
+    def on_access_changed(self, widget):
         """
-        Signal handler associated with the domain combobox
+        Signal handler associated with the access combobox
         """
-        domain_name = self.get_combobox_selection(self['domain'])
-        self.set_attribute_value('domain', domain_name )
+        access = self.get_combobox_selection(self['access'])
+        self.set_attribute_value('access', access )
 
     def destroy(self):
         """
@@ -255,11 +198,6 @@ class DetailDatabasePresentationAgent(GtkBasePresentationAgent,
 
         # Listens data changed events from from control agent
         control_agent.add_data_changed_listener(self)
-
-        # Sets widget title
-        self['label_database'].set_markup(
-            "<b>%s database</b>" % \
-            control_agent.get_platform_name().capitalize())
 
         # Sets widgets signal handlers
         self['enabled'].connect('toggled', self.on_enabled_toggled)
@@ -488,8 +426,16 @@ class DetailGeneralPresentationAgent(GtkBasePresentationAgent,
         control_agent.add_data_changed_listener(self)
 
         # Sets widgets signal handlers
-        self['name'].connect('changed', self.on_name_changed)
         self['description'].connect('changed', self.on_description_changed)
+        self['name'].connect('changed', self.on_name_changed)
+        self['domain'].connect('changed', self.on_domain_changed)
+        self['platform'].connect('changed', self.on_platform_changed)
+
+        # Loads comboboxes items
+        self.set_combobox_items(self['domain'],
+                SiteConfigurationManager.get_domains())
+        self.set_combobox_items(self['platform'],
+                SiteConfigurationManager.get_platforms())
 
         # Loads widgets data from control agent
         self.load_widgets_data()
@@ -517,16 +463,28 @@ class DetailGeneralPresentationAgent(GtkBasePresentationAgent,
         Updates presentation agent widgets based on configuraton settings
         """
         read_only = self.get_control_agent().get_read_only_flag()
+        done = self.get_attribute_value('done')
+        sensitive = not done and not read_only
         name = self.get_attribute_value('name')
         description = self.get_attribute_value('description')
 
         # Loads name entry
         self['name'].set_text(name)
-        self['name'].set_sensitive(not read_only)
+        self['name'].set_sensitive(sensitive)
 
         # Loads description entry
         self['description'].set_text(description)
-        self['description'].set_sensitive(not read_only)
+        self['description'].set_sensitive(sensitive)
+
+        # Loads domain combobox selected option
+        self.set_combobox_selection(self['domain'],
+                self.get_attribute_value('domain'))
+        self['domain'].set_sensitive(sensitive)
+
+        # Loads platform combobox selected option
+        self.set_combobox_selection(self['platform'],
+                self.get_attribute_value('platform'))
+        self['platform'].set_sensitive(sensitive)
 
     def on_name_changed(self, widget):
         """
@@ -539,6 +497,20 @@ class DetailGeneralPresentationAgent(GtkBasePresentationAgent,
         Signal handler associated with the description text input
         """
         self.set_entry_attribute(widget, 'description')
+
+    def on_domain_changed(self, widget):
+        """
+        Signal handler associated with the domain combobox
+        """
+        domain_name = self.get_combobox_selection(self['domain'])
+        self.set_attribute_value('domain', domain_name )
+
+    def on_platform_changed(self, widget):
+        """
+        Signal handler associated with the platform combobox
+        """
+        platform_name = self.get_combobox_selection(self['platform'])
+        self.set_attribute_value('platform', platform_name )
 
     def destroy(self):
         """

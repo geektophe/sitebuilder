@@ -51,23 +51,21 @@ class DetailMainControlAgent(BaseControlAgent, SubmitActionListener,
         self._presentation_agent.attach_slave('repository', 'hbox_repository',
                 slave.get_presentation_agent())
 
-        # Creates site components
-        for name in SiteConfigurationManager.get_site_platforms():
-            platform = configuration.get_attribute('sites').get_attribute(name)
-            slave = DetailSiteControlAgent(platform, read_only)
-            slave.add_validity_changed_listener(self)
-            self._slaves.append(slave)
-            self._presentation_agent.attach_slave('site_%s' % name, 'hbox_sites',
-                    slave.get_presentation_agent())
+        # Creates site component
+        website = configuration.get_attribute('website')
+        slave = DetailSiteControlAgent(website, read_only)
+        slave.add_validity_changed_listener(self)
+        self._slaves.append(slave)
+        self._presentation_agent.attach_slave('website', 'hbox_sites',
+                slave.get_presentation_agent())
 
-        # Creates database components
-        for name in SiteConfigurationManager.get_database_platforms():
-            platform = configuration.get_attribute('databases').get_attribute(name)
-            slave = DetailDatabaseControlAgent(platform, read_only)
-            slave.add_validity_changed_listener(self)
-            self._slaves.append(slave)
-            self._presentation_agent.attach_slave('database_%s' % name,
-                    'hbox_databases', slave.get_presentation_agent())
+        # Creates database component
+        database = configuration.get_attribute('database')
+        slave = DetailDatabaseControlAgent(database, read_only)
+        slave.add_validity_changed_listener(self)
+        self._slaves.append(slave)
+        self._presentation_agent.attach_slave('database',
+                'hbox_databases', slave.get_presentation_agent())
 
     def data_changed(self, event=None):
         """

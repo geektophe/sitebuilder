@@ -6,17 +6,13 @@
     <child>
       <object class="GtkTable" id="table">
         <property name="visible">True</property>
-        <property name="n_rows">2</property>
+        <property name="n_rows">4</property>
         <property name="n_columns">2</property>
         <child>
-          <object class="GtkLabel" id="label_type">
+          <object class="GtkLabel" id="label_description">
             <property name="visible">True</property>
-            <property name="label" translatable="yes">Configuration description</property>
+            <property name="label" translatable="yes">Description</property>
           </object>
-          <packing>
-            <property name="top_attach">1</property>
-            <property name="bottom_attach">2</property>
-          </packing>
         </child>
         <child>
           <object class="GtkEntry" id="name">
@@ -27,13 +23,19 @@
           <packing>
             <property name="left_attach">1</property>
             <property name="right_attach">2</property>
+            <property name="top_attach">1</property>
+            <property name="bottom_attach">2</property>
           </packing>
         </child>
         <child>
           <object class="GtkLabel" id="label_name">
             <property name="visible">True</property>
-            <property name="label" translatable="yes">Configuration name</property>
+            <property name="label" translatable="yes">Host name</property>
           </object>
+          <packing>
+            <property name="top_attach">1</property>
+            <property name="bottom_attach">2</property>
+          </packing>
         </child>
         <child>
           <object class="GtkEntry" id="description">
@@ -44,8 +46,48 @@
           <packing>
             <property name="left_attach">1</property>
             <property name="right_attach">2</property>
-            <property name="top_attach">1</property>
-            <property name="bottom_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label_domain">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">Domain name</property>
+          </object>
+          <packing>
+            <property name="top_attach">2</property>
+            <property name="bottom_attach">3</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkComboBox" id="domain">
+            <property name="visible">True</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">2</property>
+            <property name="bottom_attach">3</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label_platform">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">Platform</property>
+          </object>
+          <packing>
+            <property name="top_attach">3</property>
+            <property name="bottom_attach">4</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkComboBox" id="platform">
+            <property name="visible">True</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">3</property>
+            <property name="bottom_attach">4</property>
           </packing>
         </child>
       </object>

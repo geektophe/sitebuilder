@@ -239,7 +239,7 @@
                 <child type="label">
                   <object class="GtkLabel" id="label_sites">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">&lt;b&gt;Sites configuration&lt;/b&gt;</property>
+                    <property name="label" translatable="yes">&lt;b&gt;Web site configuration&lt;/b&gt;</property>
                     <property name="use_markup">True</property>
                   </object>
                 </child>
@@ -270,7 +270,7 @@
                 <child type="label">
                   <object class="GtkLabel" id="label_d">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">&lt;b&gt;Databases configuration&lt;/b&gt;</property>
+                    <property name="label" translatable="yes">&lt;b&gt;Database configuration&lt;/b&gt;</property>
                     <property name="use_markup">True</property>
                   </object>
                 </child>

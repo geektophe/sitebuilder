@@ -77,7 +77,7 @@ class AttributeModifiedSubject(object):
         Deletes a AttributeModifiedObserver observer object to observers list
         """
         try:
-            self._attribute_modified_observer_observers.remove(observer)
+            self._attribute_modified_observers.remove(observer)
         except ValueError:
             pass
 
@@ -88,7 +88,7 @@ class AttributeModifiedSubject(object):
         """
         del self._attribute_modified_observers[:]
 
-    def notify_attribute_modified_observer(self, event=None):
+    def notify_attribute_modified(self, event=None):
         """
         Notifies all observers that a data has changed
 
@@ -99,7 +99,7 @@ class AttributeModifiedSubject(object):
         >>> subject = AttributeModifiedSubject()
         >>> observer = AttributeModifiedObserver()
         >>> subject.register_attribute_modified_observer(observer)
-        >>> subject.notify_attribute_modified_observer()
+        >>> subject.notify_attribute_modified()
         Traceback (most recent call last):
             ...
         NotImplementedError: This method has currently no implmentation and has to be overridden
@@ -108,13 +108,13 @@ class AttributeModifiedSubject(object):
         passed to observers
 
         >>> event = AttributeModifiedEvent('test')
-        >>> subject.notify_attribute_modified_observer(event)
+        >>> subject.notify_attribute_modified(event)
         Traceback (most recent call last):
             ...
         NotImplementedError: This method has currently no implmentation and has to be overridden
 
         Using a parameter that is not an event shold raise en exception
-        >>> subject.notify_attribute_modified_observer('fake')
+        >>> subject.notify_attribute_modified('fake')
         Traceback (most recent call last):
             ...
         AttributeError: event parameter should be an instance of AttributeModifiedEvent

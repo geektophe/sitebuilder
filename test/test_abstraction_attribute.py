@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 """
-Test classes for utils.attribute moodule
+Test classes for abstraction.attribute moodule
 """
 
 import unittest
 import doctest
-from sitebuilder.utils import attribute
-from sitebuilder.utils.attribute import AttributeSet
-from sitebuilder.observer.datachanged import DataChangedListener
+from sitebuilder.abstraction import attribute
+from sitebuilder.abstraction.attribute import AttributeSet
+from sitebuilder.observer.attribute import AttributeModifiedObserver
 
 
-class TestListener(DataChangedListener):
+class TestListener(AttributeModifiedObserver):
     """
     Test listener that sets its internal state flag to tru if it's notified
     """
@@ -21,7 +21,7 @@ class TestListener(DataChangedListener):
         """
         self._flag = False
 
-    def data_changed(self, event=None):
+    def attribute_modified(self, event=None):
         """
         Sets flag to true when notified
         """
@@ -59,8 +59,8 @@ class Test(unittest.TestCase):
         root_listener = TestListener()
         child_listener = TestListener()
 
-        root.add_data_changed_listener(root_listener)
-        child11.add_data_changed_listener(child_listener)
+        root.register_attribute_modified_observer(root_listener)
+        child11.register_attribute_modified_observer(child_listener)
 
         # Changes leaf attribute value
         child11.set_value('child11_changed')

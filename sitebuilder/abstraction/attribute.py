@@ -11,11 +11,11 @@ attributes. It has the necessary methods to manipulate attributes.
 """
 
 import re
-from sitebuilder.observer.datachanged import DataChangedListener
-from sitebuilder.observer.datachanged import DataChangedDispatcher
-from sitebuilder.utils.event import Event
+from sitebuilder.observer.attribute import AttributeModifiedObserver
+from sitebuilder.observer.attribute import AttributeModifiedSubject
+from sitebuilder.observer.attribute import AttributeModifiedEvent
 
-class Attribute(DataChangedDispatcher):
+class Attribute(AttributeModifiedSubject):
     """
     A configuration attribute item that is part of a configuration tree.
 
@@ -42,7 +42,7 @@ class Attribute(DataChangedDispatcher):
         Object initialization. The only mandatory argument is the attribute
         name, that cannot be changed later.
         """
-        DataChangedDispatcher.__init__(self)
+        AttributeModifiedSubject.__init__(self)
         self._name = name
         self._value = value
         self._validator = validator
@@ -191,21 +191,21 @@ class Attribute(DataChangedDispatcher):
         >>> attr.is_modified()
         True
 
-        As a DataChangedDispatcher, when an attribute value is set, an event is
+        As an AttributeModifiedSubject, when an attribute value is set, an event is
         sent containing the attribute itself as context.
 
-        >>> class TestListener(DataChangedListener):
+        >>> class TestListener(AttributeModifiedObserver):
         ...     def __init__(self):
         ...         self._event = None
-        ...     def data_changed(self, event):
+        ...     def attribute_modified(self, event):
         ...         self._event = event
         ...     def get_event(self):
         ...         return self._event
-        >>> listener = TestListener()
+        >>> observer = TestListener()
         >>> attr = Attribute(name='somename')
-        >>> attr.add_data_changed_listener(listener)
+        >>> attr.register_attribute_modified_observer(observer)
         >>> attr.set_value(5)
-        >>> context = listener.get_event().get_context()
+        >>> context = observer.get_event().get_attribute()
         >>> attr is context
         True
         """
@@ -217,7 +217,7 @@ class Attribute(DataChangedDispatcher):
                 raise AttributeError(r"Value did not match '%s'" % self._validator)
         self._value = value
         self._modified = True
-        self.notify_data_changed(Event(self))
+        self.notify_attribute_modified(AttributeModifiedEvent(self))
 
     def is_modified(self):
         """
@@ -239,7 +239,7 @@ class Attribute(DataChangedDispatcher):
             (self._name, self._value)
 
 
-class AttributeSet(DataChangedListener,DataChangedDispatcher):
+class AttributeSet(AttributeModifiedObserver, AttributeModifiedSubject):
     """
     A class that represents a set of attributes.
 
@@ -255,7 +255,7 @@ class AttributeSet(DataChangedListener,DataChangedDispatcher):
         """
         AttribvuteSet initialization
         """
-        DataChangedDispatcher.__init__(self)
+        AttributeModifiedSubject.__init__(self)
         self._name = name
         self._attributes = {}
         self._modified = False
@@ -341,10 +341,10 @@ class AttributeSet(DataChangedListener,DataChangedDispatcher):
                         options.append(value[index])
 
                 new_attributes[key] = Attribute(key, *options)
-                new_attributes[key].add_data_changed_listener(self)
+                new_attributes[key].register_attribute_modified_observer(self)
             elif isinstance(value, dict):
                 new_attributes[key] = AttributeSet(key)
-                new_attributes[key].add_data_changed_listener(self)
+                new_attributes[key].register_attribute_modified_observer(self)
                 new_attributes[key].load(value)
             else:
                 raise AttributeError('Invalid data format for key %s' % key)
@@ -462,22 +462,22 @@ class AttributeSet(DataChangedListener,DataChangedDispatcher):
             ...
         AttributeError: Attribute name 'somename' already exists.
 
-        As a DataChangedDispatcher, when an attribute is added, an event is
+        As an AttributeModifiedSubject, when an attribute is added, an event is
         sent containing the attribute set itself as context.
 
-        >>> class TestListener(DataChangedListener):
+        >>> class TestListener(AttributeModifiedObserver):
         ...     def __init__(self):
         ...         self._event = None
-        ...     def data_changed(self, event):
+        ...     def attribute_modified(self, event):
         ...         self._event = event
         ...     def get_event(self):
         ...         return self._event
-        >>> listener = TestListener()
+        >>> observer = TestListener()
         >>> aset = AttributeSet('aset')
-        >>> aset.add_data_changed_listener(listener)
+        >>> aset.register_attribute_modified_observer(observer)
         >>> attr = Attribute(name='somename')
         >>> aset.add_attribute(attr)
-        >>> context = listener.get_event().get_context()
+        >>> context = observer.get_event().get_attribute()
         >>> aset is context
         True
         """
@@ -493,8 +493,8 @@ class AttributeSet(DataChangedListener,DataChangedDispatcher):
                                 attribute.get_name())
 
         self._attributes[attribute.get_name()] = attribute
-        attribute.add_data_changed_listener(self)
-        self.notify_data_changed(Event(self))
+        attribute.register_attribute_modified_observer(self)
+        self.notify_attribute_modified(AttributeModifiedEvent(self))
 
     def remove_attribute(self, name):
         """
@@ -512,22 +512,22 @@ class AttributeSet(DataChangedListener,DataChangedDispatcher):
             ...
         AttributeError: No attribute named 'somename'
 
-        As a DataChangedDispatcher, when an attribute is removed, an event is
-        sent containing the attribute set itself as context.
+        As an AttributeModifiedSubject, when an attribute is removed, an event
+        is sent containing the attribute set itself as context.
 
-        >>> class TestListener(DataChangedListener):
+        >>> class TestListener(AttributeModifiedObserver):
         ...     def __init__(self):
         ...         self._event = None
-        ...     def data_changed(self, event):
+        ...     def attribute_modified(self, event):
         ...         self._event = event
         ...     def get_event(self):
         ...         return self._event
-        >>> listener = TestListener()
+        >>> observer = TestListener()
         >>> aset = AttributeSet('aset')
-        >>> aset.add_data_changed_listener(listener)
+        >>> aset.register_attribute_modified_observer(observer)
         >>> attr = Attribute(name='somename')
         >>> aset.add_attribute(attr)
-        >>> context = listener.get_event().get_context()
+        >>> context = observer.get_event().get_attribute()
         >>> aset is context
         True
         """
@@ -537,16 +537,16 @@ class AttributeSet(DataChangedListener,DataChangedDispatcher):
             for attrname in attribute.get_attribute_names():
                 attribute.remove_attribute(attrname)
 
-        attribute.remove_data_changed_listener(self)
+        attribute.remove_attribute_modified_observer(self)
         del self._attributes[name]
-        self.notify_data_changed(Event(self))
+        self.notify_attribute_modified(AttributeModifiedEvent(self))
 
-    def data_changed(self, event=None):
+    def attribute_modified(self, event=None):
         """
         Listener trigger method implementation
         """
         self._modified = True
-        self.notify_data_changed(event)
+        self.notify_attribute_modified(event)
 
     def is_modified(self):
         """

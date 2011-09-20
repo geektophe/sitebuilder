@@ -67,7 +67,7 @@ class DetailMainControlAgent(BaseControlAgent, SubmitActionListener,
         self._presentation_agent.attach_slave('database',
                 'hbox_databases', slave.get_presentation_agent())
 
-    def data_changed(self, event=None):
+    def attribute_modified(self, event=None):
         """
         DataChangedListerner trigger mmethod local implementation
 
@@ -128,7 +128,7 @@ class DetailMainControlAgent(BaseControlAgent, SubmitActionListener,
             slave.destroy()
 
         # Clears listeners lists
-        self.clear_data_changed_listeners()
+        self.clear_attribute_modified_observers()
         self.clear_validity_changed_listeners()
         self.clear_submit_action_activated_listeners()
 
@@ -153,13 +153,13 @@ class DetailBaseControlAgent(BaseControlAgent):
         self._read_only = read_only
         self._configuration = configuration
         self._presentation_agent = None
-        configuration.add_data_changed_listener(self)
+        configuration.register_attribute_modified_observer(self)
 
-    def data_changed(self, event=None):
+    def attribute_modified(self, event=None):
         """
         DataChangedListerner trigger mmethod local implementation
         """
-        self.notify_data_changed(event)
+        self.notify_attribute_modified(event)
 
     def validity_changed(self, event=None):
         """
@@ -214,10 +214,10 @@ class DetailBaseControlAgent(BaseControlAgent):
         Cleanly destroyes all components
         """
         # Unsubscribes from configuration data changed events
-        self._configuration.remove_data_changed_listener(self)
+        self._configuration.remove_attribute_modified_observer(self)
 
         # Clears listeners lists
-        self.clear_data_changed_listeners()
+        self.clear_attribute_modified_observers()
         self.clear_validity_changed_listeners()
 
         # Destroyes presentation

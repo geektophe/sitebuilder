@@ -64,7 +64,7 @@ class Test(unittest.TestCase):
         self.assertEquals(site.get_attribute('access').get_value(),
                           SiteConfigurationManager.get_default_access())
         self.assertTrue(site.get_attribute('access').get_value() in \
-                        SiteConfigurationManager.get_accesses())
+                        SiteConfigurationManager.get_site_accesses())
 
         database = config.get_attribute('database')
         self.assertEquals(database.get_attribute('enabled').get_value(), False)

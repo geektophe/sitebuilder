@@ -5,7 +5,7 @@ Configuration related classes
 """
 
 from sitebuilder.utils.parameters import get_application_context
-from sitebuilder.utils.attribute import AttributeSet
+from sitebuilder.abstraction.attribute import AttributeSet
 
 
 def get_default_config_data():

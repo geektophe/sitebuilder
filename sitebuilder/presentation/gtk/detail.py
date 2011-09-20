@@ -4,7 +4,7 @@ Site editing interface. Supports Create, View and Update modes.
 """
 
 from sitebuilder.utils.parameters import GLADE_BASEDIR
-from sitebuilder.observer.datachanged import DataChangedListener
+from sitebuilder.observer.attribute import AttributeModifiedObserver
 from sitebuilder.observer.submitaction import SubmitActionDispatcher
 from sitebuilder.observer.cancelaction import CancelActionDispatcher
 from sitebuilder.presentation.gtk.base import GtkBasePresentationAgent
@@ -61,7 +61,7 @@ class DetailMainPresentationAgent(GtkBasePresentationAgent,
 
 
 class DetailSitePresentationAgent(GtkBasePresentationAgent,
-                                  DataChangedListener):
+                                  AttributeModifiedObserver):
     """
     Detail site presentation agent composite widget.
 
@@ -77,7 +77,7 @@ class DetailSitePresentationAgent(GtkBasePresentationAgent,
         GtkBasePresentationAgent.__init__(self, 'site', control_agent)
 
         # Listens data changed events from from control agent
-        control_agent.add_data_changed_listener(self)
+        control_agent.register_attribute_modified_observer(self)
 
         # Sets widgets signal handlers
         #self._builder.connect_signals(self)
@@ -95,7 +95,7 @@ class DetailSitePresentationAgent(GtkBasePresentationAgent,
         # Loads widgets data from control agent
         self.load_widgets_data()
 
-    def data_changed(self, event=None):
+    def attribute_modified(self, event=None):
         """
         DataChangedListerner trigger mmethod local implementation
         """
@@ -175,12 +175,12 @@ class DetailSitePresentationAgent(GtkBasePresentationAgent,
         """
         Cleanly destroyes components
         """
-        self.get_control_agent().remove_data_changed_listener(self)
+        self.get_control_agent().remove_attribute_modified_observer(self)
         GtkBasePresentationAgent.destroy(self)
 
 
 class DetailDatabasePresentationAgent(GtkBasePresentationAgent,
-                                      DataChangedListener):
+                                      AttributeModifiedObserver):
     """
     Detail database presentation agent composite widget.
 
@@ -197,7 +197,7 @@ class DetailDatabasePresentationAgent(GtkBasePresentationAgent,
                                               control_agent)
 
         # Listens data changed events from from control agent
-        control_agent.add_data_changed_listener(self)
+        control_agent.register_attribute_modified_observer(self)
 
         # Sets widgets signal handlers
         self['enabled'].connect('toggled', self.on_enabled_toggled)
@@ -213,7 +213,7 @@ class DetailDatabasePresentationAgent(GtkBasePresentationAgent,
         # Loads widgets data from control agent
         self.load_widgets_data()
 
-    def data_changed(self, event=None):
+    def attribute_modified(self, event=None):
         """
         DataChangedListerner trigger mmethod local implementation
         """
@@ -301,12 +301,12 @@ class DetailDatabasePresentationAgent(GtkBasePresentationAgent,
         """
         Cleanly destroyes components
         """
-        self.get_control_agent().remove_data_changed_listener(self)
+        self.get_control_agent().remove_attribute_modified_observer(self)
         GtkBasePresentationAgent.destroy(self)
 
 
 class DetailRepositoryPresentationAgent(GtkBasePresentationAgent,
-                                        DataChangedListener):
+                                        AttributeModifiedObserver):
     """
     Detail repository presentation agent composite widget.
 
@@ -322,7 +322,7 @@ class DetailRepositoryPresentationAgent(GtkBasePresentationAgent,
         GtkBasePresentationAgent.__init__(self, 'repository', control_agent)
 
         # Listens data changed events from from control agent
-        control_agent.add_data_changed_listener(self)
+        control_agent.register_attribute_modified_observer(self)
 
         # Sets widgets signal handlers
         self['enabled'].connect('toggled', self.on_enabled_toggled)
@@ -336,7 +336,7 @@ class DetailRepositoryPresentationAgent(GtkBasePresentationAgent,
         # Loads widgets data from control agent
         self.load_widgets_data()
 
-    def data_changed(self, event=None):
+    def attribute_modified(self, event=None):
         """
         DataChangedListerner trigger mmethod local implementation
         """
@@ -402,12 +402,12 @@ class DetailRepositoryPresentationAgent(GtkBasePresentationAgent,
         """
         Cleanly destroyes components
         """
-        self.get_control_agent().remove_data_changed_listener(self)
+        self.get_control_agent().remove_attribute_modified_observer(self)
         GtkBasePresentationAgent.destroy(self)
 
 
 class DetailGeneralPresentationAgent(GtkBasePresentationAgent,
-                                     DataChangedListener):
+                                     AttributeModifiedObserver):
     """
     Detail general presentation agent composite widget.
 
@@ -423,7 +423,7 @@ class DetailGeneralPresentationAgent(GtkBasePresentationAgent,
         GtkBasePresentationAgent.__init__(self, 'general', control_agent)
 
         # Listens data changed events from from control agent
-        control_agent.add_data_changed_listener(self)
+        control_agent.register_attribute_modified_observer(self)
 
         # Sets widgets signal handlers
         self['description'].connect('changed', self.on_description_changed)
@@ -440,7 +440,7 @@ class DetailGeneralPresentationAgent(GtkBasePresentationAgent,
         # Loads widgets data from control agent
         self.load_widgets_data()
 
-    def data_changed(self, event=None):
+    def attribute_modified(self, event=None):
         """
         DataChangedListerner trigger mmethod local implementation
         """
@@ -516,5 +516,5 @@ class DetailGeneralPresentationAgent(GtkBasePresentationAgent,
         """
         Cleanly destroyes components
         """
-        self.get_control_agent().remove_data_changed_listener(self)
+        self.get_control_agent().remove_attribute_modified_observer(self)
         GtkBasePresentationAgent.destroy(self)

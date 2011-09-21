@@ -3,27 +3,13 @@
 Main list interface control agent
 """
 
-from sitebuilder.utils.event import Event
 from sitebuilder.presentation.gtk.list import ListPresentationAgent
-from sitebuilder.utils.attribute import AttributeSet
 from sitebuilder.control.detail import DetailMainControlAgent
 from sitebuilder.abstraction.site import SiteConfigurationManager
-from sitebuilder.observer.viewaction import ViewActionListener
-from sitebuilder.observer.viewaction import ViewActionDispatcher
-from sitebuilder.observer.addaction import AddActionListener
-from sitebuilder.observer.addaction import AddActionDispatcher
-from sitebuilder.observer.editaction import EditActionListener
-from sitebuilder.observer.editaction import EditActionDispatcher
-from sitebuilder.observer.deleteaction import DeleteActionListener
-from sitebuilder.observer.deleteaction import DeleteActionDispatcher
 import gtk
 
 
-class ListControlAgent(ViewActionListener, AddActionListener,
-                       EditActionListener, DeleteActionListener,
-                       ViewActionDispatcher, AddActionDispatcher,
-                       EditActionDispatcher,
-                       DeleteActionDispatcher):
+class ListControlAgent(object):
     """
     List main component control agent
     """
@@ -32,15 +18,7 @@ class ListControlAgent(ViewActionListener, AddActionListener,
         """
         Initializes control agent.
         """
-        ViewActionDispatcher.__init__(self)
-        AddActionDispatcher.__init__(self)
-        EditActionDispatcher.__init__(self)
-        DeleteActionDispatcher.__init__(self)
         self._presentation_agent = ListPresentationAgent(self)
-        self._presentation_agent.add_view_action_activated_listener(self)
-        self._presentation_agent.add_add_action_activated_listener(self)
-        self._presentation_agent.add_edit_action_activated_listener(self)
-        self._presentation_agent.add_delete_action_activated_listener(self)
 
     def get_presentation_agent(self):
         """
@@ -79,58 +57,38 @@ class ListControlAgent(ViewActionListener, AddActionListener,
         dialog.destroy()
 
         if response == gtk.RESPONSE_YES:
-            self.notify_delete_action_activated(Event(configuration))
+            print "deleted site id %s" % conf_id 
 
-    def view_action_activated(self, event=None):
+    def add_site(self):
         """
-        ViewActionListerner trigger mmethod local implementation
-        """
-        selection = self.get_presentation_agent().get_selected_items()
-
-        for identifier in selection:
-            configuration = SiteConfigurationManager.get_configuration_by_id(identifier)
-            self.show_detail_dialog(configuration, True)
-
-    def add_action_activated(self, event=None):
-        """
-        AddActionListerner trigger mmethod local implementation
+        Display detail dialog in add mode with a new site configuration
         """
         configuration = SiteConfigurationManager.get_blank_configuration()
         self.show_detail_dialog(configuration)
 
-    def edit_action_activated(self, event=None):
+    def view_selected_sites(self, selection):
         """
-        EditActionListerner trigger mmethod local implementation
+        Display detail dialog in view mode for each selected configuration id
         """
-        selection = self.get_presentation_agent().get_selected_items()
+        for identifier in selection:
+            configuration = SiteConfigurationManager.get_configuration_by_id(identifier)
+            self.show_detail_dialog(configuration, True)
 
+    def edit_selected_sites(self, selection):
+        """
+        Display detail dialog in edit mode for each selected configuration id
+        """
         for identifier in selection:
             configuration = SiteConfigurationManager.get_configuration_by_id(identifier)
             self.show_detail_dialog(configuration)
 
-    def delete_action_activated(self, event=None):
+    def delete_selected_sites(self, selection):
         """
-        DeleteActionListerner trigger mmethod local implementation
+        Display delete dialog for each selected configuration id
         """
-        selection = self.get_presentation_agent().get_selected_items()
-
         for identifier in selection:
             configuration = SiteConfigurationManager.get_configuration_by_id(identifier)
             self.show_delete_dialog(configuration)
-
-    def submit_action_activated(self, event=None):
-        """
-        SubmitActionListerner trigger mmethod local implementation
-
-        Here, event should contain the child configuration instance as context
-        attribute.
-        """
-        if event is not None:
-            context = event.get_context()
-
-            if isinstance(context, AttributeSet):
-                print "configuration submitted: %d" % \
-                       context['general']['id'].get_value()
 
     def destroy(self):
         """

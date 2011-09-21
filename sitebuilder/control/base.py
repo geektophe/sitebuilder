@@ -3,13 +3,13 @@
 Base control Agent class to be subclassed
 """
 
-from sitebuilder.observer.attribute import AttributeModifiedObserver
-from sitebuilder.observer.attribute  import AttributeModifiedSubject
+from sitebuilder.observer.attribute import AttributeChangedObserver
+from sitebuilder.observer.attribute  import AttributeChangedSubject
 from sitebuilder.observer.validitychanged  import ValidityChangedListener
 from sitebuilder.observer.validitychanged  import ValidityChangedDispatcher
 
 
-class BaseControlAgent(AttributeModifiedSubject, AttributeModifiedObserver,
+class BaseControlAgent(AttributeChangedSubject, AttributeChangedObserver,
                        ValidityChangedDispatcher, ValidityChangedListener):
     """
     Base control Agent class to be subclassed
@@ -19,5 +19,5 @@ class BaseControlAgent(AttributeModifiedSubject, AttributeModifiedObserver,
         """
         Base controller initialization
         """
-        AttributeModifiedSubject.__init__(self)
+        AttributeChangedSubject.__init__(self)
         ValidityChangedDispatcher.__init__(self)

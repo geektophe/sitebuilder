@@ -5,15 +5,9 @@ Site editing interface. Supports Create, View and Update modes.
 
 from sitebuilder.utils.parameters import GLADE_BASEDIR
 from sitebuilder.presentation.gtk.base import GtkBasePresentationAgent
-from sitebuilder.observer.viewaction import ViewActionDispatcher
-from sitebuilder.observer.addaction import AddActionDispatcher
-from sitebuilder.observer.editaction import EditActionDispatcher
-from sitebuilder.observer.deleteaction import DeleteActionDispatcher
 import gtk
 
-class ListPresentationAgent(GtkBasePresentationAgent,
-                            ViewActionDispatcher, AddActionDispatcher,
-                            EditActionDispatcher, DeleteActionDispatcher):
+class ListPresentationAgent(GtkBasePresentationAgent):
     """
     ListPresentationAgent site add/edit/view interface.
 
@@ -27,13 +21,9 @@ class ListPresentationAgent(GtkBasePresentationAgent,
         Class initialization.
         """
         GtkBasePresentationAgent.__init__(self, 'list', control_agent)
-        ViewActionDispatcher.__init__(self)
-        AddActionDispatcher.__init__(self)
-        EditActionDispatcher.__init__(self)
-        DeleteActionDispatcher.__init__(self)
         site_list = self['site_list']
 
-        model = gtk.ListStore(str, str, str)
+        model = gtk.ListStore(str, str, str, str)
         site_list.set_model(model)
         renderer = gtk.CellRendererText()
 
@@ -41,8 +31,12 @@ class ListPresentationAgent(GtkBasePresentationAgent,
         cname.set_sort_column_id(1)
         site_list.append_column(cname)
 
-        cdesc = gtk.TreeViewColumn("Description", renderer, text=2)
+        cdesc = gtk.TreeViewColumn("Platform", renderer, text=2)
         cname.set_sort_column_id(2)
+        site_list.append_column(cdesc)
+
+        cdesc = gtk.TreeViewColumn("Description", renderer, text=3)
+        cname.set_sort_column_id(3)
         site_list.append_column(cdesc)
 
         self.load_widgets_data()
@@ -67,8 +61,11 @@ class ListPresentationAgent(GtkBasePresentationAgent,
             general = site.get_attribute('general')
             identifier = general.get_attribute('id').get_value()
             name = general.get_attribute('name').get_value()
+            domain = general.get_attribute('domain').get_value()
+            fqdn = "%s.%s" % (name, domain)
+            platform = general.get_attribute('platform').get_value()
             description = general.get_attribute('description').get_value()
-            model.append((identifier, name, description))
+            model.append((identifier, fqdn, platform, description))
 
     def get_selected_items(self):
         """
@@ -99,33 +96,28 @@ class ListPresentationAgent(GtkBasePresentationAgent,
         """
         Signal handler associated with the view action
         """
-        self.notify_view_action_activated()
+        self.get_control_agent().view_selected_sites(self.get_selected_items())
 
     def on_add_activate(self, widget):
         """
         Signal handler associated with the view action
         """
-        self.notify_add_action_activated()
+        self.get_control_agent().add_site()
 
     def on_edit_activate(self, widget):
         """
         Signal handler associated with the view action
         """
-        self.notify_edit_action_activated()
+        self.get_control_agent().edit_selected_sites(self.get_selected_items())
 
     def on_delete_activate(self, widget):
         """
         Signal handler associated with the view action
         """
-        self.notify_delete_action_activated()
+        self.get_control_agent().delete_selected_sites(self.get_selected_items())
 
     def destroy(self):
         """
         Cleanly destroyes components
         """
-        # Clears listeners lists
-        self.clear_add_action_activated_listeners()
-        self.clear_view_action_activated_listeners()
-        self.clear_edit_action_activated_listeners()
-        self.clear_delete_action_activated_listeners()
         GtkBasePresentationAgent.destroy(self)

@@ -11,11 +11,11 @@ attributes. It has the necessary methods to manipulate attributes.
 """
 
 import re
-from sitebuilder.observer.attribute import AttributeModifiedObserver
-from sitebuilder.observer.attribute import AttributeModifiedSubject
-from sitebuilder.observer.attribute import AttributeModifiedEvent
+from sitebuilder.observer.attribute import AttributeChangedObserver
+from sitebuilder.observer.attribute import AttributeChangedSubject
+from sitebuilder.observer.attribute import AttributeChangedEvent
 
-class Attribute(AttributeModifiedSubject):
+class Attribute(AttributeChangedSubject):
     """
     A configuration attribute item that is part of a configuration tree.
 
@@ -42,12 +42,12 @@ class Attribute(AttributeModifiedSubject):
         Object initialization. The only mandatory argument is the attribute
         name, that cannot be changed later.
         """
-        AttributeModifiedSubject.__init__(self)
+        AttributeChangedSubject.__init__(self)
         self._name = name
         self._value = value
         self._validator = validator
         self._errmsg = errmsg
-        self._modified = False
+        self._changed = False
         self._re = None
 
     def get_name(self):
@@ -185,25 +185,25 @@ class Attribute(AttributeModifiedSubject):
         >>> attr.get_value()
         'somevalue'
 
-        A value set should enable the modified flag
+        A value set should enable the changed flag
         >>> attr = Attribute(name='somename', validator=r'^[\d]+$')
         >>> attr.set_value(5, False)
-        >>> attr.is_modified()
+        >>> attr.is_changed()
         True
 
-        As an AttributeModifiedSubject, when an attribute value is set, an event is
+        As an AttributeChangedSubject, when an attribute value is set, an event is
         sent containing the attribute itself as context.
 
-        >>> class TestListener(AttributeModifiedObserver):
+        >>> class TestListener(AttributeChangedObserver):
         ...     def __init__(self):
         ...         self._event = None
-        ...     def attribute_modified(self, event):
+        ...     def attribute_changed(self, event):
         ...         self._event = event
         ...     def get_event(self):
         ...         return self._event
         >>> observer = TestListener()
         >>> attr = Attribute(name='somename')
-        >>> attr.register_attribute_modified_observer(observer)
+        >>> attr.register_attribute_changed_observer(observer)
         >>> attr.set_value(5)
         >>> context = observer.get_event().get_attribute()
         >>> attr is context
@@ -216,20 +216,20 @@ class Attribute(AttributeModifiedSubject):
             else:
                 raise AttributeError(r"Value did not match '%s'" % self._validator)
         self._value = value
-        self._modified = True
-        self.notify_attribute_modified(AttributeModifiedEvent(self))
+        self._changed = True
+        self.notify_attribute_changed(AttributeChangedEvent(self))
 
-    def is_modified(self):
+    def is_changed(self):
         """
-        Returns the modified flag
+        Returns the changed flag
         """
-        return self._modified
+        return self._changed
 
-    def clear_modified(self):
+    def clear_changed(self):
         """
-        Resets the modified flag
+        Resets the changed flag
         """
-        self._modified = False
+        self._changed = False
 
     def __str__(self):
         """
@@ -239,7 +239,7 @@ class Attribute(AttributeModifiedSubject):
             (self._name, self._value)
 
 
-class AttributeSet(AttributeModifiedObserver, AttributeModifiedSubject):
+class AttributeSet(AttributeChangedObserver, AttributeChangedSubject):
     """
     A class that represents a set of attributes.
 
@@ -255,10 +255,10 @@ class AttributeSet(AttributeModifiedObserver, AttributeModifiedSubject):
         """
         AttribvuteSet initialization
         """
-        AttributeModifiedSubject.__init__(self)
+        AttributeChangedSubject.__init__(self)
         self._name = name
         self._attributes = {}
-        self._modified = False
+        self._changed = False
 
         if  attributes is not None:
             self.load(attributes)
@@ -325,9 +325,9 @@ class AttributeSet(AttributeModifiedObserver, AttributeModifiedSubject):
         The load operation is atomic. If an attribute loading fails, the whole
         loading should be rollbacked.
 
-        A loaded attribute set should have modified flag unset
+        A loaded attribute set should have changed flag unset
 
-        >>> aset.is_modified()
+        >>> aset.is_changed()
         False
         """
         new_attributes = {}
@@ -341,10 +341,10 @@ class AttributeSet(AttributeModifiedObserver, AttributeModifiedSubject):
                         options.append(value[index])
 
                 new_attributes[key] = Attribute(key, *options)
-                new_attributes[key].register_attribute_modified_observer(self)
+                new_attributes[key].register_attribute_changed_observer(self)
             elif isinstance(value, dict):
                 new_attributes[key] = AttributeSet(key)
-                new_attributes[key].register_attribute_modified_observer(self)
+                new_attributes[key].register_attribute_changed_observer(self)
                 new_attributes[key].load(value)
             else:
                 raise AttributeError('Invalid data format for key %s' % key)
@@ -462,19 +462,19 @@ class AttributeSet(AttributeModifiedObserver, AttributeModifiedSubject):
             ...
         AttributeError: Attribute name 'somename' already exists.
 
-        As an AttributeModifiedSubject, when an attribute is added, an event is
+        As an AttributeChangedSubject, when an attribute is added, an event is
         sent containing the attribute set itself as context.
 
-        >>> class TestListener(AttributeModifiedObserver):
+        >>> class TestListener(AttributeChangedObserver):
         ...     def __init__(self):
         ...         self._event = None
-        ...     def attribute_modified(self, event):
+        ...     def attribute_changed(self, event):
         ...         self._event = event
         ...     def get_event(self):
         ...         return self._event
         >>> observer = TestListener()
         >>> aset = AttributeSet('aset')
-        >>> aset.register_attribute_modified_observer(observer)
+        >>> aset.register_attribute_changed_observer(observer)
         >>> attr = Attribute(name='somename')
         >>> aset.add_attribute(attr)
         >>> context = observer.get_event().get_attribute()
@@ -493,8 +493,8 @@ class AttributeSet(AttributeModifiedObserver, AttributeModifiedSubject):
                                 attribute.get_name())
 
         self._attributes[attribute.get_name()] = attribute
-        attribute.register_attribute_modified_observer(self)
-        self.notify_attribute_modified(AttributeModifiedEvent(self))
+        attribute.register_attribute_changed_observer(self)
+        self.notify_attribute_changed(AttributeChangedEvent(self))
 
     def remove_attribute(self, name):
         """
@@ -512,19 +512,19 @@ class AttributeSet(AttributeModifiedObserver, AttributeModifiedSubject):
             ...
         AttributeError: No attribute named 'somename'
 
-        As an AttributeModifiedSubject, when an attribute is removed, an event
+        As an AttributeChangedSubject, when an attribute is removed, an event
         is sent containing the attribute set itself as context.
 
-        >>> class TestListener(AttributeModifiedObserver):
+        >>> class TestListener(AttributeChangedObserver):
         ...     def __init__(self):
         ...         self._event = None
-        ...     def attribute_modified(self, event):
+        ...     def attribute_changed(self, event):
         ...         self._event = event
         ...     def get_event(self):
         ...         return self._event
         >>> observer = TestListener()
         >>> aset = AttributeSet('aset')
-        >>> aset.register_attribute_modified_observer(observer)
+        >>> aset.register_attribute_changed_observer(observer)
         >>> attr = Attribute(name='somename')
         >>> aset.add_attribute(attr)
         >>> context = observer.get_event().get_attribute()
@@ -537,20 +537,20 @@ class AttributeSet(AttributeModifiedObserver, AttributeModifiedSubject):
             for attrname in attribute.get_attribute_names():
                 attribute.remove_attribute(attrname)
 
-        attribute.remove_attribute_modified_observer(self)
+        attribute.remove_attribute_changed_observer(self)
         del self._attributes[name]
-        self.notify_attribute_modified(AttributeModifiedEvent(self))
+        self.notify_attribute_changed(AttributeChangedEvent(self))
 
-    def attribute_modified(self, event=None):
+    def attribute_changed(self, event=None):
         """
         Listener trigger method implementation
         """
-        self._modified = True
-        self.notify_attribute_modified(event)
+        self._changed = True
+        self.notify_attribute_changed(event)
 
-    def is_modified(self):
+    def is_changed(self):
         """
-        Returns the modified flag
+        Returns the changed flag
 
         When an attribute is changed, the whole up tree should be in changed
         state:
@@ -562,18 +562,18 @@ class AttributeSet(AttributeModifiedObserver, AttributeModifiedSubject):
         ...                                       'Value should be a string')
         >>> aset = AttributeSet('aset')
         >>> aset.load(attrdict)
-        >>> aset.is_modified()
+        >>> aset.is_changed()
         False
         >>> attr = aset['sub']['someothername']
         >>> attr.set_value('abc')
-        >>> aset.is_modified()
+        >>> aset.is_changed()
         True
         """
-        return self._modified
+        return self._changed
 
-    def clear_modified(self, recurse=False):
+    def clear_changed(self, recurse=False):
         """
-        Resets the modified flag
+        Resets the changed flag
 
         >>> attrdict = {}
         >>> attrdict['somename'] = ('somevalue', None, None)
@@ -584,34 +584,34 @@ class AttributeSet(AttributeModifiedObserver, AttributeModifiedSubject):
         >>> aset.load(attrdict)
         >>> attr = aset['sub']['someothername']
         >>> attr.set_value('abc')
-        >>> aset.is_modified()
+        >>> aset.is_changed()
         True
-        >>> aset.clear_modified()
-        >>> aset.is_modified()
+        >>> aset.clear_changed()
+        >>> aset.is_changed()
         False
 
-        If is_modified is not called with recurse flag, only the current
-        attribute is cleared its modified state
+        If is_changed is not called with recurse flag, only the current
+        attribute is cleared its changed state
 
-        >>> attr.is_modified()
+        >>> attr.is_changed()
         True
 
-        If is_modified is called with recurse flag, all the subtree is cleared
-        its modified state
+        If is_changed is called with recurse flag, all the subtree is cleared
+        its changed state
 
-        >>> aset.clear_modified(recurse=True)
-        >>> attr.is_modified()
+        >>> aset.clear_changed(recurse=True)
+        >>> attr.is_changed()
         False
         """
-        self._modified = False
+        self._changed = False
 
         if recurse is True:
 
             for attribute in self._attributes.values():
                 if isinstance(attribute, Attribute):
-                    attribute.clear_modified()
+                    attribute.clear_changed()
                 elif isinstance(attribute, AttributeSet):
-                    attribute.clear_modified(recurse=True)
+                    attribute.clear_changed(recurse=True)
 
     def iteritems(self):
         """

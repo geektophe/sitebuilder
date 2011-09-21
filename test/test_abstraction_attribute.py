@@ -7,10 +7,10 @@ import unittest
 import doctest
 from sitebuilder.abstraction import attribute
 from sitebuilder.abstraction.attribute import AttributeSet
-from sitebuilder.observer.attribute import AttributeModifiedObserver
+from sitebuilder.observer.attribute import AttributeChangedObserver
 
 
-class TestListener(AttributeModifiedObserver):
+class TestListener(AttributeChangedObserver):
     """
     Test listener that sets its internal state flag to tru if it's notified
     """
@@ -21,7 +21,7 @@ class TestListener(AttributeModifiedObserver):
         """
         self._flag = False
 
-    def attribute_modified(self, event=None):
+    def attribute_changed(self, event=None):
         """
         Sets flag to true when notified
         """
@@ -59,8 +59,8 @@ class Test(unittest.TestCase):
         root_listener = TestListener()
         child_listener = TestListener()
 
-        root.register_attribute_modified_observer(root_listener)
-        child11.register_attribute_modified_observer(child_listener)
+        root.register_attribute_changed_observer(root_listener)
+        child11.register_attribute_changed_observer(child_listener)
 
         # Changes leaf attribute value
         child11.set_value('child11_changed')

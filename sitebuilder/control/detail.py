@@ -3,7 +3,6 @@
 Site details related control components
 """
 
-from sitebuilder.utils.event import Event
 from sitebuilder.presentation.gtk.detail import DetailMainPresentationAgent
 from sitebuilder.presentation.gtk.detail import DetailDatabasePresentationAgent
 from sitebuilder.presentation.gtk.detail import DetailGeneralPresentationAgent
@@ -60,7 +59,7 @@ class DetailMainControlAgent(BaseControlAgent):
         self._presentation_agent.attach_slave('database',
                 'hbox_databases', slave.get_presentation_agent())
 
-    def attribute_modified(self, event=None):
+    def attribute_changed(self, event=None):
         """
         DataChangedListerner trigger mmethod local implementation
 
@@ -89,6 +88,8 @@ class DetailMainControlAgent(BaseControlAgent):
         """
         The interface submit action has been asked.
         """
+        # TODO: implement message passing
+        print "site configuration submitted"
         self.destroy()
 
     def cancel(self):
@@ -118,7 +119,7 @@ class DetailMainControlAgent(BaseControlAgent):
             slave.destroy()
 
         # Clears listeners lists
-        self.clear_attribute_modified_observers()
+        self.clear_attribute_changed_observers()
         self.clear_validity_changed_listeners()
 
         # Destroyes presentation
@@ -142,13 +143,13 @@ class DetailBaseControlAgent(BaseControlAgent):
         self._read_only = read_only
         self._configuration = configuration
         self._presentation_agent = None
-        configuration.register_attribute_modified_observer(self)
+        configuration.register_attribute_changed_observer(self)
 
-    def attribute_modified(self, event=None):
+    def attribute_changed(self, event=None):
         """
         DataChangedListerner trigger mmethod local implementation
         """
-        self.notify_attribute_modified(event)
+        self.notify_attribute_changed(event)
 
     def validity_changed(self, event=None):
         """
@@ -203,10 +204,10 @@ class DetailBaseControlAgent(BaseControlAgent):
         Cleanly destroyes all components
         """
         # Unsubscribes from configuration data changed events
-        self._configuration.remove_attribute_modified_observer(self)
+        self._configuration.remove_attribute_changed_observer(self)
 
         # Clears listeners lists
-        self.clear_attribute_modified_observers()
+        self.clear_attribute_changed_observers()
         self.clear_validity_changed_listeners()
 
         # Destroyes presentation

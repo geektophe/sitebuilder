@@ -3,7 +3,7 @@
 Observer classes associated with the AttributeChanged events
 """
 
-class AttributeModifiedEvent(object):
+class AttributeChangedEvent(object):
     """
     Event class used to notify an attribute changed event.
     """
@@ -22,13 +22,13 @@ class AttributeModifiedEvent(object):
         return self._attribute
 
 
-class AttributeModifiedObserver(object):
+class AttributeChangedObserver(object):
     """
-    Observer class that may be called when an attribute has been modified and
+    Observer class that may be called when an attribute has been changed and
     an action is needed from other components to take it in account.
     """
 
-    def attribute_modified(self, event=None):
+    def attribute_changed(self, event=None):
         """
         This method has to be overridden by listeners implementations
         """
@@ -36,70 +36,70 @@ class AttributeModifiedObserver(object):
                                   "implmentation and has to be overridden")
 
 
-class AttributeModifiedSubject(object):
+class AttributeChangedSubject(object):
     """
     Subject base class that objects may subclass to dispatch
-    'attribute modified' events.
+    'attribute changed' events.
     """
 
     def __init__(self):
         """
         Subject initialization
         """
-        self._attribute_modified_observers = []
+        self._attribute_changed_observers = []
 
-    def register_attribute_modified_observer(self, observer):
+    def register_attribute_changed_observer(self, observer):
         """
-        Adds a AttributeModifiedObserver observer object to observers list
+        Adds a AttributeChangedObserver observer object to observers list
 
-        We may add a AttributeModifiedObserver instance
+        We may add a AttributeChangedObserver instance
 
-        >>> subject = AttributeModifiedSubject()
-        >>> observer = AttributeModifiedObserver()
-        >>> subject.register_attribute_modified_observer(observer)
+        >>> subject = AttributeChangedSubject()
+        >>> observer = AttributeChangedObserver()
+        >>> subject.register_attribute_changed_observer(observer)
 
-        Adding an object that is not a AttributeModifiedObserver should raise an
+        Adding an object that is not a AttributeChangedObserver should raise an
         exception
 
-        >>> subject = AttributeModifiedSubject()
-        >>> subject.register_attribute_modified_observer('fake')
+        >>> subject = AttributeChangedSubject()
+        >>> subject.register_attribute_changed_observer('fake')
         Traceback (most recent call last):
             ...
-        AttributeError: Listener must be an instance of AttributeModifiedObserver
+        AttributeError: Listener must be an instance of AttributeChangedObserver
         """
-        if not isinstance(observer, AttributeModifiedObserver):
+        if not isinstance(observer, AttributeChangedObserver):
             raise AttributeError(
-                "Listener must be an instance of AttributeModifiedObserver")
-        self._attribute_modified_observers.append(observer)
+                "Listener must be an instance of AttributeChangedObserver")
+        self._attribute_changed_observers.append(observer)
 
-    def remove_attribute_modified_observer(self, observer):
+    def remove_attribute_changed_observer(self, observer):
         """
-        Deletes a AttributeModifiedObserver observer object to observers list
+        Deletes a AttributeChangedObserver observer object to observers list
         """
         try:
-            self._attribute_modified_observers.remove(observer)
+            self._attribute_changed_observers.remove(observer)
         except ValueError:
             pass
 
-    def clear_attribute_modified_observers(self):
+    def clear_attribute_changed_observers(self):
         """
         Deletes all AddActionActivatedListener observers object from observers
         list
         """
-        del self._attribute_modified_observers[:]
+        del self._attribute_changed_observers[:]
 
-    def notify_attribute_modified(self, event=None):
+    def notify_attribute_changed(self, event=None):
         """
         Notifies all observers that a data has changed
 
-        As the AttributeModifiedObserver instance we use for the test is only
+        As the AttributeChangedObserver instance we use for the test is only
         used as an abstract class, the notify method should raise a
         NotImplementedError
 
-        >>> subject = AttributeModifiedSubject()
-        >>> observer = AttributeModifiedObserver()
-        >>> subject.register_attribute_modified_observer(observer)
-        >>> subject.notify_attribute_modified()
+        >>> subject = AttributeChangedSubject()
+        >>> observer = AttributeChangedObserver()
+        >>> subject.register_attribute_changed_observer(observer)
+        >>> subject.notify_attribute_changed()
         Traceback (most recent call last):
             ...
         NotImplementedError: This method has currently no implmentation and has to be overridden
@@ -107,24 +107,24 @@ class AttributeModifiedSubject(object):
         An event containing the context that triggered the event may also be
         passed to observers
 
-        >>> event = AttributeModifiedEvent('test')
-        >>> subject.notify_attribute_modified(event)
+        >>> event = AttributeChangedEvent('test')
+        >>> subject.notify_attribute_changed(event)
         Traceback (most recent call last):
             ...
         NotImplementedError: This method has currently no implmentation and has to be overridden
 
         Using a parameter that is not an event shold raise en exception
-        >>> subject.notify_attribute_modified('fake')
+        >>> subject.notify_attribute_changed('fake')
         Traceback (most recent call last):
             ...
-        AttributeError: event parameter should be an instance of AttributeModifiedEvent
+        AttributeError: event parameter should be an instance of AttributeChangedEvent
         """
-        if event is not None and not isinstance(event, AttributeModifiedEvent):
+        if event is not None and not isinstance(event, AttributeChangedEvent):
             raise AttributeError("event parameter should be an instance " + \
-                                 "of AttributeModifiedEvent")
+                                 "of AttributeChangedEvent")
 
-        for observer in self._attribute_modified_observers:
-            observer.attribute_modified(event)
+        for observer in self._attribute_changed_observers:
+            observer.attribute_changed(event)
 
 
 if __name__ == "__main__":

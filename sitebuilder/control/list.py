@@ -16,14 +16,13 @@ from sitebuilder.observer.editaction import EditActionListener
 from sitebuilder.observer.editaction import EditActionDispatcher
 from sitebuilder.observer.deleteaction import DeleteActionListener
 from sitebuilder.observer.deleteaction import DeleteActionDispatcher
-from sitebuilder.observer.submitaction import SubmitActionListener
 import gtk
 
 
 class ListControlAgent(ViewActionListener, AddActionListener,
                        EditActionListener, DeleteActionListener,
-                       SubmitActionListener, ViewActionDispatcher,
-                       AddActionDispatcher, EditActionDispatcher,
+                       ViewActionDispatcher, AddActionDispatcher,
+                       EditActionDispatcher,
                        DeleteActionDispatcher):
     """
     List main component control agent
@@ -60,7 +59,6 @@ class ListControlAgent(ViewActionListener, AddActionListener,
         Shows detail dialog for the specified configuration
         """
         detail = DetailMainControlAgent(configuration, read_only)
-        detail.add_submit_action_activated_listener(self)
         presentation = detail.get_presentation_agent()
         presentation.show()
 

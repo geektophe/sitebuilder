@@ -10,9 +10,7 @@ from sitebuilder.observer.cancelaction import CancelActionDispatcher
 from sitebuilder.presentation.gtk.base import GtkBasePresentationAgent
 from sitebuilder.abstraction.site import SiteConfigurationManager
 
-class DetailMainPresentationAgent(GtkBasePresentationAgent,
-                                  SubmitActionDispatcher,
-                                  CancelActionDispatcher):
+class DetailMainPresentationAgent(GtkBasePresentationAgent):
     """
     DetailMainPresentationAgent site add/edit/view interface.
 
@@ -26,8 +24,6 @@ class DetailMainPresentationAgent(GtkBasePresentationAgent,
         Class initialization.
         """
         GtkBasePresentationAgent.__init__(self, 'main', control_agent)
-        SubmitActionDispatcher.__init__(self)
-        CancelActionDispatcher.__init__(self)
         self['submit'].connect('activate', self.on_submit_activate)
         self['cancel'].connect('activate', self.on_cancel_activate)
         self.get_toplevel().connect('destroy', self.on_cancel_activate)
@@ -42,21 +38,19 @@ class DetailMainPresentationAgent(GtkBasePresentationAgent,
         """
         Signal handler associated with the submit action
         """
-        self.notify_submit_action_activated()
+        self.get_control_agent().submit()
 
     def on_cancel_activate(self, widget):
         """
         Signal handler associated with the canhcel action
         """
-        self.notify_cancel_action_activated()
+        self.get_control_agent().cancel()
 
     def destroy(self):
         """
         Cleanly destroyes components
         """
         # Clears listeners lists
-        self.clear_submit_action_activated_listeners()
-        self.clear_cancel_action_activated_listeners()
         GtkBasePresentationAgent.destroy(self)
 
 

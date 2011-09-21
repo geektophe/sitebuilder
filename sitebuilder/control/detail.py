@@ -11,13 +11,9 @@ from sitebuilder.presentation.gtk.detail import DetailSitePresentationAgent
 from sitebuilder.presentation.gtk.detail import DetailRepositoryPresentationAgent
 from sitebuilder.abstraction.site import SiteConfigurationManager
 from sitebuilder.control.base import BaseControlAgent
-from sitebuilder.observer.submitaction import SubmitActionListener
-from sitebuilder.observer.submitaction import SubmitActionDispatcher
-from sitebuilder.observer.cancelaction import CancelActionListener
 import gtk
 
-class DetailMainControlAgent(BaseControlAgent, SubmitActionListener,
-                             SubmitActionDispatcher, CancelActionListener):
+class DetailMainControlAgent(BaseControlAgent):
     """
     Site details main interface's control agent
     """
@@ -27,12 +23,9 @@ class DetailMainControlAgent(BaseControlAgent, SubmitActionListener,
         ControlAgent initialization
         """
         BaseControlAgent.__init__(self)
-        SubmitActionDispatcher.__init__(self)
         self._read_only = read_only
         self._configuration = configuration
         self._presentation_agent = DetailMainPresentationAgent(self)
-        self._presentation_agent.add_submit_action_activated_listener(self)
-        self._presentation_agent.add_cancel_action_activated_listener(self)
         self._slaves = []
 
         # Creates general component
@@ -92,16 +85,13 @@ class DetailMainControlAgent(BaseControlAgent, SubmitActionListener,
 
         self.get_presentation_agent().set_submit_state(flag)
 
-    def submit_action_activated(self, event=None):
+    def submit(self):
         """
-        SubmitActionActivatedListerner trigger mmethod local implementation
+        The interface submit action has been asked.
         """
-        if self._read_only is False:
-            self.notify_submit_action_activated(Event(self._configuration))
-
         self.destroy()
 
-    def cancel_action_activated(self, event=None):
+    def cancel(self):
         """
         SubmitActionActivatedListerner trigger mmethod local implementation
         """
@@ -130,7 +120,6 @@ class DetailMainControlAgent(BaseControlAgent, SubmitActionListener,
         # Clears listeners lists
         self.clear_attribute_modified_observers()
         self.clear_validity_changed_listeners()
-        self.clear_submit_action_activated_listeners()
 
         # Destroyes presentation
         self.get_presentation_agent().destroy()

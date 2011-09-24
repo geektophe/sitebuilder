@@ -94,12 +94,6 @@ class ListControlAgent(object):
         """
         Cleanly destroyes components
         """
-        # Clears listeners lists
-        self.clear_add_action_activated_listeners()
-        self.clear_view_action_activated_listeners()
-        self.clear_edit_action_activated_listeners()
-        self.clear_delete_action_activated_listeners()
-
         # Destroyes presentation
         self.get_presentation_agent().destroy()
 

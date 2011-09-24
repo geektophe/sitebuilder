@@ -25,6 +25,12 @@ class DetailMainPresentationAgent(GtkBasePresentationAgent):
         self['cancel'].connect('activate', self.on_cancel_activate)
         self.get_toplevel().connect('destroy', self.on_cancel_activate)
 
+    def load_widgets_data(self):
+        """
+        Null method. Loading widgets data has no meaning here.
+        """
+        pass
+
     def set_submit_state(self, flag):
         """
         Enables or disabled OK button depending on flag state
@@ -58,9 +64,6 @@ class DetailSitePresentationAgent(GtkBasePresentationAgent):
         Class initialization.
         """
         GtkBasePresentationAgent.__init__(self, 'site', control_agent)
-
-        # Listens data changed events from from control agent
-        control_agent.register_attribute_changed_observer(self)
 
         # Sets widgets signal handlers
         #self._builder.connect_signals(self)
@@ -158,9 +161,6 @@ class DetailDatabasePresentationAgent(GtkBasePresentationAgent):
         """
         GtkBasePresentationAgent.__init__(self, 'database',
                                               control_agent)
-
-        # Listens data changed events from from control agent
-        control_agent.register_attribute_changed_observer(self)
 
         # Sets widgets signal handlers
         self['enabled'].connect('toggled', self.on_enabled_toggled)
@@ -264,9 +264,6 @@ class DetailRepositoryPresentationAgent(GtkBasePresentationAgent):
         """
         GtkBasePresentationAgent.__init__(self, 'repository', control_agent)
 
-        # Listens data changed events from from control agent
-        control_agent.register_attribute_changed_observer(self)
-
         # Sets widgets signal handlers
         self['enabled'].connect('toggled', self.on_enabled_toggled)
         self['name'].connect('changed', self.on_name_changed)
@@ -344,9 +341,6 @@ class DetailGeneralPresentationAgent(GtkBasePresentationAgent):
         Class initialization.
         """
         GtkBasePresentationAgent.__init__(self, 'general', control_agent)
-
-        # Listens data changed events from from control agent
-        control_agent.register_attribute_changed_observer(self)
 
         # Sets widgets signal handlers
         self['description'].connect('changed', self.on_description_changed)

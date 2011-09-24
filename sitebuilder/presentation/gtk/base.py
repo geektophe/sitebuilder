@@ -6,13 +6,13 @@ Base view to be subclassed
 import pygtk
 import gtk
 import os
-from sitebuilder.utils.event import Event
-from sitebuilder.observer.validitychanged import ValidityChangedDispatcher
+from sitebuilder.observer.validity import ValidityChangedSubject
+from sitebuilder.observer.validity import ValidityChangedEvent
 from sitebuilder.observer.attribute import AttributeChangedObserver
 
 pygtk.require("2.0")
 
-class GtkBasePresentationAgent(ValidityChangedDispatcher,
+class GtkBasePresentationAgent(ValidityChangedSubject,
                                AttributeChangedObserver):
     """
     Main site add/edit/view interface.
@@ -29,7 +29,7 @@ class GtkBasePresentationAgent(ValidityChangedDispatcher,
         if not os.path.isfile(self.GLADE_FILE):
             raise RuntimeError("No glade file found.")
 
-        ValidityChangedDispatcher.__init__(self)
+        ValidityChangedSubject.__init__(self)
         self._control_agent = control_agent
         self._builder = gtk.Builder()
         self._builder.add_from_file(self.GLADE_FILE)
@@ -179,7 +179,7 @@ class GtkBasePresentationAgent(ValidityChangedDispatcher,
         has an incorrect value set.
         """
         self._attr_validity[attr_name] = flag
-        self.notify_validity_changed(Event(self))
+        self.notify_validity_changed(ValidityChangedEvent(flag))
 
     def get_validity_flag(self):
         """
@@ -193,10 +193,24 @@ class GtkBasePresentationAgent(ValidityChangedDispatcher,
 
         return flag
 
+    def attribute_changed(self, event=None):
+        """
+        AttributeChangedObserver trigger mmethod local implementation
+        """
+        self.load_widgets_data()
+
+    def load_widgets_data(self):
+        """
+        Updates presentation agent widgets based on configuraton settings
+        """
+        print str(self)
+        raise NotImplementedError("This method has currently no " + \
+                                  "implmentation and has to be overridden")
+
     def destroy(self):
         """
         Cleanly destroyes components
         """
-        # Clears listeners lists
-        self.clear_validity_changed_listeners()
+        # Clears observers lists
+        self.clear_validity_changed_observers()
         self.get_toplevel().destroy()

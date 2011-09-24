@@ -22,15 +22,19 @@ class DetailMainControlAgent(BaseControlAgent):
         ControlAgent initialization
         """
         BaseControlAgent.__init__(self)
-        self._read_only = read_only
-        self._configuration = configuration
-        self._presentation_agent = DetailMainPresentationAgent(self)
+        self.set_configuration(configuration)
+        self.set_read_only_flag(read_only)
+        presentation_agent = DetailMainPresentationAgent(self)
+        # Main detail presentation agent has no reason to listen to changed
+        # attribute events. Disabled.
+        # configuration.register_attribute_changed_observer(presentation_agent)
+        self.set_presentation_agent(presentation_agent)
         self._slaves = []
 
         # Creates general component
         general = configuration.get_attribute('general')
         slave = DetailGeneralControlAgent(general, read_only)
-        slave.add_validity_changed_listener(self)
+        slave.register_validity_changed_observer(self)
         self._slaves.append(slave)
         self._presentation_agent.attach_slave('general', 'hbox_general',
                 slave.get_presentation_agent())
@@ -38,7 +42,7 @@ class DetailMainControlAgent(BaseControlAgent):
         # Creates repository component
         repository = configuration.get_attribute('repository')
         slave = DetailRepositoryControlAgent(repository, read_only)
-        slave.add_validity_changed_listener(self)
+        slave.register_validity_changed_observer(self)
         self._slaves.append(slave)
         self._presentation_agent.attach_slave('repository', 'hbox_repository',
                 slave.get_presentation_agent())
@@ -46,7 +50,7 @@ class DetailMainControlAgent(BaseControlAgent):
         # Creates site component
         website = configuration.get_attribute('website')
         slave = DetailSiteControlAgent(website, read_only)
-        slave.add_validity_changed_listener(self)
+        slave.register_validity_changed_observer(self)
         self._slaves.append(slave)
         self._presentation_agent.attach_slave('website', 'hbox_sites',
                 slave.get_presentation_agent())
@@ -54,20 +58,10 @@ class DetailMainControlAgent(BaseControlAgent):
         # Creates database component
         database = configuration.get_attribute('database')
         slave = DetailDatabaseControlAgent(database, read_only)
-        slave.add_validity_changed_listener(self)
+        slave.register_validity_changed_observer(self)
         self._slaves.append(slave)
         self._presentation_agent.attach_slave('database',
                 'hbox_databases', slave.get_presentation_agent())
-
-    def attribute_changed(self, event=None):
-        """
-        DataChangedListerner trigger mmethod local implementation
-
-        As this class is not sensible to DataChanged events (only sub
-        components are), because of DataCHangedListener dependcy, this method
-        is nulled
-        """
-        pass
 
     def validity_changed(self, event=None):
         """
@@ -98,18 +92,6 @@ class DetailMainControlAgent(BaseControlAgent):
         """
         self.destroy()
 
-    def get_read_only_flag(self):
-        """
-        Returns read only flag
-        """
-        return self._read_only
-
-    def get_presentation_agent(self):
-        """
-        Returns presentation
-        """
-        return self._presentation_agent
-
     def destroy(self):
         """
         Cleanly destroyes all components
@@ -118,144 +100,103 @@ class DetailMainControlAgent(BaseControlAgent):
         for slave in self._slaves:
             slave.destroy()
 
-        # Clears listeners lists
-        self.clear_attribute_changed_observers()
-        self.clear_validity_changed_listeners()
-
-        # Destroyes presentation
-        self.get_presentation_agent().destroy()
+        BaseControlAgent.destroy(self)
 
 
-class DetailBaseControlAgent(BaseControlAgent):
-    """
-    Generic sub component control agent
-    """
-
-    def __init__(self, configuration, read_only=False):
-        """
-        Initializes control agent.
-
-        The read_only attribute indocates to the presentation that none of then
-        widgets should be sensitive. The user is then not allowed to change any
-        value.
-        """
-        BaseControlAgent.__init__(self)
-        self._read_only = read_only
-        self._configuration = configuration
-        self._presentation_agent = None
-        configuration.register_attribute_changed_observer(self)
-
-    def attribute_changed(self, event=None):
-        """
-        DataChangedListerner trigger mmethod local implementation
-        """
-        self.notify_attribute_changed(event)
-
-    def validity_changed(self, event=None):
-        """
-        DataChangedListerner trigger mmethod local implementation
-        """
-        self.notify_validity_changed(event)
-
-    def get_validity_flag(self):
-        """
-        Returns component's valididty flag
-        """
-        return self.get_presentation_agent().get_validity_flag()
-
-    def get_read_only_flag(self):
-        """
-        Returns read only flag
-        """
-        return self._read_only
-
-    def get_presentation_agent(self):
-        """
-        Returns local PresentationAgent implementation instance
-        """
-        return self._presentation_agent
-
-    def get_configuratuon(self):
-        """
-        Returns configuration instance
-        """
-        return self._configuration
-
-    def get_attribute_value(self, name):
-        """
-        Returns a configuration attribute value
-        """
-        return self._configuration.get_attribute(name).get_value()
-
-    def set_attribute_value(self, name, value):
-        """
-        Returns a configuration attribute value
-        """
-        self._configuration.get_attribute(name).set_value(value)
-
-    def get_platform_name(self):
-        """
-        Returns platform anme, that is in fact the configuration name
-        """
-        return self._configuration.get_name()
-
-    def destroy(self):
-        """
-        Cleanly destroyes all components
-        """
-        # Unsubscribes from configuration data changed events
-        self._configuration.remove_attribute_changed_observer(self)
-
-        # Clears listeners lists
-        self.clear_attribute_changed_observers()
-        self.clear_validity_changed_listeners()
-
-        # Destroyes presentation
-        self.get_presentation_agent().destroy()
-
-
-class DetailSiteControlAgent(DetailBaseControlAgent):
+class DetailSiteControlAgent(BaseControlAgent):
     """
     Site sub component control agent
     """
 
     def __init__(self, configuration, read_only=False):
-        DetailBaseControlAgent.__init__(self, configuration, read_only)
-        self._presentation_agent = DetailSitePresentationAgent(self)
-        self._presentation_agent.add_validity_changed_listener(self)
+        BaseControlAgent.__init__(self)
+        self.set_configuration(configuration)
+        self.set_read_only_flag(read_only)
+        presentation_agent = DetailSitePresentationAgent(self)
+        configuration.register_attribute_changed_observer(presentation_agent)
+        self.set_presentation_agent(presentation_agent)
+        self.get_presentation_agent().register_validity_changed_observer(self)
+
+    def destroy(self):
+        """
+        Cleanly destroyes all components
+        """
+        # Unregisters presetations view fromconfiguration
+        self.get_configuration().remove_attribute_changed_observer(
+            self.get_presentation_agent())
+        BaseControlAgent.destroy(self)
 
 
-class DetailDatabaseControlAgent(DetailBaseControlAgent):
+class DetailDatabaseControlAgent(BaseControlAgent):
     """
     Database sub component control agent
     """
 
     def __init__(self, configuration, read_only=False):
-        DetailBaseControlAgent.__init__(self, configuration, read_only)
-        self._presentation_agent = DetailDatabasePresentationAgent(self)
-        self._presentation_agent.add_validity_changed_listener(self)
+        BaseControlAgent.__init__(self)
+        self.set_configuration(configuration)
+        self.set_read_only_flag(read_only)
+        presentation_agent = DetailDatabasePresentationAgent(self)
+        configuration.register_attribute_changed_observer(presentation_agent)
+        self.set_presentation_agent(presentation_agent)
+        self.get_presentation_agent().register_validity_changed_observer(self)
+
+    def destroy(self):
+        """
+        Cleanly destroyes all components
+        """
+        # Unregisters presetations view fromconfiguration
+        self.get_configuration().remove_attribute_changed_observer(
+            self.get_presentation_agent())
+        BaseControlAgent.destroy(self)
 
 
-class DetailRepositoryControlAgent(DetailBaseControlAgent):
+class DetailRepositoryControlAgent(BaseControlAgent):
     """
     Repository sub component control agent
     """
 
     def __init__(self, configuration, read_only=False):
-        DetailBaseControlAgent.__init__(self, configuration, read_only)
-        self._presentation_agent = DetailRepositoryPresentationAgent(self)
-        self._presentation_agent.add_validity_changed_listener(self)
+        BaseControlAgent.__init__(self)
+        self.set_configuration(configuration)
+        self.set_read_only_flag(read_only)
+        presentation_agent = DetailRepositoryPresentationAgent(self)
+        configuration.register_attribute_changed_observer(presentation_agent)
+        self.set_presentation_agent(presentation_agent)
+        self._presentation_agent.register_validity_changed_observer(self)
+
+    def destroy(self):
+        """
+        Cleanly destroyes all components
+        """
+        # Unregisters presetations view fromconfiguration
+        self.get_configuration().remove_attribute_changed_observer(
+            self.get_presentation_agent())
+        BaseControlAgent.destroy(self)
 
 
-class DetailGeneralControlAgent(DetailBaseControlAgent):
+class DetailGeneralControlAgent(BaseControlAgent):
     """
     Repository sub component control agent
     """
 
     def __init__(self, configuration, read_only=False):
-        DetailBaseControlAgent.__init__(self, configuration, read_only)
-        self._presentation_agent = DetailGeneralPresentationAgent(self)
-        self._presentation_agent.add_validity_changed_listener(self)
+        BaseControlAgent.__init__(self)
+        self.set_configuration(configuration)
+        self.set_read_only_flag(read_only)
+        presentation_agent = DetailGeneralPresentationAgent(self)
+        configuration.register_attribute_changed_observer(presentation_agent)
+        self.set_presentation_agent(presentation_agent)
+        self._presentation_agent.register_validity_changed_observer(self)
+
+    def destroy(self):
+        """
+        Cleanly destroyes all components
+        """
+        # Unregisters presetations view fromconfiguration
+        self.get_configuration().remove_attribute_changed_observer(
+            self.get_presentation_agent())
+        BaseControlAgent.destroy(self)
 
 if __name__ == '__main__':
     config = SiteConfigurationManager.get_blank_configuration()

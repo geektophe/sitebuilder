@@ -8,10 +8,12 @@ import gtk
 import os
 from sitebuilder.utils.event import Event
 from sitebuilder.observer.validitychanged import ValidityChangedDispatcher
+from sitebuilder.observer.attribute import AttributeChangedObserver
 
 pygtk.require("2.0")
 
-class GtkBasePresentationAgent(ValidityChangedDispatcher):
+class GtkBasePresentationAgent(ValidityChangedDispatcher,
+                               AttributeChangedObserver):
     """
     Main site add/edit/view interface.
 

@@ -4,7 +4,6 @@ Site editing interface. Supports Create, View and Update modes.
 """
 
 from sitebuilder.utils.parameters import GLADE_BASEDIR
-from sitebuilder.observer.attribute import AttributeChangedObserver
 from sitebuilder.presentation.gtk.base import GtkBasePresentationAgent
 from sitebuilder.abstraction.site import SiteConfigurationManager
 
@@ -44,16 +43,8 @@ class DetailMainPresentationAgent(GtkBasePresentationAgent):
         """
         self.get_control_agent().cancel()
 
-    def destroy(self):
-        """
-        Cleanly destroyes components
-        """
-        # Clears listeners lists
-        GtkBasePresentationAgent.destroy(self)
 
-
-class DetailSitePresentationAgent(GtkBasePresentationAgent,
-                                  AttributeChangedObserver):
+class DetailSitePresentationAgent(GtkBasePresentationAgent):
     """
     Detail site presentation agent composite widget.
 
@@ -93,24 +84,12 @@ class DetailSitePresentationAgent(GtkBasePresentationAgent,
         """
         self.load_widgets_data()
 
-    def get_attribute_value(self, name):
-        """
-        Returns an attribute value from the control agent
-        """
-        return self.get_control_agent().get_attribute_value(name)
-
-    def set_attribute_value(self, name, value):
-        """
-        Sets an attribute value on the control agent
-        """
-        self.get_control_agent().set_attribute_value(name, value)
-
     def load_widgets_data(self):
         """
         Updates presentation agent widgets based on configuraton settings
         """
-        enabled = self.get_attribute_value('enabled')
-        done = self.get_attribute_value('done')
+        enabled = self.get_control_agent().get_attribute_value('enabled')
+        done = self.get_control_agent().get_attribute_value('done')
         read_only = self.get_control_agent().get_read_only_flag()
         sensitive = enabled and not done and not read_only
 
@@ -119,19 +98,19 @@ class DetailSitePresentationAgent(GtkBasePresentationAgent,
         self['enabled'].set_sensitive(not done and not read_only)
 
         # Loads maintenance checkbox state
-        maintenance = self.get_attribute_value('maintenance')
+        maintenance = self.get_control_agent().get_attribute_value('maintenance')
         self['maintenance'].set_active(maintenance)
         # Maintenance should be changeable even if site is in done state
         self['maintenance'].set_sensitive(enabled and not read_only)
 
         # Loads template combobox selected option
         self.set_combobox_selection(self['template'],
-                self.get_attribute_value('template'))
+                self.get_control_agent().get_attribute_value('template'))
         self['template'].set_sensitive(sensitive)
 
         # Loads access combobox selected option
         self.set_combobox_selection(self['access'],
-                self.get_attribute_value('access'))
+                self.get_control_agent().get_attribute_value('access'))
         # Access should be changeable even if site is in done state
         self['access'].set_sensitive(enabled and not read_only)
 
@@ -140,39 +119,31 @@ class DetailSitePresentationAgent(GtkBasePresentationAgent,
         Signal handler associated with the enabled checkbox
         """
         enabled = self['enabled'].get_active()
-        self.set_attribute_value('enabled', enabled)
+        self.get_control_agent().set_attribute_value('enabled', enabled)
 
     def on_maintenance_toggled(self, widget):
         """
         Signal handler associated with the maintenance checkbox
         """
         maintenance = self['maintenance'].get_active()
-        self.set_attribute_value('maintenance', maintenance)
+        self.get_control_agent().set_attribute_value('maintenance', maintenance)
 
     def on_template_changed(self, widget):
         """
         Signal handler associated with the template combobox
         """
         template_name = self.get_combobox_selection(self['template'])
-        self.set_attribute_value('template', template_name )
+        self.get_control_agent().set_attribute_value('template', template_name )
 
     def on_access_changed(self, widget):
         """
         Signal handler associated with the access combobox
         """
         access = self.get_combobox_selection(self['access'])
-        self.set_attribute_value('access', access )
-
-    def destroy(self):
-        """
-        Cleanly destroyes components
-        """
-        self.get_control_agent().remove_attribute_changed_observer(self)
-        GtkBasePresentationAgent.destroy(self)
+        self.get_control_agent().set_attribute_value('access', access )
 
 
-class DetailDatabasePresentationAgent(GtkBasePresentationAgent,
-                                      AttributeChangedObserver):
+class DetailDatabasePresentationAgent(GtkBasePresentationAgent):
     """
     Detail database presentation agent composite widget.
 
@@ -211,30 +182,18 @@ class DetailDatabasePresentationAgent(GtkBasePresentationAgent,
         """
         self.load_widgets_data()
 
-    def get_attribute_value(self, name):
-        """
-        Returns an attribute value from the control agent
-        """
-        return self.get_control_agent().get_attribute_value(name)
-
-    def set_attribute_value(self, name, value):
-        """
-        Sets an attribute value on the control agent
-        """
-        self.get_control_agent().set_attribute_value(name, value)
-
     def load_widgets_data(self):
         """
         Updates presentation agent widgets based on configuraton settings
         """
-        enabled = self.get_attribute_value('enabled')
-        done = self.get_attribute_value('done')
+        enabled = self.get_control_agent().get_attribute_value('enabled')
+        done = self.get_control_agent().get_attribute_value('done')
         read_only = self.get_control_agent().get_read_only_flag()
         sensitive = enabled and not done and not read_only
 
-        name = self.get_attribute_value('name')
-        username = self.get_attribute_value('username')
-        password = self.get_attribute_value('password')
+        name = self.get_control_agent().get_attribute_value('name')
+        username = self.get_control_agent().get_attribute_value('username')
+        password = self.get_control_agent().get_attribute_value('password')
 
         # Loads enabled checkbox state
         self['enabled'].set_active(enabled)
@@ -254,7 +213,7 @@ class DetailDatabasePresentationAgent(GtkBasePresentationAgent,
 
         # Loads type combobox selected option
         self.set_combobox_selection(self['type'],
-                self.get_attribute_value('type'))
+                self.get_control_agent().get_attribute_value('type'))
         self['type'].set_sensitive(sensitive)
 
     def on_enabled_toggled(self, widget):
@@ -262,7 +221,7 @@ class DetailDatabasePresentationAgent(GtkBasePresentationAgent,
         Signal handler associated with the enabled checkbox
         """
         enabled = self['enabled'].get_active()
-        self.set_attribute_value('enabled', enabled)
+        self.get_control_agent().set_attribute_value('enabled', enabled)
 
     def on_name_changed(self, widget):
         """
@@ -287,18 +246,10 @@ class DetailDatabasePresentationAgent(GtkBasePresentationAgent,
         Signal handler associated with the type combobox
         """
         type_name = self.get_combobox_selection(self['type'])
-        self.set_attribute_value('type', type_name )
-
-    def destroy(self):
-        """
-        Cleanly destroyes components
-        """
-        self.get_control_agent().remove_attribute_changed_observer(self)
-        GtkBasePresentationAgent.destroy(self)
+        self.get_control_agent().set_attribute_value('type', type_name )
 
 
-class DetailRepositoryPresentationAgent(GtkBasePresentationAgent,
-                                        AttributeChangedObserver):
+class DetailRepositoryPresentationAgent(GtkBasePresentationAgent):
     """
     Detail repository presentation agent composite widget.
 
@@ -334,28 +285,16 @@ class DetailRepositoryPresentationAgent(GtkBasePresentationAgent,
         """
         self.load_widgets_data()
 
-    def get_attribute_value(self, name):
-        """
-        Returns an attribute value from the control agent
-        """
-        return self.get_control_agent().get_attribute_value(name)
-
-    def set_attribute_value(self, name, value):
-        """
-        Sets an attribute value on the control agent
-        """
-        self.get_control_agent().set_attribute_value(name, value)
-
     def load_widgets_data(self):
         """
         Updates presentation agent widgets based on configuraton settings
         """
-        enabled = self.get_attribute_value('enabled')
-        done = self.get_attribute_value('done')
+        enabled = self.get_control_agent().get_attribute_value('enabled')
+        done = self.get_control_agent().get_attribute_value('done')
         read_only = self.get_control_agent().get_read_only_flag()
         sensitive = enabled and not done and not read_only
 
-        name = self.get_attribute_value('name')
+        name = self.get_control_agent().get_attribute_value('name')
 
         # Loads enabled checkbox state
         self['enabled'].set_active(enabled)
@@ -367,7 +306,7 @@ class DetailRepositoryPresentationAgent(GtkBasePresentationAgent,
 
         # Loads type combobox selected option
         self.set_combobox_selection(self['type'],
-                self.get_attribute_value('type'))
+                self.get_control_agent().get_attribute_value('type'))
         self['type'].set_sensitive(sensitive)
 
     def on_enabled_toggled(self, widget):
@@ -375,7 +314,7 @@ class DetailRepositoryPresentationAgent(GtkBasePresentationAgent,
         Signal handler associated with the enabled checkbox
         """
         enabled = self['enabled'].get_active()
-        self.set_attribute_value('enabled', enabled)
+        self.get_control_agent().set_attribute_value('enabled', enabled)
 
     def on_name_changed(self, widget):
         """
@@ -388,18 +327,10 @@ class DetailRepositoryPresentationAgent(GtkBasePresentationAgent,
         Signal handler associated with the type combobox
         """
         type_name = self.get_combobox_selection(self['type'])
-        self.set_attribute_value('type', type_name )
-
-    def destroy(self):
-        """
-        Cleanly destroyes components
-        """
-        self.get_control_agent().remove_attribute_changed_observer(self)
-        GtkBasePresentationAgent.destroy(self)
+        self.get_control_agent().set_attribute_value('type', type_name )
 
 
-class DetailGeneralPresentationAgent(GtkBasePresentationAgent,
-                                     AttributeChangedObserver):
+class DetailGeneralPresentationAgent(GtkBasePresentationAgent):
     """
     Detail general presentation agent composite widget.
 
@@ -438,27 +369,15 @@ class DetailGeneralPresentationAgent(GtkBasePresentationAgent,
         """
         self.load_widgets_data()
 
-    def get_attribute_value(self, name):
-        """
-        Returns an attribute value from the control agent
-        """
-        return self.get_control_agent().get_attribute_value(name)
-
-    def set_attribute_value(self, name, value):
-        """
-        Sets an attribute value on the control agent
-        """
-        self.get_control_agent().set_attribute_value(name, value)
-
     def load_widgets_data(self):
         """
         Updates presentation agent widgets based on configuraton settings
         """
         read_only = self.get_control_agent().get_read_only_flag()
-        done = self.get_attribute_value('done')
+        done = self.get_control_agent().get_attribute_value('done')
         sensitive = not done and not read_only
-        name = self.get_attribute_value('name')
-        description = self.get_attribute_value('description')
+        name = self.get_control_agent().get_attribute_value('name')
+        description = self.get_control_agent().get_attribute_value('description')
 
         # Loads name entry
         self['name'].set_text(name)
@@ -470,12 +389,12 @@ class DetailGeneralPresentationAgent(GtkBasePresentationAgent,
 
         # Loads domain combobox selected option
         self.set_combobox_selection(self['domain'],
-                self.get_attribute_value('domain'))
+                self.get_control_agent().get_attribute_value('domain'))
         self['domain'].set_sensitive(sensitive)
 
         # Loads platform combobox selected option
         self.set_combobox_selection(self['platform'],
-                self.get_attribute_value('platform'))
+                self.get_control_agent().get_attribute_value('platform'))
         self['platform'].set_sensitive(sensitive)
 
     def on_name_changed(self, widget):
@@ -495,18 +414,11 @@ class DetailGeneralPresentationAgent(GtkBasePresentationAgent,
         Signal handler associated with the domain combobox
         """
         domain_name = self.get_combobox_selection(self['domain'])
-        self.set_attribute_value('domain', domain_name )
+        self.get_control_agent().set_attribute_value('domain', domain_name )
 
     def on_platform_changed(self, widget):
         """
         Signal handler associated with the platform combobox
         """
         platform_name = self.get_combobox_selection(self['platform'])
-        self.set_attribute_value('platform', platform_name )
-
-    def destroy(self):
-        """
-        Cleanly destroyes components
-        """
-        self.get_control_agent().remove_attribute_changed_observer(self)
-        GtkBasePresentationAgent.destroy(self)
+        self.get_control_agent().set_attribute_value('platform', platform_name )

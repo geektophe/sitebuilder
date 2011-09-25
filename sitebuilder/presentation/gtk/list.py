@@ -5,6 +5,7 @@ Site editing interface. Supports Create, View and Update modes.
 
 from sitebuilder.utils.parameters import GLADE_BASEDIR
 from sitebuilder.presentation.gtk.base import GtkBasePresentationAgent
+from sitebuilder.observer.action import ActionPerformedEvent
 import gtk
 
 class ListPresentationAgent(GtkBasePresentationAgent):
@@ -96,25 +97,28 @@ class ListPresentationAgent(GtkBasePresentationAgent):
         """
         Signal handler associated with the view action
         """
-        self.get_control_agent().view_selected_sites(self.get_selected_items())
+        self.notify_action_performed(
+            ActionPerformedEvent('view', {'ids': self.get_selected_items()}))
 
     def on_add_activate(self, widget):
         """
         Signal handler associated with the view action
         """
-        self.get_control_agent().add_site()
+        self.notify_action_performed(ActionPerformedEvent('add'))
 
     def on_edit_activate(self, widget):
         """
         Signal handler associated with the view action
         """
-        self.get_control_agent().edit_selected_sites(self.get_selected_items())
+        self.notify_action_performed(
+            ActionPerformedEvent('edit', {'ids': self.get_selected_items()}))
 
     def on_delete_activate(self, widget):
         """
         Signal handler associated with the view action
         """
-        self.get_control_agent().delete_selected_sites(self.get_selected_items())
+        self.notify_action_performed(
+            ActionPerformedEvent('delete', {'ids': self.get_selected_items()}))
 
     def destroy(self):
         """

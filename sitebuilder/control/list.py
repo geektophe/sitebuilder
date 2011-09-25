@@ -6,10 +6,11 @@ Main list interface control agent
 from sitebuilder.presentation.gtk.list import ListPresentationAgent
 from sitebuilder.control.detail import DetailMainControlAgent
 from sitebuilder.abstraction.site import SiteConfigurationManager
+from sitebuilder.observer.action import ActionPerformedObserver
 import gtk
 
 
-class ListControlAgent(object):
+class ListControlAgent(ActionPerformedObserver):
     """
     List main component control agent
     """
@@ -19,6 +20,34 @@ class ListControlAgent(object):
         Initializes control agent.
         """
         self._presentation_agent = ListPresentationAgent(self)
+        self._presentation_agent.register_action_performed_observer(self)
+
+    def action_performed(self, event=None):
+        """
+        ActionPerformedObserver trigger mmethod local implementation
+        """
+        action = event.get_name()
+
+        # Handles add action that do nat need any parameter
+        if action == 'add':
+            self.add_site()
+            return
+
+        # Checks that ids parameter is correctly set in event parameters
+        parms = event.get_parameters()
+
+        if not parms.has_key('ids'):
+            raise AttributeError('ids parameter is not set in action parameters')
+
+        # Handles view action
+        if action == 'view':
+            self.view_selected_sites(parms['ids'])
+        elif action == 'edit':
+            self.edit_selected_sites(parms['ids'])
+        elif action == 'delete':
+            self.delete_selected_sites(parms['ids'])
+        else:
+            raise NotImplementedError("Unhandled action %d triggered" % action)
 
     def get_presentation_agent(self):
         """
@@ -95,7 +124,8 @@ class ListControlAgent(object):
         Cleanly destroyes components
         """
         # Destroyes presentation
-        self.get_presentation_agent().destroy()
+        self._presentation_agent.register_action_performed_observer(self)
+        self._presentation_agent.destroy()
 
 
 if __name__ == '__main__':

@@ -25,6 +25,7 @@ class DetailMainControlAgent(BaseControlAgent):
         self.set_configuration(configuration)
         self.set_read_only_flag(read_only)
         presentation_agent = DetailMainPresentationAgent(self)
+        presentation_agent.register_action_performed_observer(self)
         # Main detail presentation agent has no reason to listen to changed
         # attribute events. Disabled.
         # configuration.register_attribute_changed_observer(presentation_agent)
@@ -65,9 +66,9 @@ class DetailMainControlAgent(BaseControlAgent):
 
     def validity_changed(self, event=None):
         """
-        ValidityChangedListerner trigger mmethod local implementation
+        ValidityChangedObserver trigger mmethod local implementation
 
-        When a sub component has triggerd a state changed event, the mothod
+        When a sub component has triggerd a state changed event, the method
         enbles or disables the presentation agent's OK button depending on each
         component's valid flag.
         """
@@ -77,6 +78,22 @@ class DetailMainControlAgent(BaseControlAgent):
             flag = flag and slave.get_validity_flag()
 
         self.get_presentation_agent().set_submit_state(flag)
+
+    def action_performed(self, event=None):
+        """
+        ActionPerformedObserver trigger mmethod local implementation
+        """
+        action = event.get_name()
+
+        if action == "submit":
+            # Informs upper component from the submit action
+            # Adds configuration as parameter to event
+            self.submit()
+        elif action == "cancel":
+            # No need to inform upper component
+            self.cancel()
+        else:
+            raise NotImplementedError("Unhandled action %d triggered" % action)
 
     def submit(self):
         """
@@ -88,7 +105,7 @@ class DetailMainControlAgent(BaseControlAgent):
 
     def cancel(self):
         """
-        SubmitActionActivatedListerner trigger mmethod local implementation
+        SubmitActionActivatedObserver trigger mmethod local implementation
         """
         self.destroy()
 
@@ -96,6 +113,7 @@ class DetailMainControlAgent(BaseControlAgent):
         """
         Cleanly destroyes all components
         """
+        self.get_presentation_agent().remove_action_performed_observer(self)
         # Destroyes slave components
         for slave in self._slaves:
             slave.destroy()

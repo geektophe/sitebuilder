@@ -6,9 +6,12 @@ Base control Agent class to be subclassed
 from sitebuilder.observer.attribute import AttributeChangedObserver
 from sitebuilder.observer.validity  import ValidityChangedObserver
 from sitebuilder.observer.validity  import ValidityChangedSubject
+from sitebuilder.observer.action  import ActionPerformedSubject
+from sitebuilder.observer.action  import ActionPerformedObserver
 
 
-class BaseControlAgent(ValidityChangedSubject, ValidityChangedObserver):
+class BaseControlAgent(ValidityChangedSubject, ValidityChangedObserver,
+                       ActionPerformedObserver):
     """
     Base control Agent class to be subclassed
     """
@@ -27,10 +30,10 @@ class BaseControlAgent(ValidityChangedSubject, ValidityChangedObserver):
 
     def validity_changed(self, event=None):
         """
-        DataChangedListerner trigger mmethod local implementation
+        ValidityChangedObserver trigger mmethod local implementation
 
-        Forwards ValidityChangedEvent to other components such as upper level
-        controller
+        Default behaviour is to forwards ValidityChangedEvent to other
+        components such as upper level controll agents.
         """
         self.notify_validity_changed(event)
 

@@ -9,10 +9,12 @@ import os
 from sitebuilder.observer.validity import ValidityChangedSubject
 from sitebuilder.observer.validity import ValidityChangedEvent
 from sitebuilder.observer.attribute import AttributeChangedObserver
+from sitebuilder.observer.action import ActionPerformedSubject
 
 pygtk.require("2.0")
 
 class GtkBasePresentationAgent(ValidityChangedSubject,
+                               ActionPerformedSubject,
                                AttributeChangedObserver):
     """
     Main site add/edit/view interface.
@@ -30,6 +32,7 @@ class GtkBasePresentationAgent(ValidityChangedSubject,
             raise RuntimeError("No glade file found.")
 
         ValidityChangedSubject.__init__(self)
+        ActionPerformedSubject.__init__(self)
         self._control_agent = control_agent
         self._builder = gtk.Builder()
         self._builder.add_from_file(self.GLADE_FILE)
@@ -213,4 +216,5 @@ class GtkBasePresentationAgent(ValidityChangedSubject,
         """
         # Clears observers lists
         self.clear_validity_changed_observers()
+        self.clear_action_performed_observers()
         self.get_toplevel().destroy()

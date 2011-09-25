@@ -5,28 +5,39 @@ Observer classes associated with the ActionPerformed events
 
 class ActionPerformedEvent(object):
     """
-    Event class used to notify an attribute changed event.
+    Event class used to notify that a specific action has been asked on a
+    configuraiton instance.
+
+    Mainly used for communications between control agents and presentation
+    agents to report user actions.
+
+    It contains an action name and an optional parameters object.
     """
 
-    def __init__(self, action_name, data=None):
+    def __init__(self, name, parameters=None):
         """
-        The event takes the attribute object that has been changed as
-        parameter.
-        """
-        self._action_name = action_name
-        self._data = data
+        The event take action name and its associated parameters as arguments.
 
-    def get_action_name(self):
+        Name is a string representing the action type.
+        Parameters, if set, should be an instance of dict.
+        """
+        if parameters is not None and not isinstance(parameters, dict):
+            raise TypeError("parameters should be an instance of dict")
+
+        self._name = name
+        self._parameters = parameters
+
+    def get_name(self):
         """
         Returns trigered action name
         """
-        return self._action_name
+        return self._name
 
-    def get_data(self):
+    def get_parameters(self):
         """
-        Returns action data
+        Returns action parameters
         """
-        return self._action_name
+        return self._parameters
 
 
 class ActionPerformedObserver(object):

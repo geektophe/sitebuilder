@@ -8,18 +8,26 @@ class ValidityChangedEvent(object):
     Event class used to notify a validity state changed event.
     """
 
-    def __init__(self, state):
+    def __init__(self, state, source_id=None):
         """
         The event takes the attribute object that has been changed as
         parameter.
         """
         self._state = state
+        self._source_id = source_id
 
     def get_state(self):
         """
         Returns attached attribute instance
         """
         return self._state
+
+    def get_source_id(self):
+        """
+        Returns the event source id hash. It may be used to build a matrix
+        components validity.
+        """
+        return self._source_id
 
 
 class ValidityChangedObserver(object):

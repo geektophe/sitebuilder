@@ -6,6 +6,7 @@ Base view to be subclassed
 import pygtk
 import gtk
 import os
+from sitebuilder.observer.validity import ValidityChangedObserver
 from sitebuilder.observer.validity import ValidityChangedSubject
 from sitebuilder.observer.validity import ValidityChangedEvent
 from sitebuilder.observer.attribute import AttributeChangedObserver
@@ -14,6 +15,7 @@ from sitebuilder.observer.action import ActionPerformedSubject
 pygtk.require("2.0")
 
 class GtkBasePresentationAgent(ValidityChangedSubject,
+                               ValidityChangedObserver,
                                ActionPerformedSubject,
                                AttributeChangedObserver):
     """
@@ -88,6 +90,9 @@ class GtkBasePresentationAgent(ValidityChangedSubject,
         widget = slave_toplevel.get_child()
         slave_toplevel.remove(widget)
         container.pack_start(widget)
+        # When a slave is attached, the master should be informed of its
+        # validity changes
+        slave.register_validity_changed_observer(self)
         self._slaves[name] = slave
 
     def get_objects(self):
@@ -172,6 +177,15 @@ class GtkBasePresentationAgent(ValidityChangedSubject,
             widget.set_tooltip_text(str(e))
             self.set_validity_flag(attr_name, False)
 
+    def validity_changed(self, event):
+        """
+        ValidityChangedObserver trigger mmethod local implementation
+
+        Default behaviour is to forwards ValidityChangedEvent to other
+        components such as upper level presentation agents.
+        """
+        self.notify_validity_changed(event)
+
     def set_validity_flag(self, attr_name, flag):
         """
         When some widgets that require a validity check are set (typically,
@@ -182,7 +196,7 @@ class GtkBasePresentationAgent(ValidityChangedSubject,
         has an incorrect value set.
         """
         self._attr_validity[attr_name] = flag
-        self.notify_validity_changed(ValidityChangedEvent(flag))
+        self.notify_validity_changed(ValidityChangedEvent(flag, id(self)))
 
     def get_validity_flag(self):
         """
@@ -214,6 +228,12 @@ class GtkBasePresentationAgent(ValidityChangedSubject,
         """
         Cleanly destroyes components
         """
+        # Destroyes slaves if it has some
+        for name, slave in self._slaves.items():
+            slave.remove_validity_changed_observer(self)
+            slave.destroy()
+            del self._slaves[name]
+
         # Clears observers lists
         self.clear_validity_changed_observers()
         self.clear_action_performed_observers()

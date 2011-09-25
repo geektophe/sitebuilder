@@ -25,6 +25,23 @@ class DetailMainPresentationAgent(GtkBasePresentationAgent):
         self['submit'].connect('activate', self.on_submit_activate)
         self['cancel'].connect('activate', self.on_cancel_activate)
         self.get_toplevel().connect('destroy', self.on_cancel_activate)
+        self._validity_matrix = {}
+
+    def validity_changed(self, event):
+        """
+        ValidityChangedObserver trigger mmethod local implementation
+
+        Builds a matrix of the presentation agents that reported a validity
+        changed event based on their instance id, then walks through the matrix
+        to set proper state of OK button.
+        """
+        self._validity_matrix[event.get_source_id()] = event.get_state()
+
+        flag = True
+        for value in self._validity_matrix.values():
+            flag = flag and value
+
+        self.set_submit_state(flag)
 
     def load_widgets_data(self):
         """

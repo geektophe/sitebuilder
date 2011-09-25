@@ -35,7 +35,6 @@ class DetailMainControlAgent(BaseControlAgent):
         # Creates general component
         general = configuration.get_attribute('general')
         slave = DetailGeneralControlAgent(general, read_only)
-        slave.register_validity_changed_observer(self)
         self._slaves.append(slave)
         self._presentation_agent.attach_slave('general', 'hbox_general',
                 slave.get_presentation_agent())
@@ -43,7 +42,6 @@ class DetailMainControlAgent(BaseControlAgent):
         # Creates repository component
         repository = configuration.get_attribute('repository')
         slave = DetailRepositoryControlAgent(repository, read_only)
-        slave.register_validity_changed_observer(self)
         self._slaves.append(slave)
         self._presentation_agent.attach_slave('repository', 'hbox_repository',
                 slave.get_presentation_agent())
@@ -51,7 +49,6 @@ class DetailMainControlAgent(BaseControlAgent):
         # Creates site component
         website = configuration.get_attribute('website')
         slave = DetailSiteControlAgent(website, read_only)
-        slave.register_validity_changed_observer(self)
         self._slaves.append(slave)
         self._presentation_agent.attach_slave('website', 'hbox_sites',
                 slave.get_presentation_agent())
@@ -59,25 +56,9 @@ class DetailMainControlAgent(BaseControlAgent):
         # Creates database component
         database = configuration.get_attribute('database')
         slave = DetailDatabaseControlAgent(database, read_only)
-        slave.register_validity_changed_observer(self)
         self._slaves.append(slave)
         self._presentation_agent.attach_slave('database',
                 'hbox_databases', slave.get_presentation_agent())
-
-    def validity_changed(self, event=None):
-        """
-        ValidityChangedObserver trigger mmethod local implementation
-
-        When a sub component has triggerd a state changed event, the method
-        enbles or disables the presentation agent's OK button depending on each
-        component's valid flag.
-        """
-        flag = True
-
-        for slave in self._slaves:
-            flag = flag and slave.get_validity_flag()
-
-        self.get_presentation_agent().set_submit_state(flag)
 
     def action_performed(self, event=None):
         """
@@ -133,7 +114,6 @@ class DetailSiteControlAgent(BaseControlAgent):
         presentation_agent = DetailSitePresentationAgent(self)
         configuration.register_attribute_changed_observer(presentation_agent)
         self.set_presentation_agent(presentation_agent)
-        self.get_presentation_agent().register_validity_changed_observer(self)
 
     def destroy(self):
         """
@@ -157,7 +137,6 @@ class DetailDatabaseControlAgent(BaseControlAgent):
         presentation_agent = DetailDatabasePresentationAgent(self)
         configuration.register_attribute_changed_observer(presentation_agent)
         self.set_presentation_agent(presentation_agent)
-        self.get_presentation_agent().register_validity_changed_observer(self)
 
     def destroy(self):
         """
@@ -181,7 +160,6 @@ class DetailRepositoryControlAgent(BaseControlAgent):
         presentation_agent = DetailRepositoryPresentationAgent(self)
         configuration.register_attribute_changed_observer(presentation_agent)
         self.set_presentation_agent(presentation_agent)
-        self._presentation_agent.register_validity_changed_observer(self)
 
     def destroy(self):
         """
@@ -205,7 +183,6 @@ class DetailGeneralControlAgent(BaseControlAgent):
         presentation_agent = DetailGeneralPresentationAgent(self)
         configuration.register_attribute_changed_observer(presentation_agent)
         self.set_presentation_agent(presentation_agent)
-        self._presentation_agent.register_validity_changed_observer(self)
 
     def destroy(self):
         """

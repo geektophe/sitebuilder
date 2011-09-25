@@ -74,15 +74,20 @@ class TestGtkListPresentationAgent(unittest.TestCase):
             row = model[i]
 
             conf_id = configuration['general']['id'].get_value()
-            conf_name = configuration['general']['name'].get_value()
+            conf_fqdn = "%s.%s" % (
+                configuration['general']['name'].get_value(),
+                configuration['general']['domain'].get_value())
+            conf_plat = configuration['general']['platform'].get_value()
             conf_desc = configuration['general']['description'].get_value()
 
             row_id = int(row[0])
-            row_name = row[1]
-            row_desc = row[2]
+            row_fqdn = row[1]
+            row_plat = row[2]
+            row_desc = row[3]
 
             self.assertEquals(conf_id, row_id)
-            self.assertEquals(conf_name, row_name)
+            self.assertEquals(conf_fqdn, row_fqdn)
+            self.assertEquals(conf_plat, row_plat)
             self.assertEquals(conf_desc, row_desc)
 
     def test_list_add_action(self):

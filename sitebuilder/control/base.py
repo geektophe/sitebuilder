@@ -4,10 +4,10 @@ Base control Agent class to be subclassed
 """
 
 from sitebuilder.observer.attribute import AttributeChangedObserver
-from sitebuilder.observer.action  import ActionPerformedObserver
+from sitebuilder.observer.action  import ActionActivatedObserver
 
 
-class BaseControlAgent(ActionPerformedObserver):
+class BaseControlAgent(ActionActivatedObserver):
     """
     Base control Agent class to be subclassed
     """

@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """
-Observer classes associated with the ActionPerformed events
+Observer classes associated with the ActionActivated events
 """
 
-class ActionPerformedEvent(object):
+class ActionActivatedEvent(object):
     """
     Event class used to notify that a specific action has been asked on a
     configuraiton instance.
@@ -40,13 +40,13 @@ class ActionPerformedEvent(object):
         return self._parameters
 
 
-class ActionPerformedObserver(object):
+class ActionActivatedObserver(object):
     """
     Observer class that may be called when an an action has been trigered in an
     user interface.
     """
 
-    def action_performed(self, action_name, data=None):
+    def action_activated(self, action_name, data=None):
         """
         This method has to be overridden by listeners implementations
         """
@@ -54,7 +54,7 @@ class ActionPerformedObserver(object):
                                   "implmentation and has to be overridden")
 
 
-class ActionPerformedSubject(object):
+class ActionActivatedSubject(object):
     """
     Subject base class that objects may subclass to dispatch
     'attribute changed' events.
@@ -64,61 +64,61 @@ class ActionPerformedSubject(object):
         """
         Subject initialization
         """
-        self._action_performed_observers = []
+        self._action_activated_observers = []
 
-    def register_action_performed_observer(self, observer):
+    def register_action_activated_observer(self, observer):
         """
-        Adds a ActionPerformedObserver observer object to observers list
+        Adds a ActionActivatedObserver observer object to observers list
 
-        We may add a ActionPerformedObserver instance
+        We may add a ActionActivatedObserver instance
 
-        >>> subject = ActionPerformedSubject()
-        >>> observer = ActionPerformedObserver()
-        >>> subject.register_action_performed_observer(observer)
+        >>> subject = ActionActivatedSubject()
+        >>> observer = ActionActivatedObserver()
+        >>> subject.register_action_activated_observer(observer)
 
-        Adding an object that is not a ActionPerformedObserver should raise an
+        Adding an object that is not a ActionActivatedObserver should raise an
         exception
 
-        >>> subject = ActionPerformedSubject()
-        >>> subject.register_action_performed_observer('fake')
+        >>> subject = ActionActivatedSubject()
+        >>> subject.register_action_activated_observer('fake')
         Traceback (most recent call last):
             ...
-        AttributeError: Listener must be an instance of ActionPerformedObserver
+        AttributeError: Listener must be an instance of ActionActivatedObserver
         """
-        if not isinstance(observer, ActionPerformedObserver):
+        if not isinstance(observer, ActionActivatedObserver):
             raise AttributeError(
-                "Listener must be an instance of ActionPerformedObserver")
-        self._action_performed_observers.append(observer)
+                "Listener must be an instance of ActionActivatedObserver")
+        self._action_activated_observers.append(observer)
 
-    def remove_action_performed_observer(self, observer):
+    def remove_action_activated_observer(self, observer):
         """
-        Deletes a ActionPerformedObserver observer object to observers list
+        Deletes a ActionActivatedObserver observer object to observers list
         """
         try:
-            self._action_performed_observers.remove(observer)
+            self._action_activated_observers.remove(observer)
         except ValueError:
             pass
 
-    def clear_action_performed_observers(self):
+    def clear_action_activated_observers(self):
         """
         Deletes all AddActionActivatedListener observers object from observers
         list
         """
-        del self._action_performed_observers[:]
+        del self._action_activated_observers[:]
 
-    def notify_action_performed(self, event):
+    def notify_action_activated(self, event):
         """
         Notifies all observers that a data has changed
 
-        As the ActionPerformedObserver instance we use for the test is only
+        As the ActionActivatedObserver instance we use for the test is only
         used as an abstract class, the notify method should raise a
         NotImplementedError
 
-        >>> subject = ActionPerformedSubject()
-        >>> observer = ActionPerformedObserver()
-        >>> subject.register_action_performed_observer(observer)
-        >>> event = ActionPerformedEvent('test')
-        >>> subject.notify_action_performed(event)
+        >>> subject = ActionActivatedSubject()
+        >>> observer = ActionActivatedObserver()
+        >>> subject.register_action_activated_observer(observer)
+        >>> event = ActionActivatedEvent('test')
+        >>> subject.notify_action_activated(event)
         Traceback (most recent call last):
             ...
         NotImplementedError: This method has currently no implmentation and has to be overridden
@@ -126,24 +126,24 @@ class ActionPerformedSubject(object):
         An event containing the context that triggered the event may also be
         passed to observers
 
-        >>> event = ActionPerformedEvent('test')
-        >>> subject.notify_action_performed(event)
+        >>> event = ActionActivatedEvent('test')
+        >>> subject.notify_action_activated(event)
         Traceback (most recent call last):
             ...
         NotImplementedError: This method has currently no implmentation and has to be overridden
 
         Using a parameter that is not an event shold raise en exception
-        >>> subject.notify_action_performed('fake')
+        >>> subject.notify_action_activated('fake')
         Traceback (most recent call last):
             ...
-        AttributeError: event parameter should be an instance of ActionPerformedEvent
+        AttributeError: event parameter should be an instance of ActionActivatedEvent
         """
-        if event is not None and not isinstance(event, ActionPerformedEvent):
+        if event is not None and not isinstance(event, ActionActivatedEvent):
             raise AttributeError("event parameter should be an instance " + \
-                                 "of ActionPerformedEvent")
+                                 "of ActionActivatedEvent")
 
-        for observer in self._action_performed_observers:
-            observer.action_performed(event)
+        for observer in self._action_activated_observers:
+            observer.action_activated(event)
 
 
 if __name__ == "__main__":

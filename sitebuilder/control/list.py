@@ -6,11 +6,11 @@ Main list interface control agent
 from sitebuilder.presentation.gtk.list import ListPresentationAgent
 from sitebuilder.control.detail import DetailMainControlAgent
 from sitebuilder.abstraction.site import SiteConfigurationManager
-from sitebuilder.observer.action import ActionPerformedObserver
+from sitebuilder.observer.action import ActionActivatedObserver
 import gtk
 
 
-class ListControlAgent(ActionPerformedObserver):
+class ListControlAgent(ActionActivatedObserver):
     """
     List main component control agent
     """
@@ -20,11 +20,11 @@ class ListControlAgent(ActionPerformedObserver):
         Initializes control agent.
         """
         self._presentation_agent = ListPresentationAgent(self)
-        self._presentation_agent.register_action_performed_observer(self)
+        self._presentation_agent.register_action_activated_observer(self)
 
-    def action_performed(self, event=None):
+    def action_activated(self, event=None):
         """
-        ActionPerformedObserver trigger mmethod local implementation
+        ActionActivatedObserver trigger mmethod local implementation
         """
         action = event.get_name()
 
@@ -124,7 +124,7 @@ class ListControlAgent(ActionPerformedObserver):
         Cleanly destroyes components
         """
         # Destroyes presentation
-        self._presentation_agent.register_action_performed_observer(self)
+        self._presentation_agent.register_action_activated_observer(self)
         self._presentation_agent.destroy()
 
 

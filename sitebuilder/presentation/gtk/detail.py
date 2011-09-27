@@ -6,7 +6,7 @@ Site editing interface. Supports Create, View and Update modes.
 from sitebuilder.utils.parameters import GLADE_BASEDIR
 from sitebuilder.presentation.gtk.base import GtkBasePresentationAgent
 from sitebuilder.abstraction.site import SiteConfigurationManager
-from sitebuilder.observer.action import ActionPerformedEvent
+from sitebuilder.observer.action import ActionActivatedEvent
 
 class DetailMainPresentationAgent(GtkBasePresentationAgent):
     """
@@ -59,13 +59,13 @@ class DetailMainPresentationAgent(GtkBasePresentationAgent):
         """
         Signal handler associated with the submit action
         """
-        self.notify_action_performed(ActionPerformedEvent('submit'))
+        self.notify_action_activated(ActionActivatedEvent('submit'))
 
     def on_cancel_activate(self, widget):
         """
         Signal handler associated with the canhcel action
         """
-        self.notify_action_performed(ActionPerformedEvent('cancel'))
+        self.notify_action_activated(ActionActivatedEvent('cancel'))
 
 
 class DetailSitePresentationAgent(GtkBasePresentationAgent):

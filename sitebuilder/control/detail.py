@@ -25,7 +25,7 @@ class DetailMainControlAgent(BaseControlAgent):
         self.set_configuration(configuration)
         self.set_read_only_flag(read_only)
         presentation_agent = DetailMainPresentationAgent(self)
-        presentation_agent.register_action_performed_observer(self)
+        presentation_agent.register_action_activated_observer(self)
         # Main detail presentation agent has no reason to listen to changed
         # attribute events. Disabled.
         # configuration.register_attribute_changed_observer(presentation_agent)
@@ -60,7 +60,7 @@ class DetailMainControlAgent(BaseControlAgent):
         self._presentation_agent.attach_slave('database',
                 'hbox_databases', slave.get_presentation_agent())
 
-    def action_performed(self, event=None):
+    def action_activated(self, event=None):
         """
         ActionPerformedObserver trigger mmethod local implementation
         """
@@ -94,7 +94,7 @@ class DetailMainControlAgent(BaseControlAgent):
         """
         Cleanly destroyes all components
         """
-        self.get_presentation_agent().remove_action_performed_observer(self)
+        self.get_presentation_agent().remove_action_activated_observer(self)
         # Destroyes slave components
         for slave in self._slaves:
             slave.destroy()

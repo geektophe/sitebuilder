@@ -796,6 +796,58 @@ class AttributeSet(AttributeChangedObserver, AttributeChangedSubject):
         """
         return str(self._attributes)
 
+class StdTriggerAttribute(object):
+    """
+    Descriptor class that triggers AttrubteChngedEvent event on value set.
+
+    It should be used to define an object attribute descriptor. The owner class
+    should have a 'notify_attribute_changed' method. The simplest is to
+    subclass AttributeChangedSubject.
+
+    >>> class TestSubject(AttributeChangedSubject):
+    ...     attr = StdTriggerAttribute('attr')
+    ...
+    >>> obj = TestSubject()
+    >>> obj.attr = 'val'
+    >>> obj.attr
+    'val'
+    
+    When the subject attribute value is set, an AttributeChangedEvent should
+    be sent to observers.
+
+    >>> class TestObserver(AttributeChangedObserver):
+    ...     flag = False
+    ...     def attribute_changed(self, event=None):
+    ...         self.flag = True
+    ...
+    >>> observer = TestObserver()
+    >>> obj.register_attribute_changed_observer(observer)
+    >>> obj.attr = 'val2'
+    >>> observer.flag
+    True
+    """
+
+    def __init__(self, name, value=None):
+        """
+        Descriptor initialization
+
+        """
+        self._name = name
+        self._value = value
+
+    def __get__(self, instance, klass):
+        """
+        Attribute value is set
+        """
+        return self._name
+
+    def __set__(self, instance, value):
+        """
+        Attribute value is set
+        """
+        self._name = value
+        instance.notify_attribute_changed(AttributeChangedEvent())
+
 
 if __name__ == "__main__":
     import doctest

@@ -5,7 +5,7 @@ Site editing interface. Supports Create, View and Update modes.
 
 from sitebuilder.utils.parameters import GLADE_BASEDIR
 from sitebuilder.presentation.gtk.base import GtkBasePresentationAgent
-from sitebuilder.abstraction.site import SiteConfigurationManager
+from sitebuilder.abstraction.site.defaults import SiteDefaultsManager
 from sitebuilder.observer.action import ActionActivatedEvent
 
 class DetailMainPresentationAgent(GtkBasePresentationAgent):
@@ -92,9 +92,9 @@ class DetailSitePresentationAgent(GtkBasePresentationAgent):
 
         # Loads comboboxes items
         self.set_combobox_items(self['template'],
-                SiteConfigurationManager.get_site_templates())
+                SiteDefaultsManager.get_site_templates())
         self.set_combobox_items(self['access'],
-                SiteConfigurationManager.get_site_accesses())
+                SiteDefaultsManager.get_site_accesses())
 
         # Loads widgets data from control agent
         self.load_widgets_data()
@@ -189,7 +189,7 @@ class DetailDatabasePresentationAgent(GtkBasePresentationAgent):
 
         # Loads comboboxes items
         self.set_combobox_items(self['type'],
-                SiteConfigurationManager.get_database_types())
+                SiteDefaultsManager.get_database_types())
 
         # Loads widgets data from control agent
         self.load_widgets_data()
@@ -289,7 +289,7 @@ class DetailRepositoryPresentationAgent(GtkBasePresentationAgent):
 
         # Loads comboboxes items
         self.set_combobox_items(self['type'],
-                SiteConfigurationManager.get_repository_types())
+                SiteDefaultsManager.get_repository_types())
 
         # Loads widgets data from control agent
         self.load_widgets_data()
@@ -368,9 +368,9 @@ class DetailGeneralPresentationAgent(GtkBasePresentationAgent):
 
         # Loads comboboxes items
         self.set_combobox_items(self['domain'],
-                SiteConfigurationManager.get_domains())
+                SiteDefaultsManager.get_domains())
         self.set_combobox_items(self['platform'],
-                SiteConfigurationManager.get_platforms())
+                SiteDefaultsManager.get_platforms())
 
         # Loads widgets data from control agent
         self.load_widgets_data()

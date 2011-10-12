@@ -7,7 +7,7 @@ import unittest
 from gtktest import refresh_gui
 from sitebuilder.utils.parameters import set_application_context
 from sitebuilder.control.list import ListControlAgent
-from sitebuilder.abstraction.site import SiteConfigurationManager
+from sitebuilder.abstraction.site.manager import SiteConfigurationManager
 
 
 class ListTestControlAgent(ListControlAgent):

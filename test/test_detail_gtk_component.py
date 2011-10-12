@@ -6,7 +6,8 @@ Test classes for view.gtk.detail views classes
 import unittest
 from gtktest import refresh_gui
 from sitebuilder.utils.parameters import set_application_context
-from sitebuilder.abstraction.site import SiteConfigurationManager
+from sitebuilder.abstraction.site.manager import SiteConfigurationManager
+from sitebuilder.abstraction.site.defaults import SiteDefaultsManager
 from sitebuilder.control.detail import DetailSiteControlAgent
 from sitebuilder.control.detail import DetailDatabaseControlAgent
 from sitebuilder.control.detail import DetailRepositoryControlAgent
@@ -131,8 +132,8 @@ class TestDetailSiteGtkPresentationAgent(BaseTestGtkPresentationAgent):
                             'site %s attribute is not enabled' % name)
 
         # Comboboxes value should be reported to abstraction
-        template = SiteConfigurationManager.get_site_templates().keys()[0]
-        access = SiteConfigurationManager.get_site_accesses().keys()[0]
+        template = SiteDefaultsManager.get_site_templates().keys()[0]
+        access = SiteDefaultsManager.get_site_accesses().keys()[0]
 
         for name, value in {'template': template, 'access': access}.items():
             presentation_agent.set_combobox_selection(presentation_agent[name],
@@ -172,8 +173,8 @@ class TestDetailSiteGtkPresentationAgent(BaseTestGtkPresentationAgent):
             self.assert_widgets_active_flag(presentation_agent, {name: True})
 
         # Comboboxes value should reflect abstraction changes
-        template = SiteConfigurationManager.get_site_templates().keys()[0]
-        access = SiteConfigurationManager.get_site_accesses().keys()[0]
+        template = SiteDefaultsManager.get_site_templates().keys()[0]
+        access = SiteDefaultsManager.get_site_accesses().keys()[0]
 
         for name, value in {'template': template, 'access': access}.items():
             website[name].set_value(value)
@@ -313,7 +314,7 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
                              'database %s attribute is wrong' % name)
 
         # Comboboxes value should be reported to abstraction
-        dbtype = SiteConfigurationManager.get_database_types().keys()[0]
+        dbtype = SiteDefaultsManager.get_database_types().keys()[0]
 
         for name, value in {'type': dbtype}.items():
             presentation_agent.set_combobox_selection(presentation_agent[name],
@@ -356,7 +357,7 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
                              'database %s widget is wrong' % name)
 
         # Comboboxes value should reflect abstraction changes
-        dbtype = SiteConfigurationManager.get_database_types().keys()[0]
+        dbtype = SiteDefaultsManager.get_database_types().keys()[0]
 
         for name, value in {'type': dbtype}.items():
             database[name].set_value(value)
@@ -510,7 +511,7 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
                             'repo %s attribute is not enabled' % name)
 
         # Comboboxes value should be reported to abstraction
-        repotype = SiteConfigurationManager.get_repository_types().keys()[0]
+        repotype = SiteDefaultsManager.get_repository_types().keys()[0]
 
         for name, value in {'type': repotype}.items():
             presentation_agent.set_combobox_selection(presentation_agent[name],
@@ -551,7 +552,7 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
                              'repo %s widget is wrong' % name)
 
         # Comboboxes value should reflect abstraction changes
-        repotype = SiteConfigurationManager.get_repository_types().keys()[0]
+        repotype = SiteDefaultsManager.get_repository_types().keys()[0]
 
         for name, value in {'type': repotype}.items():
             repo[name].set_value(value)
@@ -677,8 +678,8 @@ class TestDetailGeneralGtkPresentationAgent(BaseTestGtkPresentationAgent):
                              'general %s attribute is wrong' % name)
 
         # Comboboxes value should be reported to abstraction
-        domain = SiteConfigurationManager.get_domains().keys()[0]
-        platform = SiteConfigurationManager.get_platforms().keys()[0]
+        domain = SiteDefaultsManager.get_domains().keys()[0]
+        platform = SiteDefaultsManager.get_platforms().keys()[0]
 
         for name, value in {'domain': domain, 'platform': platform}.items():
             presentation_agent.set_combobox_selection(presentation_agent[name],
@@ -716,8 +717,8 @@ class TestDetailGeneralGtkPresentationAgent(BaseTestGtkPresentationAgent):
                              'general %s widget is wrong' % name)
 
         # Comboboxes value should reflect abstraction changes
-        domain = SiteConfigurationManager.get_domains().keys()[0]
-        platform = SiteConfigurationManager.get_platforms().keys()[0]
+        domain = SiteDefaultsManager.get_domains().keys()[0]
+        platform = SiteDefaultsManager.get_platforms().keys()[0]
 
         for name, value in {'domain': domain, 'platform': platform}.items():
             general[name].set_value(value)

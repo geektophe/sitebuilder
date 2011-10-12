@@ -5,7 +5,7 @@ Main list interface control agent
 
 from sitebuilder.presentation.gtk.list import ListPresentationAgent
 from sitebuilder.control.detail import DetailMainControlAgent
-from sitebuilder.abstraction.site import SiteConfigurationManager
+from sitebuilder.abstraction.site.manager import SiteConfigurationManager
 from sitebuilder.observer.action import ActionActivatedObserver
 import gtk
 

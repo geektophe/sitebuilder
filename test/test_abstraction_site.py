@@ -6,8 +6,9 @@ Test classes for abstraction.configuration moodule
 import unittest
 import doctest
 from sitebuilder.utils.parameters import set_application_context
-from sitebuilder.abstraction import site
-from sitebuilder.abstraction.site import SiteConfigurationManager
+from sitebuilder.abstraction.site import manager
+from sitebuilder.abstraction.site.defaults import SiteDefaultsManager
+from sitebuilder.abstraction.site.manager import SiteConfigurationManager
 
 class Test(unittest.TestCase):
     """
@@ -24,7 +25,7 @@ class Test(unittest.TestCase):
         """
         Run configuration doctests
         """
-        doctest.testmod(site)
+        doctest.testmod(manager)
 
     def test_default_configuration(self):
         """
@@ -36,12 +37,12 @@ class Test(unittest.TestCase):
         general = config.get_attribute('general')
         self.assertEquals(general.get_attribute('id').get_value(), None)
         self.assertEquals(general.get_attribute('domain').get_value(),
-                          SiteConfigurationManager.get_default_domain())
+                          SiteDefaultsManager.get_default_domain())
         self.assertEquals(general.get_attribute('name').get_value(), '')
         self.assertEquals(general.get_attribute('platform').get_value(),
-                          SiteConfigurationManager.get_default_platform())
+                          SiteDefaultsManager.get_default_platform())
         self.assertTrue(general.get_attribute('platform').get_value() in \
-                       SiteConfigurationManager.get_platforms())
+                       SiteDefaultsManager.get_platforms())
         self.assertEquals(general.get_attribute('description').get_value(), '')
 
         repository = config.get_attribute('repository')
@@ -49,22 +50,22 @@ class Test(unittest.TestCase):
         self.assertEquals(repository.get_attribute('done').get_value(), False)
         self.assertEquals(repository.get_attribute('name').get_value(), '')
         self.assertEquals(repository.get_attribute('type').get_value(),
-                          SiteConfigurationManager.get_default_repository_type())
+                          SiteDefaultsManager.get_default_repository_type())
         self.assertTrue(repository.get_attribute('type').get_value() in \
-                       SiteConfigurationManager.get_repository_types())
+                       SiteDefaultsManager.get_repository_types())
 
         site = config.get_attribute('website')
         self.assertEquals(site.get_attribute('enabled').get_value(), False)
         self.assertEquals(site.get_attribute('done').get_value(), False)
         self.assertEquals(site.get_attribute('maintenance').get_value(), False)
         self.assertEquals(site.get_attribute('template').get_value(),
-                          SiteConfigurationManager.get_default_site_template())
+                          SiteDefaultsManager.get_default_site_template())
         self.assertTrue(site.get_attribute('template').get_value() in \
-                        SiteConfigurationManager.get_site_templates())
+                        SiteDefaultsManager.get_site_templates())
         self.assertEquals(site.get_attribute('access').get_value(),
-                          SiteConfigurationManager.get_default_access())
+                          SiteDefaultsManager.get_default_site_access())
         self.assertTrue(site.get_attribute('access').get_value() in \
-                        SiteConfigurationManager.get_site_accesses())
+                        SiteDefaultsManager.get_site_accesses())
 
         database = config.get_attribute('database')
         self.assertEquals(database.get_attribute('enabled').get_value(), False)
@@ -73,9 +74,9 @@ class Test(unittest.TestCase):
         self.assertEquals(database.get_attribute('username').get_value(), '')
         self.assertEquals(database.get_attribute('password').get_value(), '')
         self.assertEquals(database.get_attribute('type').get_value(),
-                          SiteConfigurationManager.get_default_database_type())
+                          SiteDefaultsManager.get_default_database_type())
         self.assertTrue(database.get_attribute('type').get_value() in \
-                        SiteConfigurationManager.get_database_types())
+                        SiteDefaultsManager.get_database_types())
 
     def test_set_configuration(self):
         """
@@ -101,9 +102,9 @@ class Test(unittest.TestCase):
         self.assertRaises(AttributeError, name.set_value, "'")
 
         dom = general.get_attribute('domain')
-        dom.set_value(SiteConfigurationManager.get_default_domain())
+        dom.set_value(SiteDefaultsManager.get_default_domain())
         self.assertEquals(dom.get_value(),
-                          SiteConfigurationManager.get_default_domain())
+                          SiteDefaultsManager.get_default_domain())
         self.assertRaises(AttributeError, dom.set_value, "fake")
 
         # Repository related attributes
@@ -115,9 +116,9 @@ class Test(unittest.TestCase):
         self.assertRaises(AttributeError, name.set_value, " fake ")
 
         _type = repository.get_attribute('type')
-        _type.set_value(SiteConfigurationManager.get_default_repository_type())
+        _type.set_value(SiteDefaultsManager.get_default_repository_type())
         self.assertEquals(_type.get_value(),
-                          SiteConfigurationManager.get_default_repository_type())
+                          SiteDefaultsManager.get_default_repository_type())
         self.assertRaises(AttributeError, _type.set_value, "fake")
 
         enabled = repository.get_attribute('enabled')
@@ -135,15 +136,15 @@ class Test(unittest.TestCase):
         site = config.get_attribute('website')
 
         tmpl = site.get_attribute('template')
-        tmpl.set_value(SiteConfigurationManager.get_default_site_template())
+        tmpl.set_value(SiteDefaultsManager.get_default_site_template())
         self.assertEquals(tmpl.get_value(),
-                          SiteConfigurationManager.get_default_site_template())
+                          SiteDefaultsManager.get_default_site_template())
         self.assertRaises(AttributeError, tmpl.set_value, "fake")
 
         access = site.get_attribute('access')
-        access.set_value(SiteConfigurationManager.get_default_access())
+        access.set_value(SiteDefaultsManager.get_default_site_access())
         self.assertEquals(access.get_value(),
-                          SiteConfigurationManager.get_default_access())
+                          SiteDefaultsManager.get_default_site_access())
         self.assertRaises(AttributeError, access.set_value, "fake")
 
         enabled = site.get_attribute('enabled')
@@ -165,9 +166,9 @@ class Test(unittest.TestCase):
         database = config.get_attribute('database')
 
         _type = database.get_attribute('type')
-        _type.set_value(SiteConfigurationManager.get_default_database_type())
+        _type.set_value(SiteDefaultsManager.get_default_database_type())
         self.assertEquals(_type.get_value(),
-                          SiteConfigurationManager.get_default_database_type())
+                          SiteDefaultsManager.get_default_database_type())
         self.assertRaises(AttributeError, _type.set_value, "fake")
 
         name = database.get_attribute('name')

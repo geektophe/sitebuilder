@@ -8,7 +8,7 @@ from sitebuilder.presentation.gtk.detail import DetailDatabasePresentationAgent
 from sitebuilder.presentation.gtk.detail import DetailGeneralPresentationAgent
 from sitebuilder.presentation.gtk.detail import DetailSitePresentationAgent
 from sitebuilder.presentation.gtk.detail import DetailRepositoryPresentationAgent
-from sitebuilder.abstraction.site import SiteConfigurationManager
+from sitebuilder.abstraction.site.manager import SiteConfigurationManager
 from sitebuilder.control.base import BaseControlAgent
 import gtk
 

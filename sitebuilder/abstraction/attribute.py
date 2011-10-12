@@ -796,6 +796,7 @@ class AttributeSet(AttributeChangedObserver, AttributeChangedSubject):
         """
         return str(self._attributes)
 
+
 class StdTriggerAttribute(object):
     """
     Descriptor class that triggers AttrubteChngedEvent event on value set.

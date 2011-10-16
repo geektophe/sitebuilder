@@ -1,18 +1,14 @@
 #!/usr/bin/env python
 
 """
-Configuration related classes
+Site configuration management calsses. It supports search, load, create, save
+and delete operations.
 """
 
 from sitebuilder.abstraction.attribute import AttributeSet
-from sitebuilder.abstraction.attribute import StdTriggerAttribute
-from sitebuilder.interfaces.site import ISite, IWebsite, IDNSHost, IDatabase
-from sitebuilder.interfaces.site import IRCSRepository
-from sitebuilder.observer.attribute import AttributeChangedSubject
-from sitebuilder.observer.attribute import AttributeChangedObserver
-from zope.interface import implements
 from sitebuilder.utils.parameters import get_application_context
 from sitebuilder.abstraction.site.defaults import SiteDefaultsManager
+from sitebuilder.abstraction.site.object import Site
 
 def get_default_config_data():
     """
@@ -151,117 +147,6 @@ def get_test_configuration(config_id):
     database.get_attribute('done').set_value(True)
 
     return config
-
-
-class DNSHost(AttributeChangedSubject):
-    """
-    DNS configuration description object
-    """
-    implements(IDNSHost)
-
-    name = StdTriggerAttribute('name', '')
-    domain = StdTriggerAttribute('domain',
-            SiteDefaultsManager.get_default_domain())
-    platform = StdTriggerAttribute('platform',
-            SiteDefaultsManager.get_default_platform())
-    description = StdTriggerAttribute('description')
-    done = StdTriggerAttribute('done', False)
-
-    def __init__(self):
-        """
-        Object initialization
-        """
-        AttributeChangedSubject.__init__(self)
-
-
-class RCSRepository(AttributeChangedSubject):
-    """
-    RCS repository configuration description object
-    """
-    implements(IRCSRepository)
-
-    enabled = StdTriggerAttribute('enabled', False)
-    name = StdTriggerAttribute('name', '')
-    type = StdTriggerAttribute('type',
-            SiteDefaultsManager.get_default_repository_type())
-    done = StdTriggerAttribute('done', False)
-
-    def __init__(self):
-        """
-        Object initialization
-        """
-        AttributeChangedSubject.__init__(self)
-
-
-class Website(AttributeChangedSubject):
-    """
-     iteonfiguration description object
-    """
-    implements(IWebsite)
-
-    enabled = StdTriggerAttribute('enabled', False)
-    template = StdTriggerAttribute('template',
-            SiteDefaultsManager.get_default_site_template())
-    access = StdTriggerAttribute('access',
-            SiteDefaultsManager.get_default_site_access())
-    maintenance = StdTriggerAttribute(True)
-    done = StdTriggerAttribute('done', False)
-
-    def __init__(self):
-        """
-        Object initialization
-        """
-        AttributeChangedSubject.__init__(self)
-
-
-class Database(AttributeChangedSubject):
-    """
-    Database configuration description object
-    """
-    implements(IDatabase)
-
-    enabled = StdTriggerAttribute('enabled', False)
-    type = StdTriggerAttribute('type',
-            SiteDefaultsManager.get_default_database_type())
-    name = StdTriggerAttribute('name', '')
-    username = StdTriggerAttribute('username', '')
-    password = StdTriggerAttribute('password', '')
-    done = StdTriggerAttribute('done', False)
-
-    def __init__(self):
-        """
-        Object initialization
-        """
-        AttributeChangedSubject.__init__(self)
-
-
-class Site(AttributeChangedSubject, AttributeChangedObserver):
-    """
-    Root object describing a whole site configuration.
-
-    It registers itself as observer for suboject describing finer
-    configuartions.
-    """
-
-    implements(ISite)
-
-    def __init__(self):
-        """
-        Object initialization
-        """
-        AttributeChangedSubject.__init__(self)
-
-        self.dnshost = DNSHost()
-        self.dnshost.register_attribute_changed_observer(self)
-
-        self.repository = RCSRepository()
-        self.repository.register_attribute_changed_observer(self)
-
-        self.website = Website()
-        self.website.register_attribute_changed_observer(self)
-
-        self.database = Database()
-        self.database.register_attribute_changed_observer(self)
 
 
 class SiteConfigurationManager(object):

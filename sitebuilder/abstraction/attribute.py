@@ -806,13 +806,16 @@ class StdTriggerAttribute(object):
     subclass AttributeChangedSubject.
 
     >>> class TestSubject(AttributeChangedSubject):
-    ...     attr = StdTriggerAttribute('attr')
+    ...     attr = StdTriggerAttribute('attr', 'initvalue')
     ...
     >>> obj = TestSubject()
+    >>> obj.attr
+    'initvalue'
+
     >>> obj.attr = 'val'
     >>> obj.attr
     'val'
-    
+
     When the subject attribute value is set, an AttributeChangedEvent should
     be sent to observers.
 
@@ -840,14 +843,59 @@ class StdTriggerAttribute(object):
         """
         Attribute value is set
         """
-        return self._name
+        return self._value
 
     def __set__(self, instance, value):
         """
         Attribute value is set
         """
-        self._name = value
+        self._value = value
         instance.notify_attribute_changed(AttributeChangedEvent())
+
+
+class UnicodeTriggerAttribute(StdTriggerAttribute):
+    """
+    This class works exactly as StdTriggerAttribute, but str values are
+    transcoded to unicode.
+
+    >>> class TestSubject(AttributeChangedSubject):
+    ...     attr = UnicodeTriggerAttribute('attr', 'initvalue')
+    ...
+    >>> obj = TestSubject()
+    >>> obj.attr
+    u'initvalue'
+
+    >>> obj.attr = 'val'
+    >>> obj.attr
+    u'val'
+
+    Other values are left as they are
+
+    >>> obj.attr = True
+    >>> obj.attr
+    True
+    >>> obj.attr = u'val'
+    >>> obj.attr
+    u'val'
+    """
+
+    def __init__(self, name, value=None):
+        """
+        Descriptor initialization
+        """
+        if isinstance(value, str):
+            value = unicode(value)
+
+        StdTriggerAttribute.__init__(self, name, value)
+
+    def __set__(self, instance, value):
+        """
+        Attribute value is set
+        """
+        if isinstance(value, str):
+            value = unicode(value)
+
+        StdTriggerAttribute.__set__(self, instance, value)
 
 
 if __name__ == "__main__":

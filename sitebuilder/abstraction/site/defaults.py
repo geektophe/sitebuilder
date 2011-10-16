@@ -30,8 +30,8 @@ class SiteDefaultsManager(object):
         diaplayed.
         """
         return {
-            'mysql': 'MySQL',
-            'pgsql': 'PostgresQL'
+            u'mysql': u'MySQL',
+            u'pgsql': u'PostgresQL'
             }
 
     @staticmethod
@@ -41,7 +41,7 @@ class SiteDefaultsManager(object):
 
         Note that only the mnemonique is returned, not the associated label
         """
-        return 'mysql'
+        return u'mysql'
 
     @staticmethod
     def get_repository_types():
@@ -52,9 +52,9 @@ class SiteDefaultsManager(object):
         diaplayed.
         """
         return {
-            'svn': 'SVN',
-            'git': 'GIT',
-            'cvs': 'CVS'
+            u'svn': u'SVN',
+            u'git': u'GIT',
+            u'cvs': u'CVS'
             }
 
     @staticmethod
@@ -64,7 +64,7 @@ class SiteDefaultsManager(object):
 
         Note that only the mnemonique is returned, not the associated label
         """
-        return 'svn'
+        return u'svn'
 
     @staticmethod
     def get_platforms():
@@ -73,7 +73,7 @@ class SiteDefaultsManager(object):
 
         The sorted list is mainly used to order components in applicaiton views
         """
-        return { 'prod': 'Prod', 'test': 'Test', 'dev': 'Dev' }
+        return { u'prod': u'Prod', u'test': u'Test', u'dev': u'Dev' }
 
     @staticmethod
     def get_default_platform():
@@ -82,7 +82,7 @@ class SiteDefaultsManager(object):
 
         Note that only the mnemonique is returned, not the associated label
         """
-        return 'prod'
+        return u'prod'
 
     @staticmethod
     def get_site_templates():
@@ -93,9 +93,9 @@ class SiteDefaultsManager(object):
         be diaplayed.
         """
         return {
-            'standard': 'Standard',
-            'symfony': 'Symfony',
-            'zend': 'Zend'
+            u'standard': u'Standard',
+            u'symfony': u'Symfony',
+            u'zend': u'Zend'
             }
 
     @staticmethod
@@ -105,7 +105,7 @@ class SiteDefaultsManager(object):
 
         Note that only the mnemonique is returned, not the associated label
         """
-        return 'standard'
+        return u'standard'
 
     @staticmethod
     def get_site_accesses():
@@ -116,9 +116,9 @@ class SiteDefaultsManager(object):
         be diaplayed.
         """
         return {
-            'internal': 'Internal only',
-            'external': 'Internal / External',
-            'custom': 'Custom'
+            u'internal': u'Internal only',
+            u'external': u'Internal / External',
+            u'custom': u'Custom'
             }
 
     @staticmethod
@@ -128,7 +128,7 @@ class SiteDefaultsManager(object):
 
         Note that only the mnemonique is returned, not the associated label
         """
-        return 'internal'
+        return u'internal'
 
     @staticmethod
     def get_domains():
@@ -139,9 +139,9 @@ class SiteDefaultsManager(object):
         be diaplayed.
         """
         return {
-            'bpinet.com': 'bpinet.com',
-            'groupe-bpi.com': 'groupe-bpi.com',
-            'bpi-group.com': 'bpi-group.com'
+            u'bpinet.com': u'bpinet.com',
+            u'groupe-bpi.com': u'groupe-bpi.com',
+            u'bpi-group.com': u'bpi-group.com'
             }
 
     @staticmethod
@@ -151,7 +151,7 @@ class SiteDefaultsManager(object):
 
         Note that only the mnemonique is returned, not the associated label
         """
-        return 'bpinet.com'
+        return u'bpinet.com'
 
 
 if __name__ == "__main__":

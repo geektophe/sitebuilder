@@ -32,7 +32,6 @@ class IDNSHost(Interface):
         description=u"Site platform")
 
     description = TextLine(
-        required=True,
         title=u"Description",
         description=u"Site description")
 
@@ -128,7 +127,7 @@ class IDatabase(Interface):
         description=u"Database username (owner)",
         constraint=re.compile(r'^[\w\d_]+$').match)
 
-    username = TextLine(
+    password = TextLine(
         title=u"Password",
         required=True,
         description=u"Database owner password")

@@ -5,7 +5,6 @@ Site configuration management calsses. It supports search, load, create, save
 and delete operations.
 """
 
-from sitebuilder.abstraction.attribute import AttributeSet
 from sitebuilder.utils.parameters import get_application_context
 from sitebuilder.abstraction.site.defaults import SiteDefaultsManager
 from sitebuilder.abstraction.site.object import Site
@@ -125,26 +124,21 @@ def get_test_configuration(config_id):
     """
     config = SiteConfigurationManager.get_blank_configuration()
 
-    general = config.get_attribute('general')
-    general.get_attribute('id').set_value(config_id)
-    general.get_attribute('name').set_value('name%d' % config_id)
-    general.get_attribute('description').set_value('desc%d' % config_id)
+    config.dnshost.name = 'name%d' % config_id
+    config.dnshost.description = 'desc%d' % config_id
 
-    repository = config.get_attribute('repository')
-    repository.get_attribute('enabled').set_value(True)
-    repository.get_attribute('done').set_value(True)
+    config.repository.enabled = True
+    config.repository.done = True
 
-    website = config.get_attribute('website')
-    website.get_attribute('enabled').set_value(True)
-    website.get_attribute('maintenance').set_value(True)
-    website.get_attribute('done').set_value(True)
+    config.website.enabled = True
+    config.website.maintenance = True
+    config.website.done = True
 
-    database = config.get_attribute('database')
-    database.get_attribute('enabled').set_value(True)
-    database.get_attribute('name').set_value('%s_name' % config_id)
-    database.get_attribute('username').set_value('%s_username' % config_id)
-    database.get_attribute('password').set_value('%s_password' % config_id)
-    database.get_attribute('done').set_value(True)
+    config.database.enabled = True
+    config.database.name = '%s_name' % config_id
+    config.database.username = '%s_username' % config_id
+    config.database.password = '%s_password' % config_id
+    config.database.done = True
 
     return config
 
@@ -181,7 +175,7 @@ class SiteConfigurationManager(object):
         """
         Returns a new blank configuration item.
         """
-        return AttributeSet(attributes=get_default_config_data())
+        return Site()
 
     @staticmethod
     def get_test_configuration(config_id):

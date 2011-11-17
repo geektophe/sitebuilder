@@ -57,16 +57,18 @@ class ListPresentationAgent(GtkBasePresentationAgent):
         model = self['site_list'].get_model()
         model.clear()
         sites = self.get_control_agent().get_configuration_all()
+        i = 0
 
         for site in sites:
-            general = site.get_attribute('general')
-            identifier = general.get_attribute('id').get_value()
-            name = general.get_attribute('name').get_value()
-            domain = general.get_attribute('domain').get_value()
+            dnshost = site.dnshost
+            identifier = i
+            name = dnshost.name
+            domain = dnshost.domain
             fqdn = "%s.%s" % (name, domain)
-            platform = general.get_attribute('platform').get_value()
-            description = general.get_attribute('description').get_value()
+            platform = dnshost.platform
+            description = dnshost.description
             model.append((identifier, fqdn, platform, description))
+            i += 1
 
     def get_selected_items(self):
         """

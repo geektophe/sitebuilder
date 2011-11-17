@@ -71,15 +71,23 @@ class BaseControlAgent(ActionActivatedObserver):
     def get_attribute_value(self, name):
         """
         Returns a configuration attribute value
+
+        As views do not allow None values, an empty string is returnd in place
         """
         # TODO: check that presentation agent instance has been initialized
-        return self._configuration.get_attribute(name).get_value()
+        value = getattr(self._configuration, name)
+
+        if value is not None:
+            return value
+        else:
+            return u''
+
 
     def set_attribute_value(self, name, value):
         """
         Returns a configuration attribute value
         """
-        self._configuration.get_attribute(name).set_value(value)
+        setattr(self._configuration, name, value)
 
     def destroy(self):
         """

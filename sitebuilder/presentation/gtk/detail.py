@@ -99,12 +99,6 @@ class DetailSitePresentationAgent(GtkBasePresentationAgent):
         # Loads widgets data from control agent
         self.load_widgets_data()
 
-    def attribute_changed(self, event=None):
-        """
-        DataChangedListerner trigger mmethod local implementation
-        """
-        self.load_widgets_data()
-
     def load_widgets_data(self):
         """
         Updates presentation agent widgets based on configuraton settings
@@ -192,12 +186,6 @@ class DetailDatabasePresentationAgent(GtkBasePresentationAgent):
                 SiteDefaultsManager.get_database_types())
 
         # Loads widgets data from control agent
-        self.load_widgets_data()
-
-    def attribute_changed(self, event=None):
-        """
-        DataChangedListerner trigger mmethod local implementation
-        """
         self.load_widgets_data()
 
     def load_widgets_data(self):
@@ -294,12 +282,6 @@ class DetailRepositoryPresentationAgent(GtkBasePresentationAgent):
         # Loads widgets data from control agent
         self.load_widgets_data()
 
-    def attribute_changed(self, event=None):
-        """
-        DataChangedListerner trigger mmethod local implementation
-        """
-        self.load_widgets_data()
-
     def load_widgets_data(self):
         """
         Updates presentation agent widgets based on configuraton settings
@@ -345,20 +327,20 @@ class DetailRepositoryPresentationAgent(GtkBasePresentationAgent):
         self.get_control_agent().set_attribute_value('type', type_name )
 
 
-class DetailGeneralPresentationAgent(GtkBasePresentationAgent):
+class DetailDNSHostPresentationAgent(GtkBasePresentationAgent):
     """
     Detail general presentation agent composite widget.
 
     The interface design is loaded from a glade file.
     """
 
-    GLADE_FILE = "%s/%s" % (GLADE_BASEDIR, 'edit_general.glade')
+    GLADE_FILE = "%s/%s" % (GLADE_BASEDIR, 'edit_dnshost.glade')
 
     def __init__(self, control_agent):
         """
         Class initialization.
         """
-        GtkBasePresentationAgent.__init__(self, 'general', control_agent)
+        GtkBasePresentationAgent.__init__(self, 'dnshost', control_agent)
 
         # Sets widgets signal handlers
         self['description'].connect('changed', self.on_description_changed)
@@ -373,12 +355,6 @@ class DetailGeneralPresentationAgent(GtkBasePresentationAgent):
                 SiteDefaultsManager.get_platforms())
 
         # Loads widgets data from control agent
-        self.load_widgets_data()
-
-    def attribute_changed(self, event=None):
-        """
-        DataChangedListerner trigger mmethod local implementation
-        """
         self.load_widgets_data()
 
     def load_widgets_data(self):

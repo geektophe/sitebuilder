@@ -4,11 +4,10 @@
 Site configuration objects related classes
 """
 
-from sitebuilder.abstraction.attribute import StdTriggerAttribute
-from sitebuilder.abstraction.attribute import UnicodeTriggerAttribute
+from sitebuilder.abstraction.attribute import TriggerFieldProperty
+from sitebuilder.abstraction.attribute import UnicodeTriggerFieldProperty
 from sitebuilder.interfaces.site import ISite, IWebsite, IDNSHost, IDatabase
 from sitebuilder.interfaces.site import IRCSRepository
-from sitebuilder.abstraction.site.defaults import SiteDefaultsManager
 from sitebuilder.observer.attribute import AttributeChangedSubject
 from sitebuilder.observer.attribute import AttributeChangedObserver
 from zope.interface import implements
@@ -99,19 +98,23 @@ class DNSHost(AttributeChangedSubject):
     """
     implements(IDNSHost)
 
-    name = UnicodeTriggerAttribute('name', u'')
-    domain = UnicodeTriggerAttribute('domain',
-            SiteDefaultsManager.get_default_domain())
-    platform = UnicodeTriggerAttribute('platform',
-            SiteDefaultsManager.get_default_platform())
-    description = UnicodeTriggerAttribute('description', u'')
-    done = StdTriggerAttribute('done', False)
+    name = UnicodeTriggerFieldProperty(IDNSHost['name'])
+    domain = UnicodeTriggerFieldProperty(IDNSHost['domain'])
+    platform = UnicodeTriggerFieldProperty(IDNSHost['platform'])
+    description = UnicodeTriggerFieldProperty(IDNSHost['description'])
+    done = TriggerFieldProperty(IDNSHost['done'])
 
     def __init__(self):
         """
         Object initialization
         """
         AttributeChangedSubject.__init__(self)
+        # Bypass security to set proper default value
+        #self.__dict__['name'] = u''
+        #self.__dict__['description '] = u''
+        #self.domain = SiteDefaultsManager.get_default_domain()
+        #self.platform = SiteDefaultsManager.get_default_platform()
+        #self.done = False
 
 
 class RCSRepository(AttributeChangedSubject):
@@ -194,17 +197,21 @@ class RCSRepository(AttributeChangedSubject):
     """
     implements(IRCSRepository)
 
-    enabled = StdTriggerAttribute(u'enabled', False)
-    name = UnicodeTriggerAttribute(u'name', u'')
-    type = UnicodeTriggerAttribute(u'type',
-            SiteDefaultsManager.get_default_repository_type())
-    done = StdTriggerAttribute(u'done', False)
+    enabled = TriggerFieldProperty(IRCSRepository['enabled'])
+    name = UnicodeTriggerFieldProperty(IRCSRepository['name'])
+    type = UnicodeTriggerFieldProperty(IRCSRepository['type'])
+    done = TriggerFieldProperty(IRCSRepository[u'done'])
 
     def __init__(self):
         """
         Object initialization
         """
         AttributeChangedSubject.__init__(self)
+        # Bypass security to set proper default value
+        #self.__dict__['name'] = u''
+        #self.enabled = False
+        #self.type = SiteDefaultsManager.get_default_repository_type()
+        #self.done = False
 
 
 class Website(AttributeChangedSubject):
@@ -296,19 +303,22 @@ class Website(AttributeChangedSubject):
     """
     implements(IWebsite)
 
-    enabled = StdTriggerAttribute('enabled', False)
-    template = UnicodeTriggerAttribute('template',
-            SiteDefaultsManager.get_default_site_template())
-    access = UnicodeTriggerAttribute('access',
-            SiteDefaultsManager.get_default_site_access())
-    maintenance = StdTriggerAttribute('maintenance', True)
-    done = StdTriggerAttribute('done', False)
+    enabled = TriggerFieldProperty(IWebsite['enabled'])
+    template = UnicodeTriggerFieldProperty(IWebsite['template'])
+    access = UnicodeTriggerFieldProperty(IWebsite['access'])
+    maintenance = TriggerFieldProperty(IWebsite['maintenance'])
+    done = TriggerFieldProperty(IWebsite['done'])
 
     def __init__(self):
         """
         Object initialization
         """
         AttributeChangedSubject.__init__(self)
+        #self.enabled = False
+        #self.template = SiteDefaultsManager.get_default_site_template()
+        #self.access = SiteDefaultsManager.get_default_site_access()
+        #self.maintenance = False
+        #self.done = False
 
 
 class Database(AttributeChangedSubject):
@@ -410,19 +420,25 @@ class Database(AttributeChangedSubject):
     """
     implements(IDatabase)
 
-    enabled = StdTriggerAttribute('enabled', False)
-    type = UnicodeTriggerAttribute('type',
-            SiteDefaultsManager.get_default_database_type())
-    name = UnicodeTriggerAttribute('name', '')
-    username = UnicodeTriggerAttribute('username', '')
-    password = UnicodeTriggerAttribute('password', '')
-    done = StdTriggerAttribute('done', False)
+    enabled = TriggerFieldProperty(IDatabase['enabled'])
+    type = UnicodeTriggerFieldProperty(IDatabase['type'])
+    name = UnicodeTriggerFieldProperty(IDatabase['name'])
+    username = UnicodeTriggerFieldProperty(IDatabase['username'])
+    password = UnicodeTriggerFieldProperty(IDatabase['password'])
+    done = TriggerFieldProperty(IDatabase['done'])
 
     def __init__(self):
         """
         Object initialization
         """
         AttributeChangedSubject.__init__(self)
+        # Bypass security to set proper default value
+        #self.__dict__['name'] = u''
+        #self.__dict__['username'] = u''
+        #self.__dict__['password'] = u''
+        #self.enabled = False
+        #self.type = SiteDefaultsManager.get_default_database_type()
+        #self.done = False
 
 
 class Site(AttributeChangedSubject, AttributeChangedObserver):
@@ -452,6 +468,12 @@ class Site(AttributeChangedSubject, AttributeChangedObserver):
 
         self.database = Database()
         self.database.register_attribute_changed_observer(self)
+
+    def attribute_changed(self, event=None):
+        """
+        Notifies all observers that upper attribute has changed
+        """
+        self.notify_attribute_changed(event)
 
 
 if __name__ == "__main__":

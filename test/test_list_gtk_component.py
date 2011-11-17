@@ -73,19 +73,16 @@ class TestGtkListPresentationAgent(unittest.TestCase):
             configuration = configurations[i]
             row = model[i]
 
-            conf_id = configuration['general']['id'].get_value()
             conf_fqdn = "%s.%s" % (
-                configuration['general']['name'].get_value(),
-                configuration['general']['domain'].get_value())
-            conf_plat = configuration['general']['platform'].get_value()
-            conf_desc = configuration['general']['description'].get_value()
+                configuration.dnshost.name,
+                configuration.dnshost.domain)
+            conf_plat = configuration.dnshost.platform
+            conf_desc = configuration.dnshost.description
 
-            row_id = int(row[0])
             row_fqdn = row[1]
             row_plat = row[2]
             row_desc = row[3]
 
-            self.assertEquals(conf_id, row_id)
             self.assertEquals(conf_fqdn, row_fqdn)
             self.assertEquals(conf_plat, row_plat)
             self.assertEquals(conf_desc, row_desc)
@@ -100,16 +97,13 @@ class TestGtkListPresentationAgent(unittest.TestCase):
         presentation_agent['add'].activate()
         refresh_gui()
         configuration, read_only = control_agent.get_detail_configuration_data()
-        confid = configuration['general']['id'].get_value()
         self.assertFalse(read_only)
-        self.assertTrue(confid is None)
 
     def test_list_view_action(self):
         """
         Tests that the correct parameters are sent by control agent when add
         action is activated.
         """
-
         row = 0
         control_agent = ListTestControlAgent()
         presentation_agent = control_agent.get_presentation_agent()
@@ -117,12 +111,18 @@ class TestGtkListPresentationAgent(unittest.TestCase):
         presentation_agent['view'].activate()
         refresh_gui()
         configuration, read_only = control_agent.get_detail_configuration_data()
-        confid = configuration['general']['id'].get_value()
+
+        conf_fqdn = "%s.%s" % (
+            configuration.dnshost.name,
+            configuration.dnshost.domain)
 
         testconf = SiteConfigurationManager.get_configuration_all()[row]
-        testid = testconf['general']['id'].get_value()
 
-        self.assertEquals(confid, testid)
+        test_fqdn = "%s.%s" % (
+            testconf.dnshost.name,
+            testconf.dnshost.domain)
+
+        self.assertEquals(conf_fqdn, test_fqdn)
         self.assertTrue(read_only)
 
     def test_list_edit_action(self):
@@ -130,7 +130,6 @@ class TestGtkListPresentationAgent(unittest.TestCase):
         Tests that the correct parameters are sent by control agent when add
         action is activated.
         """
-
         row = 0
         control_agent = ListTestControlAgent()
         presentation_agent = control_agent.get_presentation_agent()
@@ -138,12 +137,18 @@ class TestGtkListPresentationAgent(unittest.TestCase):
         presentation_agent['edit'].activate()
         refresh_gui()
         configuration, read_only = control_agent.get_detail_configuration_data()
-        confid = configuration['general']['id'].get_value()
+
+        conf_fqdn = "%s.%s" % (
+            configuration.dnshost.name,
+            configuration.dnshost.domain)
 
         testconf = SiteConfigurationManager.get_configuration_all()[row]
-        testid = testconf['general']['id'].get_value()
 
-        self.assertEquals(confid, testid)
+        test_fqdn = "%s.%s" % (
+            testconf.dnshost.name,
+            testconf.dnshost.domain)
+
+        self.assertEquals(conf_fqdn, test_fqdn)
         self.assertFalse(read_only)
 
 

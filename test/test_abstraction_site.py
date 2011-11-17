@@ -9,6 +9,7 @@ from sitebuilder.utils.parameters import set_application_context
 from sitebuilder.abstraction.site import manager
 from sitebuilder.abstraction.site.defaults import SiteDefaultsManager
 from sitebuilder.abstraction.site.manager import SiteConfigurationManager
+from zope.schema import ValidationError
 
 class Test(unittest.TestCase):
     """
@@ -25,7 +26,7 @@ class Test(unittest.TestCase):
         """
         Run configuration doctests
         """
-        doctest.testmod(manager)
+        #doctest.testmod(manager)
 
     def test_default_configuration(self):
         """
@@ -34,48 +35,47 @@ class Test(unittest.TestCase):
         """
         config = SiteConfigurationManager.get_blank_configuration()
 
-        general = config.get_attribute('general')
-        self.assertEquals(general.get_attribute('id').get_value(), None)
-        self.assertEquals(general.get_attribute('domain').get_value(),
+        dnshost = config.dnshost
+        self.assertEquals(dnshost.domain,
                           SiteDefaultsManager.get_default_domain())
-        self.assertEquals(general.get_attribute('name').get_value(), '')
-        self.assertEquals(general.get_attribute('platform').get_value(),
+        self.assertEquals(dnshost.name, None)
+        self.assertEquals(dnshost.platform,
                           SiteDefaultsManager.get_default_platform())
-        self.assertTrue(general.get_attribute('platform').get_value() in \
+        self.assertTrue(dnshost.platform in \
                        SiteDefaultsManager.get_platforms())
-        self.assertEquals(general.get_attribute('description').get_value(), '')
+        self.assertEquals(dnshost.description, None)
 
-        repository = config.get_attribute('repository')
-        self.assertEquals(repository.get_attribute('enabled').get_value(), False)
-        self.assertEquals(repository.get_attribute('done').get_value(), False)
-        self.assertEquals(repository.get_attribute('name').get_value(), '')
-        self.assertEquals(repository.get_attribute('type').get_value(),
+        repository = config.repository
+        self.assertEquals(repository.enabled, False)
+        self.assertEquals(repository.done, False)
+        self.assertEquals(repository.name, None)
+        self.assertEquals(repository.type,
                           SiteDefaultsManager.get_default_repository_type())
-        self.assertTrue(repository.get_attribute('type').get_value() in \
+        self.assertTrue(repository.type in \
                        SiteDefaultsManager.get_repository_types())
 
-        site = config.get_attribute('website')
-        self.assertEquals(site.get_attribute('enabled').get_value(), False)
-        self.assertEquals(site.get_attribute('done').get_value(), False)
-        self.assertEquals(site.get_attribute('maintenance').get_value(), False)
-        self.assertEquals(site.get_attribute('template').get_value(),
+        site = config.website
+        self.assertEquals(site.enabled, False)
+        self.assertEquals(site.done, False)
+        self.assertEquals(site.maintenance, False)
+        self.assertEquals(site.template,
                           SiteDefaultsManager.get_default_site_template())
-        self.assertTrue(site.get_attribute('template').get_value() in \
+        self.assertTrue(site.template in \
                         SiteDefaultsManager.get_site_templates())
-        self.assertEquals(site.get_attribute('access').get_value(),
+        self.assertEquals(site.access,
                           SiteDefaultsManager.get_default_site_access())
-        self.assertTrue(site.get_attribute('access').get_value() in \
+        self.assertTrue(site.access in \
                         SiteDefaultsManager.get_site_accesses())
 
-        database = config.get_attribute('database')
-        self.assertEquals(database.get_attribute('enabled').get_value(), False)
-        self.assertEquals(database.get_attribute('done').get_value(), False)
-        self.assertEquals(database.get_attribute('name').get_value(), '')
-        self.assertEquals(database.get_attribute('username').get_value(), '')
-        self.assertEquals(database.get_attribute('password').get_value(), '')
-        self.assertEquals(database.get_attribute('type').get_value(),
+        database = config.database
+        self.assertEquals(database.enabled, False)
+        self.assertEquals(database.done, False)
+        self.assertEquals(database.name, None)
+        self.assertEquals(database.username, None)
+        self.assertEquals(database.password, None)
+        self.assertEquals(database.type,
                           SiteDefaultsManager.get_default_database_type())
-        self.assertTrue(database.get_attribute('type').get_value() in \
+        self.assertTrue(database.type in \
                         SiteDefaultsManager.get_database_types())
 
     def test_set_configuration(self):
@@ -85,115 +85,90 @@ class Test(unittest.TestCase):
         """
         config = SiteConfigurationManager.get_blank_configuration()
 
-        # General attributes
-        general = config.get_attribute('general')
-        _id = general.get_attribute('id')
-        _id.set_value(1)
-        self.assertEquals(_id.get_value(), 1)
-        self.assertRaises(AttributeError, _id.set_value, '1')
+        # DNS Host attributes
+        dnshost = config.dnshost
+        dnshost.desc = 'desc'
+        self.assertEquals(dnshost.desc, 'desc')
 
-        desc = general.get_attribute('description')
-        desc.set_value('desc')
-        self.assertEquals(desc.get_value(), 'desc')
+        dnshost.name = 'name'
+        self.assertEquals(dnshost.name, 'name')
+        self.assertRaises(ValidationError, lambda x: setattr(dnshost, 'name', x), "f@ke")
 
-        name = general.get_attribute('name')
-        name.set_value('name')
-        self.assertEquals(name.get_value(), 'name')
-        self.assertRaises(AttributeError, name.set_value, "'")
-
-        dom = general.get_attribute('domain')
-        dom.set_value(SiteDefaultsManager.get_default_domain())
-        self.assertEquals(dom.get_value(),
-                          SiteDefaultsManager.get_default_domain())
-        self.assertRaises(AttributeError, dom.set_value, "fake")
+        dnshost.domain = SiteDefaultsManager.get_default_domain()
+        self.assertEquals(dnshost.domain, SiteDefaultsManager.get_default_domain())
+        self.assertRaises(ValidationError, lambda x: setattr(dnshost, 'domain', x), "fake")
 
         # Repository related attributes
-        repository = config.get_attribute('repository')
+        repository = config.repository
 
-        name = repository.get_attribute('name')
-        name.set_value('name')
-        self.assertEquals(name.get_value(), 'name')
-        self.assertRaises(AttributeError, name.set_value, " fake ")
+        repository.name = 'name'
+        self.assertEquals(repository.name, 'name')
+        self.assertRaises(ValidationError, lambda x: setattr(repository, 'name', x), "f@ke")
 
-        _type = repository.get_attribute('type')
-        _type.set_value(SiteDefaultsManager.get_default_repository_type())
-        self.assertEquals(_type.get_value(),
+        repository.type = SiteDefaultsManager.get_default_repository_type()
+        self.assertEquals(repository.type,
                           SiteDefaultsManager.get_default_repository_type())
-        self.assertRaises(AttributeError, _type.set_value, "fake")
+        self.assertRaises(ValidationError, lambda x: setattr(repository, 'type', x), "fake")
 
-        enabled = repository.get_attribute('enabled')
-        enabled.set_value(True)
-        self.assertEquals(enabled.get_value(), True)
-        self.assertRaises(AttributeError, enabled.set_value, 'fake')
+        repository.enabled = True
+        self.assertEquals(repository.enabled, True)
+        self.assertRaises(ValidationError, lambda x: setattr(repository, 'enabled', x), 'fake')
 
-        done = repository.get_attribute('done')
-        done.set_value(True)
-        self.assertEquals(done.get_value(), True)
-        self.assertRaises(AttributeError, done.set_value, 'fake')
-
+        repository.done = True
+        self.assertEquals(repository.done, True)
+        self.assertRaises(ValidationError, lambda x: setattr(repository, 'done', x), 'fake')
 
         # Web site related attributes
-        site = config.get_attribute('website')
+        site = config.website
 
-        tmpl = site.get_attribute('template')
-        tmpl.set_value(SiteDefaultsManager.get_default_site_template())
-        self.assertEquals(tmpl.get_value(),
+        site.template = SiteDefaultsManager.get_default_site_template()
+        self.assertEquals(site.template,
                           SiteDefaultsManager.get_default_site_template())
-        self.assertRaises(AttributeError, tmpl.set_value, "fake")
+        self.assertRaises(ValidationError, lambda x: setattr(repository, 'done', x), "fake")
 
-        access = site.get_attribute('access')
-        access.set_value(SiteDefaultsManager.get_default_site_access())
-        self.assertEquals(access.get_value(),
+        site.access = SiteDefaultsManager.get_default_site_access()
+        self.assertEquals(site.access,
                           SiteDefaultsManager.get_default_site_access())
-        self.assertRaises(AttributeError, access.set_value, "fake")
+        self.assertRaises(ValidationError, lambda x: setattr(repository, 'done', x), "fake")
 
-        enabled = site.get_attribute('enabled')
-        enabled.set_value(True)
-        self.assertEquals(enabled.get_value(), True)
-        self.assertRaises(AttributeError, enabled.set_value, 'enabled')
+        site.maintenance = True
+        self.assertEquals(site.maintenance, True)
+        self.assertRaises(ValidationError, lambda x: setattr(site, 'maintenance', x), 'fake')
 
-        done = site.get_attribute('done')
-        done.set_value(True)
-        self.assertEquals(done.get_value(), True)
-        self.assertRaises(AttributeError, done.set_value, 'done')
+        site.enabled = True
+        self.assertEquals(site.enabled, True)
+        self.assertRaises(ValidationError, lambda x: setattr(site, 'enabled', x), 'fake')
 
-        maint = site.get_attribute('maintenance')
-        maint.set_value(True)
-        self.assertEquals(maint.get_value(), True)
-        self.assertRaises(AttributeError, maint.set_value, "maintenance")
+        site.done = True
+        self.assertEquals(site.done, True)
+        self.assertRaises(ValidationError, lambda x: setattr(site, 'done', x), 'fake')
 
         # Database related attribute
-        database = config.get_attribute('database')
+        database = config.database
 
-        _type = database.get_attribute('type')
-        _type.set_value(SiteDefaultsManager.get_default_database_type())
-        self.assertEquals(_type.get_value(),
+        database.type = SiteDefaultsManager.get_default_database_type()
+        self.assertEquals(database.type,
                           SiteDefaultsManager.get_default_database_type())
-        self.assertRaises(AttributeError, _type.set_value, "fake")
+        self.assertRaises(ValidationError, lambda x: setattr(repository, 'done', x), "fake")
 
-        name = database.get_attribute('name')
-        name.set_value('name')
-        self.assertEquals(name.get_value(), 'name')
-        self.assertRaises(AttributeError, name.set_value, "'")
+        database.name = 'name'
+        self.assertEquals(database.name, 'name')
+        self.assertRaises(ValidationError, lambda x: setattr(database, 'name', x), "f@ke")
 
-        username = database.get_attribute('username')
-        username.set_value('username')
-        self.assertEquals(username.get_value(), 'username')
-        self.assertRaises(AttributeError, username.set_value, "'")
+        database.username = 'username'
+        self.assertEquals(database.username, 'username')
+        self.assertRaises(ValidationError, lambda x: setattr(database, 'username', x), "f@ke")
 
-        password = database.get_attribute('password')
-        password.set_value('password')
-        self.assertEquals(password.get_value(), 'password')
+        database.password = 'password'
+        self.assertEquals(database.password, 'password')
 
-        enabled = database.get_attribute('enabled')
-        enabled.set_value(True)
-        self.assertEquals(enabled.get_value(), True)
-        self.assertRaises(AttributeError, enabled.set_value, 'enabled')
+        database.enabled = True
+        self.assertEquals(database.enabled, True)
+        self.assertRaises(ValidationError, lambda x: setattr(database, 'enabled', x), 'fake')
 
-        done = database.get_attribute('done')
-        done.set_value(True)
-        self.assertEquals(done.get_value(), True)
-        self.assertRaises(AttributeError, done.set_value, 'done')
+        database.done = True
+        self.assertEquals(database.done, True)
+        self.assertRaises(ValidationError, lambda x: setattr(database, 'done', x), 'fake')
 
 
 if __name__ == "__main__":

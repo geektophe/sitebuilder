@@ -5,7 +5,7 @@ Site details related control components
 
 from sitebuilder.presentation.gtk.detail import DetailMainPresentationAgent
 from sitebuilder.presentation.gtk.detail import DetailDatabasePresentationAgent
-from sitebuilder.presentation.gtk.detail import DetailGeneralPresentationAgent
+from sitebuilder.presentation.gtk.detail import DetailDNSHostPresentationAgent
 from sitebuilder.presentation.gtk.detail import DetailSitePresentationAgent
 from sitebuilder.presentation.gtk.detail import DetailRepositoryPresentationAgent
 from sitebuilder.abstraction.site.manager import SiteConfigurationManager
@@ -33,29 +33,25 @@ class DetailMainControlAgent(BaseControlAgent):
         self._slaves = []
 
         # Creates general component
-        general = configuration.get_attribute('general')
-        slave = DetailGeneralControlAgent(general, read_only)
+        slave = DetailDNSHostControlAgent(configuration.dnshost, read_only)
         self._slaves.append(slave)
-        self._presentation_agent.attach_slave('general', 'hbox_general',
+        self._presentation_agent.attach_slave('dnshost', 'hbox_general',
                 slave.get_presentation_agent())
 
         # Creates repository component
-        repository = configuration.get_attribute('repository')
-        slave = DetailRepositoryControlAgent(repository, read_only)
+        slave = DetailRepositoryControlAgent(configuration.repository, read_only)
         self._slaves.append(slave)
         self._presentation_agent.attach_slave('repository', 'hbox_repository',
                 slave.get_presentation_agent())
 
         # Creates site component
-        website = configuration.get_attribute('website')
-        slave = DetailSiteControlAgent(website, read_only)
+        slave = DetailSiteControlAgent(configuration.website, read_only)
         self._slaves.append(slave)
         self._presentation_agent.attach_slave('website', 'hbox_sites',
                 slave.get_presentation_agent())
 
         # Creates database component
-        database = configuration.get_attribute('database')
-        slave = DetailDatabaseControlAgent(database, read_only)
+        slave = DetailDatabaseControlAgent(configuration.database, read_only)
         self._slaves.append(slave)
         self._presentation_agent.attach_slave('database',
                 'hbox_databases', slave.get_presentation_agent())
@@ -171,16 +167,16 @@ class DetailRepositoryControlAgent(BaseControlAgent):
         BaseControlAgent.destroy(self)
 
 
-class DetailGeneralControlAgent(BaseControlAgent):
+class DetailDNSHostControlAgent(BaseControlAgent):
     """
-    Repository sub component control agent
+    DNSHost sub component control agent
     """
 
     def __init__(self, configuration, read_only=False):
         BaseControlAgent.__init__(self)
         self.set_configuration(configuration)
         self.set_read_only_flag(read_only)
-        presentation_agent = DetailGeneralPresentationAgent(self)
+        presentation_agent = DetailDNSHostPresentationAgent(self)
         configuration.register_attribute_changed_observer(presentation_agent)
         self.set_presentation_agent(presentation_agent)
 
@@ -195,6 +191,7 @@ class DetailGeneralControlAgent(BaseControlAgent):
 
 if __name__ == '__main__':
     config = SiteConfigurationManager.get_blank_configuration()
+    config.dnshost.name = 'prout'
     control = DetailMainControlAgent(config, False)
     presentation = control.get_presentation_agent()
     presentation.get_toplevel().connect("destroy", gtk.main_quit)

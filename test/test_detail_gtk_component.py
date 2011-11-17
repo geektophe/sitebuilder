@@ -11,7 +11,7 @@ from sitebuilder.abstraction.site.defaults import SiteDefaultsManager
 from sitebuilder.control.detail import DetailSiteControlAgent
 from sitebuilder.control.detail import DetailDatabaseControlAgent
 from sitebuilder.control.detail import DetailRepositoryControlAgent
-from sitebuilder.control.detail import DetailGeneralControlAgent
+from sitebuilder.control.detail import DetailDNSHostControlAgent
 
 
 class BaseTestGtkPresentationAgent(unittest.TestCase):
@@ -46,20 +46,20 @@ class BaseTestGtkPresentationAgent(unittest.TestCase):
 class TestDetailSiteGtkPresentationAgent(BaseTestGtkPresentationAgent):
     """Unit tests for site detail gtk presentation_agents"""
 
-    def detail_site_state_test(self, website):
+    def detail_website_state_test(self, website):
         """
         Tests site detail component's presentation_agent initial state
         """
         control_agent = DetailSiteControlAgent(website)
         presentation_agent = control_agent.get_presentation_agent()
-        done = website['done'].get_value()
-        enabled = website['enabled'].get_value()
+        done = website.done
+        enabled = website.enabled
         refresh_gui()
 
         # Tests checkboxes state
         flags = {
-            'enabled': website['enabled'].get_value(),
-            'maintenance': website['maintenance'].get_value(),
+            'enabled': enabled,
+            'maintenance': website.maintenance
             }
         self.assert_widgets_active_flag(presentation_agent, flags)
 
@@ -72,41 +72,41 @@ class TestDetailSiteGtkPresentationAgent(BaseTestGtkPresentationAgent):
             }
         self.assert_widgets_sensitive_flag(presentation_agent, flags)
 
-    def test_detail_site_init_state(self):
+    def test_detail_website_init_state(self):
         """
         Tests site detail component's presentation_agent initial state
         """
         config = SiteConfigurationManager.get_blank_configuration()
-        website = config['website']
-        self.detail_site_state_test(website)
+        website = config.website
+        self.detail_website_state_test(website)
 
-    def test_detail_site_enabled_state(self):
+    def test_detail_website_enabled_state(self):
         """
         Tests site detail component's presentation_agent in done state
         """
         config = SiteConfigurationManager.get_blank_configuration()
-        website = config['website']
-        website['enabled'].set_value(True)
-        self.detail_site_state_test(website)
+        website = config.website
+        website.enabled = True
+        self.detail_website_state_test(website)
 
-    def test_detail_site_done_state(self):
+    def test_detail_website_done_state(self):
         """
         Tests site detail component's presentation_agent in done state
         """
         config = SiteConfigurationManager.get_blank_configuration()
-        website = config['website']
-        website['enabled'].set_value(True)
-        website['done'].set_value(True)
-        self.detail_site_state_test(website)
+        website = config.website
+        website.enabled = True
+        website.done = True
+        self.detail_website_state_test(website)
 
-    def test_detail_site_gui_actions(self):
+    def test_detail_website_gui_actions(self):
         """
         Tests that site detail component's presentation_agent works as
         expected, and that abstraction attributes are set correspondingly to
         GUI actions.
         """
         config = SiteConfigurationManager.get_blank_configuration()
-        website = config['website']
+        website = config.website
         control_agent = DetailSiteControlAgent(website)
         presentation_agent = control_agent.get_presentation_agent()
         refresh_gui()
@@ -128,7 +128,7 @@ class TestDetailSiteGtkPresentationAgent(BaseTestGtkPresentationAgent):
         for name in ('enabled', 'maintenance'):
             presentation_agent[name].set_active(True)
             refresh_gui()
-            self.assertTrue(website[name].get_value(),
+            self.assertTrue(getattr(website, name),
                             'site %s attribute is not enabled' % name)
 
         # Comboboxes value should be reported to abstraction
@@ -139,22 +139,22 @@ class TestDetailSiteGtkPresentationAgent(BaseTestGtkPresentationAgent):
             presentation_agent.set_combobox_selection(presentation_agent[name],
                                                       value)
             refresh_gui()
-            self.assertEquals(website[name].get_value(), value,
+            self.assertEquals(getattr(website, name), value,
                              'site %s attribute is wrong' % name)
 
-    def test_detail_site_abstraction_actions(self):
+    def test_detail_website_abstraction_actions(self):
         """
         Tests that site detail component's abstractions changes are correctly
         reported to GUI.
         """
         config = SiteConfigurationManager.get_blank_configuration()
-        website = config['website']
+        website = config.website
         control_agent = DetailSiteControlAgent(website)
         presentation_agent = control_agent.get_presentation_agent()
         refresh_gui()
 
         # Enables component
-        website['enabled'].set_value(True)
+        website.enabled = True
         refresh_gui()
 
         # Tests widgets sensitivity after enablement
@@ -168,7 +168,7 @@ class TestDetailSiteGtkPresentationAgent(BaseTestGtkPresentationAgent):
 
         # When a widget is enabled, the corresponding attribute should follow
         for name in ('enabled', 'maintenance'):
-            website[name].set_value(True)
+            setattr(website, name, True)
             refresh_gui()
             self.assert_widgets_active_flag(presentation_agent, {name: True})
 
@@ -177,15 +177,15 @@ class TestDetailSiteGtkPresentationAgent(BaseTestGtkPresentationAgent):
         access = SiteDefaultsManager.get_site_accesses().keys()[0]
 
         for name, value in {'template': template, 'access': access}.items():
-            website[name].set_value(value)
+            setattr(website, name, value)
             refresh_gui()
             self.assertEquals(presentation_agent.get_combobox_selection(
                 presentation_agent[name]), value,
-                'site %s widget selection is wrong' % name)
+                'site %s: %s/%s widget selection is wrong' % (name, value, presentation_agent.get_combobox_selection(presentation_agent[name])))
 
         # Tests that when done flag is set, sentivity is disabled on enabled
         # and template widgets. Maintenance and access should remain sensitive
-        website['done'].set_value(True)
+        website.done = True
         refresh_gui()
 
         # Tests final widgets sensitivity
@@ -197,13 +197,13 @@ class TestDetailSiteGtkPresentationAgent(BaseTestGtkPresentationAgent):
             }
         self.assert_widgets_sensitive_flag(presentation_agent, flags)
 
-    def test_detail_site_read_only(self):
+    def test_detail_website_read_only(self):
         """
         Tests that site detail component's abstractions changes are correctly
         reported to GUI.
         """
         config = SiteConfigurationManager.get_blank_configuration()
-        website = config['website']
+        website = config.website
         control_agent = DetailSiteControlAgent(website, read_only=True)
         presentation_agent = control_agent.get_presentation_agent()
         refresh_gui()
@@ -225,8 +225,8 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
         """
         Tests site detail component's presentation_agent initial state
         """
-        done = database['done'].get_value()
-        enabled = database['enabled'].get_value()
+        done = database.done
+        enabled = database.enabled
         control_agent = DetailDatabaseControlAgent(database)
         presentation_agent = control_agent.get_presentation_agent()
         refresh_gui()
@@ -250,7 +250,7 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests site detail component's presentation_agent initial state
         """
         config = SiteConfigurationManager.get_blank_configuration()
-        database = config['database']
+        database = config.database
         self.detail_database_state_test(database)
 
     def test_detail_database_enabled_state(self):
@@ -258,8 +258,8 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests site detail component's presentation_agent n done state
         """
         config = SiteConfigurationManager.get_blank_configuration()
-        database = config['database']
-        database['enabled'].set_value(True)
+        database = config.database
+        database.enabled = True
         self.detail_database_state_test(database)
 
     def test_detail_database_done_state(self):
@@ -267,9 +267,9 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests site detail component's presentation_agent n done state
         """
         config = SiteConfigurationManager.get_blank_configuration()
-        database = config['database']
-        database['enabled'].set_value(True)
-        database['done'].set_value(True)
+        database = config.database
+        database.enabled = True
+        database.done = True
         self.detail_database_state_test(database)
 
     def test_detail_database_gui_actions(self):
@@ -279,7 +279,7 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
         GUI actions.
         """
         config = SiteConfigurationManager.get_blank_configuration()
-        database = config['database']
+        database = config.database
         control_agent = DetailDatabaseControlAgent(database)
         presentation_agent = control_agent.get_presentation_agent()
         presentation_agent['enabled'].set_active(True)
@@ -301,7 +301,7 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
 
         # When a widget is enabled, the corresponding attribute should follow
         for name in ('enabled',):
-            database[name].set_value(True)
+            setattr(database, name, True)
             refresh_gui()
             self.assert_widgets_active_flag(presentation_agent, {name: True})
 
@@ -310,7 +310,7 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
         for name in ('name', 'username', 'password'):
             presentation_agent[name].set_text('abc')
             refresh_gui()
-            self.assertEquals(database[name].get_value(), 'abc',
+            self.assertEquals(getattr(database, name), 'abc',
                              'database %s attribute is wrong' % name)
 
         # Comboboxes value should be reported to abstraction
@@ -320,7 +320,7 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
             presentation_agent.set_combobox_selection(presentation_agent[name],
                                                       value)
             refresh_gui()
-            self.assertEquals(database[name].get_value(), value,
+            self.assertEquals(getattr(database, name), value,
                              'site %s attribute is wrong' % name)
 
     def test_detail_database_abstraction_actions(self):
@@ -329,10 +329,10 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
         correctly reported to GUI.
         """
         config = SiteConfigurationManager.get_blank_configuration()
-        database = config['database']
+        database = config.database
         control_agent = DetailDatabaseControlAgent(database)
         presentation_agent = control_agent.get_presentation_agent()
-        database['enabled'].set_value(True)
+        database.enabled = True
         refresh_gui()
 
         # All widgets should be enabled
@@ -351,7 +351,7 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
         # When a name, username or password is set, correpsonding widget
         # should follow
         for name in ('name', 'username', 'password'):
-            database[name].set_value('abc')
+            setattr(database, name, 'abc')
             refresh_gui()
             self.assertEquals(presentation_agent[name].get_text(), 'abc',
                              'database %s widget is wrong' % name)
@@ -360,14 +360,14 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
         dbtype = SiteDefaultsManager.get_database_types().keys()[0]
 
         for name, value in {'type': dbtype}.items():
-            database[name].set_value(value)
+            setattr(database, name, value)
             refresh_gui()
             self.assertEquals(presentation_agent.get_combobox_selection(
                 presentation_agent[name]), value,
                 'database %s widget selection is wrong' % name)
 
         # Tests that when done flag is set, allw widgets are disabled
-        database['done'].set_value(True)
+        database.done = True
         refresh_gui()
 
         # Tests widgets sensitivity after enablement
@@ -386,7 +386,7 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
         correctly reported to GUI.
         """
         config = SiteConfigurationManager.get_blank_configuration()
-        database = config['database']
+        database = config.database
         control_agent = DetailDatabaseControlAgent(database, read_only=True)
         presentation_agent = control_agent.get_presentation_agent()
         refresh_gui()
@@ -407,10 +407,10 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
         component's widget value is set to a correct and incorrect value.
         """
         config = SiteConfigurationManager.get_blank_configuration()
-        database = config['database']
+        database = config.database
         control_agent = DetailDatabaseControlAgent(database, read_only=True)
         presentation_agent = control_agent.get_presentation_agent()
-        database['enabled'].set_value(True)
+        database.enabled = True
         refresh_gui()
 
         for widget in ('name', 'username'):
@@ -434,8 +434,8 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
         """
         control_agent = DetailRepositoryControlAgent(repo)
         presentation_agent = control_agent.get_presentation_agent()
-        done = repo['done'].get_value()
-        enabled = repo['enabled'].get_value()
+        done = repo.done
+        enabled = repo.enabled
         refresh_gui()
 
         # Tests checkboxes state
@@ -457,7 +457,7 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests repo detail component's presentation_agent initial state
         """
         config = SiteConfigurationManager.get_blank_configuration()
-        repo = config['repository']
+        repo = config.repository
         self.detail_repository_state_test(repo)
 
     def test_detail_repository_enabled_state(self):
@@ -465,8 +465,8 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests repo detail component's presentation_agent initial state
         """
         config = SiteConfigurationManager.get_blank_configuration()
-        repo = config['repository']
-        repo['enabled'].set_value(True)
+        repo = config.repository
+        repo.enabled = True
         self.detail_repository_state_test(repo)
 
     def test_detail_repository_done_state(self):
@@ -474,9 +474,9 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests repo detail component's presentation_agent initial state
         """
         config = SiteConfigurationManager.get_blank_configuration()
-        repo = config['repository']
-        repo['enabled'].set_value(True)
-        repo['done'].set_value(True)
+        repo = config.repository
+        repo.enabled = True
+        repo.done = True
         self.detail_repository_state_test(repo)
 
     def test_detail_repository_gui_actions(self):
@@ -486,7 +486,7 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
         GUI actions.
         """
         config = SiteConfigurationManager.get_blank_configuration()
-        repo = config['repository']
+        repo = config.repository
         control_agent = DetailRepositoryControlAgent(repo)
         presentation_agent = control_agent.get_presentation_agent()
         refresh_gui()
@@ -507,7 +507,7 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
         for name in ('enabled',):
             presentation_agent[name].set_active(True)
             refresh_gui()
-            self.assertTrue(repo[name].get_value(),
+            self.assertTrue(getattr(repo, name),
                             'repo %s attribute is not enabled' % name)
 
         # Comboboxes value should be reported to abstraction
@@ -517,7 +517,7 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
             presentation_agent.set_combobox_selection(presentation_agent[name],
                                                       value)
             refresh_gui()
-            self.assertEquals(repo[name].get_value(), value,
+            self.assertEquals(getattr(repo, name), value,
                              'repo %s attribute is wrong' % name)
 
     def test_detail_repository_abstraction_actions(self):
@@ -526,10 +526,10 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
         correctly reported to GUI.
         """
         config = SiteConfigurationManager.get_blank_configuration()
-        repo = config['repository']
+        repo = config.repository
         control_agent = DetailRepositoryControlAgent(repo)
         presentation_agent = control_agent.get_presentation_agent()
-        repo['enabled'].set_value(True)
+        repo.enabled = True
         refresh_gui()
 
         # All widgets should be enabled
@@ -546,7 +546,7 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
         # When a name, username or password is set, correpsonding widget
         # should follow
         for name in ('name',):
-            repo[name].set_value('abc')
+            setattr(repo, name, 'abc')
             refresh_gui()
             self.assertEquals(presentation_agent[name].get_text(), 'abc',
                              'repo %s widget is wrong' % name)
@@ -555,14 +555,14 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
         repotype = SiteDefaultsManager.get_repository_types().keys()[0]
 
         for name, value in {'type': repotype}.items():
-            repo[name].set_value(value)
+            setattr(repo, name, value)
             refresh_gui()
             self.assertEquals(presentation_agent.get_combobox_selection(
                 presentation_agent[name]), value,
                 'repo %s widget selection is wrong' % name)
 
         # Tests that when done flag is set, allw widgets are disabled
-        repo['done'].set_value(True)
+        repo.done = True
         refresh_gui()
 
         # Tests widgets sensitivity after enablement
@@ -579,7 +579,7 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
         correctly reported to GUI.
         """
         config = SiteConfigurationManager.get_blank_configuration()
-        repo = config['repository']
+        repo = config.repository
         control_agent = DetailRepositoryControlAgent(repo, read_only=True)
         presentation_agent = control_agent.get_presentation_agent()
         refresh_gui()
@@ -598,10 +598,10 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
         component's widget value is set to a correct and incorrect value.
         """
         config = SiteConfigurationManager.get_blank_configuration()
-        prod = config['repository']
-        control_agent = DetailRepositoryControlAgent(prod, read_only=True)
+        repo = config.repository
+        control_agent = DetailRepositoryControlAgent(repo, read_only=True)
         presentation_agent = control_agent.get_presentation_agent()
-        prod['enabled'].set_value(True)
+        repo.enabled = True
         refresh_gui()
 
         presentation_agent['name'].set_text('abc')
@@ -612,60 +612,60 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
         presentation_agent['name'].set_text('ab c')
         refresh_gui()
         self.assertFalse(presentation_agent.get_validity_flag(),
-                        'dite validity should be false')
+                        'site validity should be false')
 
 
-class TestDetailGeneralGtkPresentationAgent(BaseTestGtkPresentationAgent):
-    """Unit tests for general detail gtk presentation_agents"""
+class TestDetailDNSHostGtkPresentationAgent(BaseTestGtkPresentationAgent):
+    """Unit tests for dnshost detail gtk presentation_agents"""
 
-    def test_detail_general_init_state(self):
+    def test_detail_dnshost_init_state(self):
         """
         Tests repository detail component's presentation_agent initial state
         """
         config = SiteConfigurationManager.get_configuration_by_id(1)
-        general = config['general']
-        control_agent = DetailGeneralControlAgent(general)
+        dnshost = config.dnshost
+        control_agent = DetailDNSHostControlAgent(dnshost)
         presentation_agent = control_agent.get_presentation_agent()
         refresh_gui()
 
         # Tests widgets sensitivity
         flags = {
-            'description': not general['done'].get_value(),
-            'name': not general['done'].get_value(),
-            'domain': not general['done'].get_value(),
-            'platform': not general['done'].get_value(),
+            'description': not dnshost.done,
+            'name': not dnshost.done,
+            'domain': not dnshost.done,
+            'platform': not dnshost.done,
             }
         self.assert_widgets_sensitive_flag(presentation_agent, flags)
 
-    def test_detail_general_done_state(self):
+    def test_detail_dnshost_done_state(self):
         """
-        Tests general detail component's presentation agent in done state
+        Tests dnshost detail component's presentation agent in done state
         """
         config = SiteConfigurationManager.get_configuration_by_id(1)
-        general = config['general']
-        general['done'].set_value(True)
-        control_agent = DetailGeneralControlAgent(general)
+        dnshost = config.dnshost
+        dnshost.done = True
+        control_agent = DetailDNSHostControlAgent(dnshost)
         presentation_agent = control_agent.get_presentation_agent()
         refresh_gui()
 
         # Tests widgets sensitivity
         flags = {
-            'description': not general['done'].get_value(),
-            'name': not general['done'].get_value(),
-            'domain': not general['done'].get_value(),
-            'platform': not general['done'].get_value(),
+            'description': not dnshost.done,
+            'name': not dnshost.done,
+            'domain': not dnshost.done,
+            'platform': not dnshost.done,
             }
         self.assert_widgets_sensitive_flag(presentation_agent, flags)
 
-    def test_detail_general_gui_actions(self):
+    def test_detail_dnshost_gui_actions(self):
         """
         Tests that repository detail component's presentation_agent works as
         expected, and that abstraction attributes are set correspondingly to
         GUI actions.
         """
         config = SiteConfigurationManager.get_blank_configuration()
-        general = config['general']
-        control_agent = DetailGeneralControlAgent(general)
+        dnshost = config.dnshost
+        control_agent = DetailDNSHostControlAgent(dnshost)
         presentation_agent = control_agent.get_presentation_agent()
         refresh_gui()
 
@@ -674,8 +674,8 @@ class TestDetailGeneralGtkPresentationAgent(BaseTestGtkPresentationAgent):
         for name in ('name', 'description'):
             presentation_agent[name].set_text('abc')
             refresh_gui()
-            self.assertEquals(general[name].get_value(), 'abc',
-                             'general %s attribute is wrong' % name)
+            self.assertEquals(getattr(dnshost, name), 'abc',
+                              'dnshost %s attribute is wrong: %s' % (name, getattr(dnshost, name)))
 
         # Comboboxes value should be reported to abstraction
         domain = SiteDefaultsManager.get_domains().keys()[0]
@@ -685,17 +685,17 @@ class TestDetailGeneralGtkPresentationAgent(BaseTestGtkPresentationAgent):
             presentation_agent.set_combobox_selection(presentation_agent[name],
                                                       value)
             refresh_gui()
-            self.assertEquals(general[name].get_value(), value,
-                             'general %s attribute is wrong' % name)
+            self.assertEquals(getattr(dnshost, name), value,
+                             'dnshost %s attribute is wrong' % name)
 
-    def test_detail_general_abstraction_actions(self):
+    def test_detail_dnshost_abstraction_actions(self):
         """
         Tests that database detail component's abstractions changes are
         correctly reported to GUI.
         """
         config = SiteConfigurationManager.get_blank_configuration()
-        general = config['general']
-        control_agent = DetailGeneralControlAgent(general)
+        dnshost = config.dnshost
+        control_agent = DetailDNSHostControlAgent(dnshost)
         presentation_agent = control_agent.get_presentation_agent()
         refresh_gui()
 
@@ -711,24 +711,24 @@ class TestDetailGeneralGtkPresentationAgent(BaseTestGtkPresentationAgent):
         # When a name or description is set, correpsonding widget
         # should follow
         for name in ('name', 'description'):
-            general[name].set_value('abc')
+            setattr(dnshost, name, 'abc')
             refresh_gui()
             self.assertEquals(presentation_agent[name].get_text(), 'abc',
-                             'general %s widget is wrong' % name)
+                             'dnshost %s widget is wrong' % name)
 
         # Comboboxes value should reflect abstraction changes
         domain = SiteDefaultsManager.get_domains().keys()[0]
         platform = SiteDefaultsManager.get_platforms().keys()[0]
 
         for name, value in {'domain': domain, 'platform': platform}.items():
-            general[name].set_value(value)
+            setattr(dnshost, name, value)
             refresh_gui()
             self.assertEquals(presentation_agent.get_combobox_selection(
                 presentation_agent[name]), value,
-                'general %s widget selection is wrong' % name)
+                'dnshost %s widget selection is wrong' % name)
 
         # Tests that when done flag is set, allw widgets are disabled
-        general['done'].set_value(True)
+        dnshost.done = True
         refresh_gui()
 
         # Tests widgets sensitivity after enablement
@@ -740,14 +740,14 @@ class TestDetailGeneralGtkPresentationAgent(BaseTestGtkPresentationAgent):
             }
         self.assert_widgets_sensitive_flag(presentation_agent, flags)
 
-    def test_detail_general_read_only(self):
+    def test_detail_dnshost_read_only(self):
         """
         Tests that database detail component's abstractions changes are
         correctly reported to GUI.
         """
         config = SiteConfigurationManager.get_blank_configuration()
-        general = config['general']
-        control_agent = DetailGeneralControlAgent(general, read_only=True)
+        dnshost = config.dnshost
+        control_agent = DetailDNSHostControlAgent(dnshost, read_only=True)
         presentation_agent = control_agent.get_presentation_agent()
         refresh_gui()
 
@@ -760,14 +760,14 @@ class TestDetailGeneralGtkPresentationAgent(BaseTestGtkPresentationAgent):
             }
         self.assert_widgets_sensitive_flag(presentation_agent, flags)
 
-    def test_detail_general_validity_flag(self):
+    def test_detail_dnshost_validity_flag(self):
         """
         Tests that the validity flag is correctly set and unset when a
         component's widget value is set to a correct and incorrect value.
         """
         config = SiteConfigurationManager.get_blank_configuration()
-        general = config['general']
-        control_agent = DetailGeneralControlAgent(general, read_only=True)
+        dnshost = config.dnshost
+        control_agent = DetailDNSHostControlAgent(dnshost)
         presentation_agent = control_agent.get_presentation_agent()
 
         presentation_agent['name'].set_text('abc')
@@ -778,7 +778,7 @@ class TestDetailGeneralGtkPresentationAgent(BaseTestGtkPresentationAgent):
         presentation_agent['name'].set_text('@bc')
         refresh_gui()
         self.assertFalse(presentation_agent.get_validity_flag(),
-                        'general validity should be false')
+                        'dnshost validity should be false')
 
 
 if __name__ == "__main__":

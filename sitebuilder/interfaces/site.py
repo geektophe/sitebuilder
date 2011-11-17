@@ -18,27 +18,32 @@ class IDNSHost(Interface):
         required=True,
         description=u"Host name",
         constraint=re.compile(r'^[\w\d_-]+$').match)
+        #default=u'')
 
     domain = Choice(
         SiteDefaultsManager.get_domains().keys(),
         title=u"Type",
         required=True,
-        description=u"Repository type")
+        description=u"Repository type",
+        default=SiteDefaultsManager.get_default_domain())
 
     platform = Choice(
         SiteDefaultsManager.get_platforms().keys(),
         required=True,
         title=u"Platform",
-        description=u"Site platform")
+        description=u"Site platform",
+        default=SiteDefaultsManager.get_default_platform())
 
     description = TextLine(
         title=u"Description",
         description=u"Site description")
+        #default=u'')
 
     done = Bool(
         title=u"Done",
         required=True,
-        description=u"DNS host creation done")
+        description=u"DNS host creation done",
+        default=False)
 
 
 class IRCSRepository(Interface):
@@ -48,24 +53,28 @@ class IRCSRepository(Interface):
     enabled = Bool(
         title=u"Enabled",
         required=True,
-        description=u"Repository enabled")
+        description=u"Repository enabled",
+        default=False)
 
     name = TextLine(
         title=u"Name",
         required=True,
         description=u"Repository name",
         constraint=re.compile(r'^[\w\d_-]+$').match)
+        #default=u'')
 
     type = Choice(
         SiteDefaultsManager.get_repository_types().keys(),
         title=u"Type",
         required=True,
-        description=u"Repository type")
+        description=u"Repository type",
+        default=SiteDefaultsManager.get_default_repository_type())
 
     done = Bool(
         title=u"Done",
         required=True,
-        description=u"Repository creation done")
+        description=u"Repository creation done",
+        default=False)
 
 
 class IWebsite(Interface):
@@ -75,29 +84,34 @@ class IWebsite(Interface):
     enabled = Bool(
         title=u"Enabled",
         required=True,
-        description=u"Website enabled")
+        description=u"Website enabled",
+        default=False)
 
     template = Choice(
         SiteDefaultsManager.get_site_templates().keys(),
         title=u"Template",
         required=True,
-        description=u"Website template")
+        description=u"Website template",
+        default=SiteDefaultsManager.get_default_site_template())
 
     access = Choice(
         SiteDefaultsManager.get_site_accesses().keys(),
         title=u"Access",
         required=True,
-        description=u"Site access level")
+        description=u"Site access level",
+        default=SiteDefaultsManager.get_default_site_access())
 
     maintenance = Bool(
         title=u"Maintenance",
         required=True,
-        description=u"Website under maintenance")
+        description=u"Website under maintenance",
+        default=False)
 
     done = Bool(
         title=u"Done",
         required=True,
-        description=u"Website creation done")
+        description=u"Website creation done",
+        default=False)
 
 
 class IDatabase(Interface):
@@ -107,35 +121,41 @@ class IDatabase(Interface):
     enabled = Bool(
         title=u"Enabled",
         required=True,
-        description=u"Database enabled")
+        description=u"Database enabled",
+        default=False)
 
     type = Choice(
         SiteDefaultsManager.get_database_types().keys(),
         title=u"Type",
         required=True,
-        description=u"Database type")
+        description=u"Database type",
+        default=SiteDefaultsManager.get_default_database_type())
 
     name = TextLine(
         title=u"Name",
         required=True,
         description=u"Database name",
         constraint=re.compile(r'^[\w\d_]+$').match)
+        #default=u'')
 
     username = TextLine(
         title=u"Username",
         required=True,
         description=u"Database username (owner)",
         constraint=re.compile(r'^[\w\d_]+$').match)
+        #default=u'')
 
     password = TextLine(
         title=u"Password",
         required=True,
         description=u"Database owner password")
+        #default=u'')
 
     done = Bool(
         title=u"Done",
         required=True,
-        description=u"Database creation done")
+        description=u"Database creation done",
+        default=False)
 
 
 class ISite(Interface):

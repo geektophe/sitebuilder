@@ -2,7 +2,7 @@
 <interface>
   <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy project-wide -->
-  <object class="GtkWindow" id="general">
+  <object class="GtkWindow" id="dnshost">
     <child>
       <object class="GtkTable" id="table">
         <property name="visible">True</property>

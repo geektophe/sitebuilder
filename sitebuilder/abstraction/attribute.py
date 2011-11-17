@@ -14,6 +14,9 @@ import re
 from sitebuilder.observer.attribute import AttributeChangedObserver
 from sitebuilder.observer.attribute import AttributeChangedSubject
 from sitebuilder.observer.attribute import AttributeChangedEvent
+from zope.interface import implements, Interface
+from zope.schema import TextLine
+from zope.schema.fieldproperty import FieldProperty
 
 class Attribute(AttributeChangedSubject):
     """
@@ -896,6 +899,83 @@ class UnicodeTriggerAttribute(StdTriggerAttribute):
             value = unicode(value)
 
         StdTriggerAttribute.__set__(self, instance, value)
+
+
+class TriggerFieldProperty(FieldProperty):
+
+    """
+    Descriptor class vased on Zope's FieldProperty that triggers
+    AttrubteChngedEvent event on value set.
+
+    It should be used to define an object attribute descriptor. The owner class
+    should have a 'notify_attribute_changed' method. The simplest is to
+    subclass AttributeChangedSubject.
+
+    >>> class ITestSubject(Interface):
+    ...     attr = TextLine(title=u'attr', default=u'initvalue')
+    ...
+    >>> class TestSubject(AttributeChangedSubject):
+    ...     attr = TriggerFieldProperty(ITestSubject['attr'])
+    ...
+    >>> obj = TestSubject()
+    >>> obj.attr
+    u'initvalue'
+
+    >>> obj.attr = u'val'
+    >>> obj.attr
+    u'val'
+
+    When the subject attribute value is set, an AttributeChangedEvent should
+    be sent to observers.
+
+    >>> class TestObserver(AttributeChangedObserver):
+    ...     flag = False
+    ...     def attribute_changed(self, event=None):
+    ...         self.flag = True
+    ...
+    >>> observer = TestObserver()
+    >>> obj.register_attribute_changed_observer(observer)
+    >>> obj.attr = u'val2'
+    >>> observer.flag
+    True
+    """
+
+    def __set__(self, instance, value):
+        """
+        Attribute value is set
+        """
+        FieldProperty.__set__(self, instance, value)
+        instance.notify_attribute_changed(AttributeChangedEvent())
+
+
+class UnicodeTriggerFieldProperty(TriggerFieldProperty):
+    """
+    This class works exactly as TriggerFieldProperty, but str values are
+    transcoded to unicode.
+
+    >>> class ITestSubject(Interface):
+    ...     attr = TextLine(title=u'attr', default=u'initvalue')
+    ...
+    >>> class TestSubject(AttributeChangedSubject):
+    ...     attr = UnicodeTriggerFieldProperty(ITestSubject['attr'])
+    ...
+    >>> obj = TestSubject()
+    >>> obj.attr
+    u'initvalue'
+
+    >>> obj.attr = 'val'
+    >>> obj.attr
+    u'val'
+    """
+
+    def __set__(self, instance, value):
+        """
+        Attribute value is set
+        """
+        if isinstance(value, str):
+            value = unicode(value)
+
+        TriggerFieldProperty.__set__(self, instance, value)
 
 
 if __name__ == "__main__":

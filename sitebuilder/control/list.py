@@ -73,8 +73,8 @@ class ListControlAgent(ActionActivatedObserver):
         """
         Shows detail dialog for the specified configuration
         """
-        conf_id = configuration['general']['id'].get_value()
-        conf_name = configuration['general']['name'].get_value()
+        dnshost = configuration.dnshost
+        conf_name = "%s.%s" % (dnshost.name, dnshost.domain)
 
         dialog = gtk.MessageDialog(
             self.get_presentation_agent().get_toplevel(),
@@ -86,7 +86,7 @@ class ListControlAgent(ActionActivatedObserver):
         dialog.destroy()
 
         if response == gtk.RESPONSE_YES:
-            print "deleted site id %s" % conf_id 
+            print "deleted site id %s" % conf_name
 
     def add_site(self):
         """

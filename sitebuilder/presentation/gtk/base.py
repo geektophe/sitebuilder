@@ -11,6 +11,7 @@ from sitebuilder.observer.validity import ValidityChangedSubject
 from sitebuilder.observer.validity import ValidityChangedEvent
 from sitebuilder.observer.attribute import AttributeChangedObserver
 from sitebuilder.observer.action import ActionActivatedSubject
+from zope.schema import ValidationError
 
 pygtk.require("2.0")
 
@@ -167,12 +168,13 @@ class GtkBasePresentationAgent(ValidityChangedSubject,
         """
         value = widget.get_text()
 
+        # TODO: implement our own set of exceptions rather than using Zope's
         try:
             self.get_control_agent().set_attribute_value(attr_name, value)
             widget.set_tooltip_text('')
             widget.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('#90EE90'))
             self.set_validity_flag(attr_name, True)
-        except AttributeError, e:
+        except ValidationError, e:
             widget.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('#FFCCCC'))
             widget.set_tooltip_text(str(e))
             self.set_validity_flag(attr_name, False)
@@ -220,7 +222,6 @@ class GtkBasePresentationAgent(ValidityChangedSubject,
         """
         Updates presentation agent widgets based on configuraton settings
         """
-        print str(self)
         raise NotImplementedError("This method has currently no " + \
                                   "implmentation and has to be overridden")
 

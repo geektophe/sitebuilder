@@ -5,6 +5,9 @@ Base control Agent class to be subclassed
 
 from sitebuilder.observer.attribute import AttributeChangedObserver
 from sitebuilder.observer.action  import ActionActivatedObserver
+from sitebuilder.exception import FieldFormatError
+from zope.schema import ValidationError
+from zope.interface import providedBy
 
 
 class BaseControlAgent(ActionActivatedObserver):
@@ -82,12 +85,27 @@ class BaseControlAgent(ActionActivatedObserver):
         else:
             return u''
 
-
     def set_attribute_value(self, name, value):
         """
         Returns a configuration attribute value
         """
-        setattr(self._configuration, name, value)
+        try:
+            setattr(self._configuration, name, value)
+        except ValidationError, e:
+
+            for interface in providedBy(self._configuration):
+                field = interface.get(name)
+
+                if field is not None:
+                    # Use the field description attribute to give the user a
+                    # relevant error message    
+                    try:
+                        raise FieldFormatError(field.description)
+                    except AttributeError:
+                        pass
+
+            # No field was found under name. The original exception is risen
+            raise e
 
     def destroy(self):
         """

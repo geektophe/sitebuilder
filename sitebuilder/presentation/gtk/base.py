@@ -11,6 +11,7 @@ from sitebuilder.observer.validity import ValidityChangedSubject
 from sitebuilder.observer.validity import ValidityChangedEvent
 from sitebuilder.observer.attribute import AttributeChangedObserver
 from sitebuilder.observer.action import ActionActivatedSubject
+from sitebuilder.exception import FieldFormatError
 from zope.schema import ValidationError
 
 pygtk.require("2.0")
@@ -174,7 +175,7 @@ class GtkBasePresentationAgent(ValidityChangedSubject,
             widget.set_tooltip_text('')
             widget.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('#90EE90'))
             self.set_validity_flag(attr_name, True)
-        except ValidationError, e:
+        except (ValidationError, FieldFormatError), e:
             widget.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('#FFCCCC'))
             widget.set_tooltip_text(str(e))
             self.set_validity_flag(attr_name, False)

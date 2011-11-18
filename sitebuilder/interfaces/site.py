@@ -14,24 +14,24 @@ class IDNSHost(Interface):
     Interface describing site general settings
     """
     name = TextLine(
-        title=u"Name",
+        title=u"Host name",
         required=True,
-        description=u"Host name",
+        description=u"Should be an alphanumeric string (^[\w\d_-]+$)",
         constraint=re.compile(r'^[\w\d_-]+$').match)
         #default=u'')
 
     domain = Choice(
         SiteDefaultsManager.get_domains().keys(),
-        title=u"Type",
+        title=u"Domain name",
         required=True,
-        description=u"Repository type",
+        description=u"Should be one of allowed domains",
         default=SiteDefaultsManager.get_default_domain())
 
     platform = Choice(
         SiteDefaultsManager.get_platforms().keys(),
         required=True,
         title=u"Platform",
-        description=u"Site platform",
+        description=u"Should be one of allowed platforms",
         default=SiteDefaultsManager.get_default_platform())
 
     description = TextLine(
@@ -42,7 +42,7 @@ class IDNSHost(Interface):
     done = Bool(
         title=u"Done",
         required=True,
-        description=u"DNS host creation done",
+        description=u"Should be a boolean value",
         default=False)
 
 
@@ -51,29 +51,29 @@ class IRCSRepository(Interface):
     Interface describing RCS repository related settings
     """
     enabled = Bool(
-        title=u"Enabled",
+        title=u"Repository enabled",
         required=True,
-        description=u"Repository enabled",
+        description=u"Should be a boolean value",
         default=False)
 
     name = TextLine(
-        title=u"Name",
+        title=u"Repository name",
         required=True,
-        description=u"Repository name",
+        description=u"Should be an alphanumeric string (^[\w\d_-]+$)",
         constraint=re.compile(r'^[\w\d_-]+$').match)
         #default=u'')
 
     type = Choice(
         SiteDefaultsManager.get_repository_types().keys(),
-        title=u"Type",
+        title=u"Repository type",
         required=True,
-        description=u"Repository type",
+        description=u"Should be one of allowed types",
         default=SiteDefaultsManager.get_default_repository_type())
 
     done = Bool(
         title=u"Done",
         required=True,
-        description=u"Repository creation done",
+        description=u"Should be a boolean value",
         default=False)
 
 
@@ -82,35 +82,35 @@ class IWebsite(Interface):
     Interface describing website related settings
     """
     enabled = Bool(
-        title=u"Enabled",
+        title=u"Website enabled",
         required=True,
-        description=u"Website enabled",
+        description=u"Should be a boolean value",
         default=False)
 
     template = Choice(
         SiteDefaultsManager.get_site_templates().keys(),
-        title=u"Template",
+        title=u"Website template",
         required=True,
-        description=u"Website template",
+        description=u"Should be one of allowed site templates",
         default=SiteDefaultsManager.get_default_site_template())
 
     access = Choice(
         SiteDefaultsManager.get_site_accesses().keys(),
-        title=u"Access",
+        title=u"Website access",
         required=True,
-        description=u"Site access level",
+        description=u"Should be one of allowed site accesses",
         default=SiteDefaultsManager.get_default_site_access())
 
     maintenance = Bool(
         title=u"Maintenance",
         required=True,
-        description=u"Website under maintenance",
+        description=u"Should be a boolean value",
         default=False)
 
     done = Bool(
         title=u"Done",
         required=True,
-        description=u"Website creation done",
+        description=u"Should be a boolean value",
         default=False)
 
 
@@ -119,34 +119,34 @@ class IDatabase(Interface):
     Interface describing database related settings
     """
     enabled = Bool(
-        title=u"Enabled",
+        title=u"Database enabled",
         required=True,
-        description=u"Database enabled",
+        description=u"Should be a boolean value",
         default=False)
 
     type = Choice(
         SiteDefaultsManager.get_database_types().keys(),
         title=u"Type",
         required=True,
-        description=u"Database type",
+        description=u"Should be one of allowed database types",
         default=SiteDefaultsManager.get_default_database_type())
 
     name = TextLine(
-        title=u"Name",
+        title=u"Database name",
         required=True,
-        description=u"Database name",
+        description=u"Should be an alphanumeric string (^[\w\d_]+$)",
         constraint=re.compile(r'^[\w\d_]+$').match)
         #default=u'')
 
     username = TextLine(
-        title=u"Username",
+        title=u"Database owner",
         required=True,
-        description=u"Database username (owner)",
+        description=u"Should be an alphanumeric string (^[\w\d_]+$)",
         constraint=re.compile(r'^[\w\d_]+$').match)
         #default=u'')
 
     password = TextLine(
-        title=u"Password",
+        title=u"Owner password",
         required=True,
         description=u"Database owner password")
         #default=u'')
@@ -154,7 +154,7 @@ class IDatabase(Interface):
     done = Bool(
         title=u"Done",
         required=True,
-        description=u"Database creation done",
+        description=u"Should be a boolean value",
         default=False)
 
 

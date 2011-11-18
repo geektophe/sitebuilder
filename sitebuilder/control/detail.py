@@ -191,7 +191,6 @@ class DetailDNSHostControlAgent(BaseControlAgent):
 
 if __name__ == '__main__':
     config = SiteConfigurationManager.get_blank_configuration()
-    config.dnshost.name = 'prout'
     control = DetailMainControlAgent(config, False)
     presentation = control.get_presentation_agent()
     presentation.get_toplevel().connect("destroy", gtk.main_quit)

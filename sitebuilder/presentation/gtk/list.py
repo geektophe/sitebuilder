@@ -4,6 +4,8 @@ Site editing interface. Supports Create, View and Update modes.
 """
 
 from sitebuilder.utils.parameters import GLADE_BASEDIR
+from sitebuilder.utils.parameters import ACTION_ADD, ACTION_VIEW
+from sitebuilder.utils.parameters import ACTION_EDIT, ACTION_DELETE
 from sitebuilder.presentation.gtk.base import GtkBasePresentationAgent
 from sitebuilder.observer.action import ActionActivatedEvent
 import gtk
@@ -28,7 +30,11 @@ class ListPresentationAgent(GtkBasePresentationAgent):
         site_list.set_model(model)
         renderer = gtk.CellRendererText()
 
-        cname = gtk.TreeViewColumn("Name", renderer, text=1)
+        cname = gtk.TreeViewColumn("Name", renderer, text=0)
+        cname.set_sort_column_id(0)
+        site_list.append_column(cname)
+
+        cname = gtk.TreeViewColumn("Domain", renderer, text=1)
         cname.set_sort_column_id(1)
         site_list.append_column(cname)
 
@@ -57,18 +63,14 @@ class ListPresentationAgent(GtkBasePresentationAgent):
         model = self['site_list'].get_model()
         model.clear()
         sites = self.get_control_agent().get_configuration_all()
-        i = 0
 
         for site in sites:
             dnshost = site.dnshost
-            identifier = i
             name = dnshost.name
             domain = dnshost.domain
-            fqdn = "%s.%s" % (name, domain)
             platform = dnshost.platform
             description = dnshost.description
-            model.append((identifier, fqdn, platform, description))
-            i += 1
+            model.append((name, domain, platform, description))
 
     def get_selected_items(self):
         """
@@ -84,8 +86,9 @@ class ListPresentationAgent(GtkBasePresentationAgent):
 
         for row in rows:
             index = row[0]
-            identifier = int(model[index][0])
-            selection.append(identifier)
+            name = model[index][0]
+            domain = model[index][1]
+            selection.append([name, domain])
 
         return selection
 
@@ -100,27 +103,27 @@ class ListPresentationAgent(GtkBasePresentationAgent):
         Signal handler associated with the view action
         """
         self.notify_action_activated(
-            ActionActivatedEvent('view', {'ids': self.get_selected_items()}))
+            ActionActivatedEvent(ACTION_VIEW, {'sites': self.get_selected_items()}))
 
     def on_add_activate(self, widget):
         """
         Signal handler associated with the view action
         """
-        self.notify_action_activated(ActionActivatedEvent('add'))
+        self.notify_action_activated(ActionActivatedEvent(ACTION_ADD))
 
     def on_edit_activate(self, widget):
         """
         Signal handler associated with the view action
         """
         self.notify_action_activated(
-            ActionActivatedEvent('edit', {'ids': self.get_selected_items()}))
+            ActionActivatedEvent(ACTION_EDIT, {'sites': self.get_selected_items()}))
 
     def on_delete_activate(self, widget):
         """
         Signal handler associated with the view action
         """
         self.notify_action_activated(
-            ActionActivatedEvent('delete', {'ids': self.get_selected_items()}))
+            ActionActivatedEvent(ACTION_DELETE, {'sites': self.get_selected_items()}))
 
     def destroy(self):
         """

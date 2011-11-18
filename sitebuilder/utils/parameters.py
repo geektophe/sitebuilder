@@ -5,11 +5,23 @@ This module contains several application parameters used in other modules.
 
 from os.path import abspath, dirname
 
+# Glade resources related constants
 GLADE_BASEDIR = dirname(abspath( __file__ )) + "/../resources/glade"
 
+# GUI actions related constants
+ACTION_SUBMIT = 'submit'
+ACTION_CANCEL = 'cancel'
+ACTION_ADD    = 'add'
+ACTION_VIEW   = 'view'
+ACTION_EDIT   = 'edit'
+ACTION_DELETE = 'delete'
+
 # The following variables are module closed. They should NEVER be directly set
-_ALLOWED_APPLICATION_CONTEXTS = ('normal', 'test')
-_APPLICATION_CONTEXT = 'normal'
+CONTEXT_NORMAL = 'normal'
+CONTEXT_TEST = 'test'
+
+_ALLOWED_APPLICATION_CONTEXTS = (CONTEXT_NORMAL, CONTEXT_TEST )
+_APPLICATION_CONTEXT = CONTEXT_NORMAL
 
 def get_application_context():
     """

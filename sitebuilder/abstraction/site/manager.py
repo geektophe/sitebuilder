@@ -6,6 +6,7 @@ and delete operations.
 """
 
 from sitebuilder.utils.parameters import get_application_context
+from sitebuilder.utils.parameters import CONTEXT_NORMAL, CONTEXT_TEST
 from sitebuilder.abstraction.site.defaults import SiteDefaultsManager
 from sitebuilder.abstraction.site.object import Site
 
@@ -117,15 +118,15 @@ def get_default_config_object():
         }
 
 
-def get_test_configuration(config_id):
+def get_test_configuration(name, domain):
     """
     Generates the default configuration used to initialize internal
     configuration structures
     """
     config = SiteConfigurationManager.get_blank_configuration()
 
-    config.dnshost.name = 'name%d' % config_id
-    config.dnshost.description = 'desc%d' % config_id
+    config.dnshost.name = name
+    config.dnshost.description = 'desc_%s' % name
 
     config.repository.enabled = True
     config.repository.done = True
@@ -135,9 +136,9 @@ def get_test_configuration(config_id):
     config.website.done = True
 
     config.database.enabled = True
-    config.database.name = '%s_name' % config_id
-    config.database.username = '%s_username' % config_id
-    config.database.password = '%s_password' % config_id
+    config.database.name = 'db_%s' % name
+    config.database.username = 'username_%s' % name
+    config.database.password = 'password_%s' % name
     config.database.done = True
 
     return config
@@ -178,41 +179,41 @@ class SiteConfigurationManager(object):
         return Site()
 
     @staticmethod
-    def get_test_configuration(config_id):
+    def get_test_configuration(name, domain):
         """
         Returns a new blank configuration item.
         """
-        return get_test_configuration(config_id)
+        return get_test_configuration(name, None)
 
     @staticmethod
-    def get_configuration_by_id(identifier):
+    def get_configuration_by_name(name, domain):
         """
         Loads a configuration item based on its id.
         """
         context = get_application_context()
 
-        if context == 'normal':
-            return SiteConfigurationManager.get_test_configuration_by_id(
-                    identifier)
-        elif context == 'test':
-            return SiteConfigurationManager.get_real_configuration_by_id(
-                    identifier)
+        if context == CONTEXT_NORMAL:
+            return SiteConfigurationManager.get_test_configuration_by_name(
+                    name, domain)
+        elif context == CONTEXT_TEST:
+            return SiteConfigurationManager.get_real_configuration_by_name(
+                    name, domain)
         else:
             return None
 
     @staticmethod
-    def get_test_configuration_by_id(identifier):
+    def get_test_configuration_by_name(name, domain):
         """
         If test context is enabled, returns a test configuration set.
         """
-        return get_test_configuration(identifier)
+        return get_test_configuration(name, domain)
 
     @staticmethod
-    def get_real_configuration_by_id(identifier):
+    def get_real_configuration_by_name(name, domain):
         """
         If test context is enabled, returns the real configuration set.
         """
-        return get_test_configuration(identifier)
+        return get_test_configuration(name, domain)
 
     @staticmethod
     def get_configuration_all():
@@ -237,7 +238,8 @@ class SiteConfigurationManager(object):
         configurations = []
 
         for identifier in range(10):
-            configurations.append(get_test_configuration(identifier))
+            configurations.append(
+                get_test_configuration("name%s" % identifier, None))
 
         return configurations
 
@@ -247,12 +249,7 @@ class SiteConfigurationManager(object):
         Returns the list of all configuration set contained in the
         configuration repository
         """
-        configurations = []
-
-        for identifier in range(10):
-            configurations.append(get_test_configuration(identifier))
-
-        return configurations
+        return SiteConfigurationManager.get_test_configuration_all()
 
 if __name__ == "__main__":
     import doctest

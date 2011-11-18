@@ -59,7 +59,9 @@ class DetailMainPresentationAgent(GtkBasePresentationAgent):
         """
         Signal handler associated with the submit action
         """
-        self.notify_action_activated(ActionActivatedEvent('submit'))
+        self.notify_action_activated(
+            ActionActivatedEvent('submit',
+                                 {'configuration': self._configuration}))
 
     def on_cancel_activate(self, widget):
         """

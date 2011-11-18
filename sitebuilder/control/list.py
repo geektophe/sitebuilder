@@ -7,6 +7,8 @@ from sitebuilder.presentation.gtk.list import ListPresentationAgent
 from sitebuilder.control.detail import DetailMainControlAgent
 from sitebuilder.abstraction.site.manager import SiteConfigurationManager
 from sitebuilder.observer.action import ActionActivatedObserver
+from sitebuilder.utils.parameters import ACTION_ADD, ACTION_VIEW
+from sitebuilder.utils.parameters import ACTION_EDIT, ACTION_DELETE
 import gtk
 
 
@@ -29,23 +31,23 @@ class ListControlAgent(ActionActivatedObserver):
         action = event.get_name()
 
         # Handles add action that do nat need any parameter
-        if action == 'add':
+        if action == ACTION_ADD:
             self.add_site()
             return
 
         # Checks that ids parameter is correctly set in event parameters
         parms = event.get_parameters()
 
-        if not parms.has_key('ids'):
-            raise AttributeError('ids parameter is not set in action parameters')
+        if not parms.has_key('sites'):
+            raise AttributeError('sites parameter is not set in action parameters')
 
         # Handles view action
-        if action == 'view':
-            self.view_selected_sites(parms['ids'])
-        elif action == 'edit':
-            self.edit_selected_sites(parms['ids'])
-        elif action == 'delete':
-            self.delete_selected_sites(parms['ids'])
+        if action == ACTION_VIEW:
+            self.view_selected_sites(parms['sites'])
+        elif action == ACTION_EDIT:
+            self.edit_selected_sites(parms['sites'])
+        elif action == ACTION_DELETE:
+            self.delete_selected_sites(parms['sites'])
         else:
             raise NotImplementedError("Unhandled action %d triggered" % action)
 
@@ -99,24 +101,27 @@ class ListControlAgent(ActionActivatedObserver):
         """
         Display detail dialog in view mode for each selected configuration id
         """
-        for identifier in selection:
-            configuration = SiteConfigurationManager.get_configuration_by_id(identifier)
+        for name, domain in selection:
+            configuration = SiteConfigurationManager.get_configuration_by_name(
+                name, domain)
             self.show_detail_dialog(configuration, True)
 
     def edit_selected_sites(self, selection):
         """
         Display detail dialog in edit mode for each selected configuration id
         """
-        for identifier in selection:
-            configuration = SiteConfigurationManager.get_configuration_by_id(identifier)
+        for name, domain in selection:
+            configuration = SiteConfigurationManager.get_configuration_by_name(
+                name, domain)
             self.show_detail_dialog(configuration)
 
     def delete_selected_sites(self, selection):
         """
         Display delete dialog for each selected configuration id
         """
-        for identifier in selection:
-            configuration = SiteConfigurationManager.get_configuration_by_id(identifier)
+        for name, domain in selection:
+            configuration = SiteConfigurationManager.get_configuration_by_name(
+                name, domain)
             self.show_delete_dialog(configuration)
 
     def destroy(self):

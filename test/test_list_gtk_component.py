@@ -73,17 +73,18 @@ class TestGtkListPresentationAgent(unittest.TestCase):
             configuration = configurations[i]
             row = model[i]
 
-            conf_fqdn = "%s.%s" % (
-                configuration.dnshost.name,
-                configuration.dnshost.domain)
+            conf_name = configuration.dnshost.name
+            conf_domain = configuration.dnshost.domain
             conf_plat = configuration.dnshost.platform
             conf_desc = configuration.dnshost.description
 
-            row_fqdn = row[1]
+            row_name = row[0]
+            row_domain = row[1]
             row_plat = row[2]
             row_desc = row[3]
 
-            self.assertEquals(conf_fqdn, row_fqdn)
+            self.assertEquals(conf_name, row_name)
+            self.assertEquals(conf_domain, row_domain)
             self.assertEquals(conf_plat, row_plat)
             self.assertEquals(conf_desc, row_desc)
 

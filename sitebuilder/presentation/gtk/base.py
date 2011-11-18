@@ -169,7 +169,6 @@ class GtkBasePresentationAgent(ValidityChangedSubject,
         """
         value = widget.get_text()
 
-        # TODO: implement our own set of exceptions rather than using Zope's
         try:
             self.get_control_agent().set_attribute_value(attr_name, value)
             widget.set_tooltip_text('')

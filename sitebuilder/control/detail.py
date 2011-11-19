@@ -10,6 +10,7 @@ from sitebuilder.presentation.gtk.detail import DetailSitePresentationAgent
 from sitebuilder.presentation.gtk.detail import DetailRepositoryPresentationAgent
 from sitebuilder.abstraction.site.manager import SiteConfigurationManager
 from sitebuilder.control.base import BaseControlAgent
+from sitebuilder.utils.parameters import ACTION_SUBMIT, ACTION_CANCEL
 import gtk
 
 class DetailMainControlAgent(BaseControlAgent):
@@ -62,11 +63,11 @@ class DetailMainControlAgent(BaseControlAgent):
         """
         action = event.get_name()
 
-        if action == "submit":
+        if action == ACTION_SUBMIT:
             # Informs upper component from the submit action
             # Adds site as parameter to event
             self.submit()
-        elif action == "cancel":
+        elif action == ACTION_CANCEL:
             # No need to inform upper component
             self.cancel()
         else:

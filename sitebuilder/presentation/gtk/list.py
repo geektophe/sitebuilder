@@ -56,16 +56,15 @@ class ListPresentationAgent(GtkBasePresentationAgent):
 
     def load_widgets_data(self):
         """
-        Loads configuration items data into widgets
+        Loads site items data into widgets
         """
 
         # Appends items to the site_list
         model = self['site_list'].get_model()
         model.clear()
-        sites = self.get_control_agent().get_configuration_all()
+        hosts = self.get_control_agent().lookup_site_by_name("*", "*")
 
-        for site in sites:
-            dnshost = site.dnshost
+        for dnshost in hosts:
             name = dnshost.name
             domain = dnshost.domain
             platform = dnshost.platform
@@ -74,9 +73,9 @@ class ListPresentationAgent(GtkBasePresentationAgent):
 
     def get_selected_items(self):
         """
-        Returns the selected configuration identifier.
+        Returns the selected site identifier.
 
-        As the treeview component used to display configuration list
+        As the treeview component used to display site list
         behaves exactly as a combobox item (thay share the same internal
         model), we may use the GtkBasePresentationAgent get_combobox_selection method
         to read it.

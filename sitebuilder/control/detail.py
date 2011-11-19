@@ -17,41 +17,41 @@ class DetailMainControlAgent(BaseControlAgent):
     Site details main interface's control agent
     """
 
-    def __init__(self, configuration, read_only):
+    def __init__(self, site, read_only):
         """
         ControlAgent initialization
         """
         BaseControlAgent.__init__(self)
-        self.set_configuration(configuration)
+        self.set_site(site)
         self.set_read_only_flag(read_only)
         presentation_agent = DetailMainPresentationAgent(self)
         presentation_agent.register_action_activated_observer(self)
         # Main detail presentation agent has no reason to listen to changed
         # attribute events. Disabled.
-        # configuration.register_attribute_changed_observer(presentation_agent)
+        # site.register_attribute_changed_observer(presentation_agent)
         self.set_presentation_agent(presentation_agent)
         self._slaves = []
 
         # Creates general component
-        slave = DetailDNSHostControlAgent(configuration.dnshost, read_only)
+        slave = DetailDNSHostControlAgent(site.dnshost, read_only)
         self._slaves.append(slave)
         self._presentation_agent.attach_slave('dnshost', 'hbox_general',
                 slave.get_presentation_agent())
 
         # Creates repository component
-        slave = DetailRepositoryControlAgent(configuration.repository, read_only)
+        slave = DetailRepositoryControlAgent(site.repository, read_only)
         self._slaves.append(slave)
         self._presentation_agent.attach_slave('repository', 'hbox_repository',
                 slave.get_presentation_agent())
 
         # Creates site component
-        slave = DetailSiteControlAgent(configuration.website, read_only)
+        slave = DetailSiteControlAgent(site.website, read_only)
         self._slaves.append(slave)
         self._presentation_agent.attach_slave('website', 'hbox_sites',
                 slave.get_presentation_agent())
 
         # Creates database component
-        slave = DetailDatabaseControlAgent(configuration.database, read_only)
+        slave = DetailDatabaseControlAgent(site.database, read_only)
         self._slaves.append(slave)
         self._presentation_agent.attach_slave('database',
                 'hbox_databases', slave.get_presentation_agent())
@@ -64,7 +64,7 @@ class DetailMainControlAgent(BaseControlAgent):
 
         if action == "submit":
             # Informs upper component from the submit action
-            # Adds configuration as parameter to event
+            # Adds site as parameter to event
             self.submit()
         elif action == "cancel":
             # No need to inform upper component
@@ -103,20 +103,20 @@ class DetailSiteControlAgent(BaseControlAgent):
     Site sub component control agent
     """
 
-    def __init__(self, configuration, read_only=False):
+    def __init__(self, site, read_only=False):
         BaseControlAgent.__init__(self)
-        self.set_configuration(configuration)
+        self.set_site(site)
         self.set_read_only_flag(read_only)
         presentation_agent = DetailSitePresentationAgent(self)
-        configuration.register_attribute_changed_observer(presentation_agent)
+        site.register_attribute_changed_observer(presentation_agent)
         self.set_presentation_agent(presentation_agent)
 
     def destroy(self):
         """
         Cleanly destroyes all components
         """
-        # Unregisters presetations view fromconfiguration
-        self.get_configuration().remove_attribute_changed_observer(
+        # Unregisters presetations view from site
+        self.get_site().remove_attribute_changed_observer(
             self.get_presentation_agent())
         BaseControlAgent.destroy(self)
 
@@ -126,20 +126,20 @@ class DetailDatabaseControlAgent(BaseControlAgent):
     Database sub component control agent
     """
 
-    def __init__(self, configuration, read_only=False):
+    def __init__(self, site, read_only=False):
         BaseControlAgent.__init__(self)
-        self.set_configuration(configuration)
+        self.set_site(site)
         self.set_read_only_flag(read_only)
         presentation_agent = DetailDatabasePresentationAgent(self)
-        configuration.register_attribute_changed_observer(presentation_agent)
+        site.register_attribute_changed_observer(presentation_agent)
         self.set_presentation_agent(presentation_agent)
 
     def destroy(self):
         """
         Cleanly destroyes all components
         """
-        # Unregisters presetations view fromconfiguration
-        self.get_configuration().remove_attribute_changed_observer(
+        # Unregisters presetations view from site
+        self.get_site().remove_attribute_changed_observer(
             self.get_presentation_agent())
         BaseControlAgent.destroy(self)
 
@@ -149,20 +149,20 @@ class DetailRepositoryControlAgent(BaseControlAgent):
     Repository sub component control agent
     """
 
-    def __init__(self, configuration, read_only=False):
+    def __init__(self, site, read_only=False):
         BaseControlAgent.__init__(self)
-        self.set_configuration(configuration)
+        self.set_site(site)
         self.set_read_only_flag(read_only)
         presentation_agent = DetailRepositoryPresentationAgent(self)
-        configuration.register_attribute_changed_observer(presentation_agent)
+        site.register_attribute_changed_observer(presentation_agent)
         self.set_presentation_agent(presentation_agent)
 
     def destroy(self):
         """
         Cleanly destroyes all components
         """
-        # Unregisters presetations view fromconfiguration
-        self.get_configuration().remove_attribute_changed_observer(
+        # Unregisters presetations view from site
+        self.get_site().remove_attribute_changed_observer(
             self.get_presentation_agent())
         BaseControlAgent.destroy(self)
 
@@ -172,25 +172,25 @@ class DetailDNSHostControlAgent(BaseControlAgent):
     DNSHost sub component control agent
     """
 
-    def __init__(self, configuration, read_only=False):
+    def __init__(self, site, read_only=False):
         BaseControlAgent.__init__(self)
-        self.set_configuration(configuration)
+        self.set_site(site)
         self.set_read_only_flag(read_only)
         presentation_agent = DetailDNSHostPresentationAgent(self)
-        configuration.register_attribute_changed_observer(presentation_agent)
+        site.register_attribute_changed_observer(presentation_agent)
         self.set_presentation_agent(presentation_agent)
 
     def destroy(self):
         """
         Cleanly destroyes all components
         """
-        # Unregisters presetations view fromconfiguration
-        self.get_configuration().remove_attribute_changed_observer(
+        # Unregisters presetations view from site
+        self.get_site().remove_attribute_changed_observer(
             self.get_presentation_agent())
         BaseControlAgent.destroy(self)
 
 if __name__ == '__main__':
-    config = SiteConfigurationManager.get_blank_configuration()
+    config = SiteConfigurationManager.get_blank_site()
     control = DetailMainControlAgent(config, False)
     presentation = control.get_presentation_agent()
     presentation.get_toplevel().connect("destroy", gtk.main_quit)

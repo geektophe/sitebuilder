@@ -58,27 +58,27 @@ class BaseControlAgent(ActionActivatedObserver):
         """
         return self._presentation_agent
 
-    def set_configuration(self, configuration):
+    def set_site(self, site):
         """
         Returns local PresentationAgent implementation instance
         """
-        # TODO: perform instance check on configuration
-        self._configuration = configuration
+        # TODO: perform instance check on site
+        self._site = site
 
-    def get_configuration(self):
+    def get_site(self):
         """
-        Returns configuration instance
+        Returns site instance
         """
-        return self._configuration
+        return self._site
 
     def get_attribute_value(self, name):
         """
-        Returns a configuration attribute value
+        Returns a site attribute value
 
         As views do not allow None values, an empty string is returnd in place
         """
         # TODO: check that presentation agent instance has been initialized
-        value = getattr(self._configuration, name)
+        value = getattr(self._site, name)
 
         if value is not None:
             return value
@@ -87,13 +87,13 @@ class BaseControlAgent(ActionActivatedObserver):
 
     def set_attribute_value(self, name, value):
         """
-        Returns a configuration attribute value
+        Returns a site attribute value
         """
         try:
-            setattr(self._configuration, name, value)
+            setattr(self._site, name, value)
         except ValidationError, e:
 
-            for interface in providedBy(self._configuration):
+            for interface in providedBy(self._site):
                 field = interface.get(name)
 
                 if field is not None:

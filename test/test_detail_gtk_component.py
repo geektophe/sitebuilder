@@ -26,7 +26,7 @@ class BaseTestGtkPresentationAgent(unittest.TestCase):
     def assert_widgets_active_flag(self, presentation_agent, flags):
         """
         Checks that widgets active flag is set as of values dctionnary
-        configuraiton.
+        site.
         """
         for name, flag in flags.items():
             self.assertEquals(presentation_agent[name].get_active(), flag,
@@ -35,7 +35,7 @@ class BaseTestGtkPresentationAgent(unittest.TestCase):
     def assert_widgets_sensitive_flag(self, presentation_agent, flags):
         """
         Checks that widgets active flag is set as of values dctionnary
-        configuraiton.
+        site.
         """
 
         for name, flag in flags.items():
@@ -76,16 +76,16 @@ class TestDetailSiteGtkPresentationAgent(BaseTestGtkPresentationAgent):
         """
         Tests site detail component's presentation_agent initial state
         """
-        config = SiteConfigurationManager.get_blank_configuration()
-        website = config.website
+        site = SiteConfigurationManager.get_blank_site()
+        website = site.website
         self.detail_website_state_test(website)
 
     def test_detail_website_enabled_state(self):
         """
         Tests site detail component's presentation_agent in done state
         """
-        config = SiteConfigurationManager.get_blank_configuration()
-        website = config.website
+        site = SiteConfigurationManager.get_blank_site()
+        website = site.website
         website.enabled = True
         self.detail_website_state_test(website)
 
@@ -93,8 +93,8 @@ class TestDetailSiteGtkPresentationAgent(BaseTestGtkPresentationAgent):
         """
         Tests site detail component's presentation_agent in done state
         """
-        config = SiteConfigurationManager.get_blank_configuration()
-        website = config.website
+        site = SiteConfigurationManager.get_blank_site()
+        website = site.website
         website.enabled = True
         website.done = True
         self.detail_website_state_test(website)
@@ -105,8 +105,8 @@ class TestDetailSiteGtkPresentationAgent(BaseTestGtkPresentationAgent):
         expected, and that abstraction attributes are set correspondingly to
         GUI actions.
         """
-        config = SiteConfigurationManager.get_blank_configuration()
-        website = config.website
+        site = SiteConfigurationManager.get_blank_site()
+        website = site.website
         control_agent = DetailSiteControlAgent(website)
         presentation_agent = control_agent.get_presentation_agent()
         refresh_gui()
@@ -147,8 +147,8 @@ class TestDetailSiteGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests that site detail component's abstractions changes are correctly
         reported to GUI.
         """
-        config = SiteConfigurationManager.get_blank_configuration()
-        website = config.website
+        site = SiteConfigurationManager.get_blank_site()
+        website = site.website
         control_agent = DetailSiteControlAgent(website)
         presentation_agent = control_agent.get_presentation_agent()
         refresh_gui()
@@ -202,8 +202,8 @@ class TestDetailSiteGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests that site detail component's abstractions changes are correctly
         reported to GUI.
         """
-        config = SiteConfigurationManager.get_blank_configuration()
-        website = config.website
+        site = SiteConfigurationManager.get_blank_site()
+        website = site.website
         control_agent = DetailSiteControlAgent(website, read_only=True)
         presentation_agent = control_agent.get_presentation_agent()
         refresh_gui()
@@ -249,16 +249,16 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
         """
         Tests site detail component's presentation_agent initial state
         """
-        config = SiteConfigurationManager.get_blank_configuration()
-        database = config.database
+        site = SiteConfigurationManager.get_blank_site()
+        database = site.database
         self.detail_database_state_test(database)
 
     def test_detail_database_enabled_state(self):
         """
         Tests site detail component's presentation_agent n done state
         """
-        config = SiteConfigurationManager.get_blank_configuration()
-        database = config.database
+        site = SiteConfigurationManager.get_blank_site()
+        database = site.database
         database.enabled = True
         self.detail_database_state_test(database)
 
@@ -266,8 +266,8 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
         """
         Tests site detail component's presentation_agent n done state
         """
-        config = SiteConfigurationManager.get_blank_configuration()
-        database = config.database
+        site = SiteConfigurationManager.get_blank_site()
+        database = site.database
         database.enabled = True
         database.done = True
         self.detail_database_state_test(database)
@@ -278,8 +278,8 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
         expected, and that abstraction attributes are set correspondingly to
         GUI actions.
         """
-        config = SiteConfigurationManager.get_blank_configuration()
-        database = config.database
+        site = SiteConfigurationManager.get_blank_site()
+        database = site.database
         control_agent = DetailDatabaseControlAgent(database)
         presentation_agent = control_agent.get_presentation_agent()
         presentation_agent['enabled'].set_active(True)
@@ -328,8 +328,8 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests that database detail component's abstractions changes are
         correctly reported to GUI.
         """
-        config = SiteConfigurationManager.get_blank_configuration()
-        database = config.database
+        site = SiteConfigurationManager.get_blank_site()
+        database = site.database
         control_agent = DetailDatabaseControlAgent(database)
         presentation_agent = control_agent.get_presentation_agent()
         database.enabled = True
@@ -385,8 +385,8 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests that database detail component's abstractions changes are
         correctly reported to GUI.
         """
-        config = SiteConfigurationManager.get_blank_configuration()
-        database = config.database
+        site = SiteConfigurationManager.get_blank_site()
+        database = site.database
         control_agent = DetailDatabaseControlAgent(database, read_only=True)
         presentation_agent = control_agent.get_presentation_agent()
         refresh_gui()
@@ -406,8 +406,8 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests that the validity flag is correctly set and unset when a
         component's widget value is set to a correct and incorrect value.
         """
-        config = SiteConfigurationManager.get_blank_configuration()
-        database = config.database
+        site = SiteConfigurationManager.get_blank_site()
+        database = site.database
         control_agent = DetailDatabaseControlAgent(database, read_only=True)
         presentation_agent = control_agent.get_presentation_agent()
         database.enabled = True
@@ -456,16 +456,16 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
         """
         Tests repo detail component's presentation_agent initial state
         """
-        config = SiteConfigurationManager.get_blank_configuration()
-        repo = config.repository
+        site = SiteConfigurationManager.get_blank_site()
+        repo = site.repository
         self.detail_repository_state_test(repo)
 
     def test_detail_repository_enabled_state(self):
         """
         Tests repo detail component's presentation_agent initial state
         """
-        config = SiteConfigurationManager.get_blank_configuration()
-        repo = config.repository
+        site = SiteConfigurationManager.get_blank_site()
+        repo = site.repository
         repo.enabled = True
         self.detail_repository_state_test(repo)
 
@@ -473,8 +473,8 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
         """
         Tests repo detail component's presentation_agent initial state
         """
-        config = SiteConfigurationManager.get_blank_configuration()
-        repo = config.repository
+        site = SiteConfigurationManager.get_blank_site()
+        repo = site.repository
         repo.enabled = True
         repo.done = True
         self.detail_repository_state_test(repo)
@@ -485,8 +485,8 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
         expected, and that abstraction attributes are set correspondingly to
         GUI actions.
         """
-        config = SiteConfigurationManager.get_blank_configuration()
-        repo = config.repository
+        site = SiteConfigurationManager.get_blank_site()
+        repo = site.repository
         control_agent = DetailRepositoryControlAgent(repo)
         presentation_agent = control_agent.get_presentation_agent()
         refresh_gui()
@@ -525,8 +525,8 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests that repo detail component's abstractions changes are
         correctly reported to GUI.
         """
-        config = SiteConfigurationManager.get_blank_configuration()
-        repo = config.repository
+        site = SiteConfigurationManager.get_blank_site()
+        repo = site.repository
         control_agent = DetailRepositoryControlAgent(repo)
         presentation_agent = control_agent.get_presentation_agent()
         repo.enabled = True
@@ -578,8 +578,8 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests that database detail component's abstractions changes are
         correctly reported to GUI.
         """
-        config = SiteConfigurationManager.get_blank_configuration()
-        repo = config.repository
+        site = SiteConfigurationManager.get_blank_site()
+        repo = site.repository
         control_agent = DetailRepositoryControlAgent(repo, read_only=True)
         presentation_agent = control_agent.get_presentation_agent()
         refresh_gui()
@@ -597,8 +597,8 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests that the validity flag is correctly set and unset when a
         component's widget value is set to a correct and incorrect value.
         """
-        config = SiteConfigurationManager.get_blank_configuration()
-        repo = config.repository
+        site = SiteConfigurationManager.get_blank_site()
+        repo = site.repository
         control_agent = DetailRepositoryControlAgent(repo, read_only=True)
         presentation_agent = control_agent.get_presentation_agent()
         repo.enabled = True
@@ -622,8 +622,8 @@ class TestDetailDNSHostGtkPresentationAgent(BaseTestGtkPresentationAgent):
         """
         Tests repository detail component's presentation_agent initial state
         """
-        config = SiteConfigurationManager.get_configuration_by_id(1)
-        dnshost = config.dnshost
+        site = SiteConfigurationManager.get_site_by_name('name1', None)
+        dnshost = site.dnshost
         control_agent = DetailDNSHostControlAgent(dnshost)
         presentation_agent = control_agent.get_presentation_agent()
         refresh_gui()
@@ -641,8 +641,8 @@ class TestDetailDNSHostGtkPresentationAgent(BaseTestGtkPresentationAgent):
         """
         Tests dnshost detail component's presentation agent in done state
         """
-        config = SiteConfigurationManager.get_configuration_by_id(1)
-        dnshost = config.dnshost
+        site = SiteConfigurationManager.get_site_by_name('name1', None)
+        dnshost = site.dnshost
         dnshost.done = True
         control_agent = DetailDNSHostControlAgent(dnshost)
         presentation_agent = control_agent.get_presentation_agent()
@@ -663,8 +663,8 @@ class TestDetailDNSHostGtkPresentationAgent(BaseTestGtkPresentationAgent):
         expected, and that abstraction attributes are set correspondingly to
         GUI actions.
         """
-        config = SiteConfigurationManager.get_blank_configuration()
-        dnshost = config.dnshost
+        site = SiteConfigurationManager.get_blank_site()
+        dnshost = site.dnshost
         control_agent = DetailDNSHostControlAgent(dnshost)
         presentation_agent = control_agent.get_presentation_agent()
         refresh_gui()
@@ -693,8 +693,8 @@ class TestDetailDNSHostGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests that database detail component's abstractions changes are
         correctly reported to GUI.
         """
-        config = SiteConfigurationManager.get_blank_configuration()
-        dnshost = config.dnshost
+        site = SiteConfigurationManager.get_blank_site()
+        dnshost = site.dnshost
         control_agent = DetailDNSHostControlAgent(dnshost)
         presentation_agent = control_agent.get_presentation_agent()
         refresh_gui()
@@ -745,8 +745,8 @@ class TestDetailDNSHostGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests that database detail component's abstractions changes are
         correctly reported to GUI.
         """
-        config = SiteConfigurationManager.get_blank_configuration()
-        dnshost = config.dnshost
+        site = SiteConfigurationManager.get_blank_site()
+        dnshost = site.dnshost
         control_agent = DetailDNSHostControlAgent(dnshost, read_only=True)
         presentation_agent = control_agent.get_presentation_agent()
         refresh_gui()
@@ -765,8 +765,8 @@ class TestDetailDNSHostGtkPresentationAgent(BaseTestGtkPresentationAgent):
         Tests that the validity flag is correctly set and unset when a
         component's widget value is set to a correct and incorrect value.
         """
-        config = SiteConfigurationManager.get_blank_configuration()
-        dnshost = config.dnshost
+        site = SiteConfigurationManager.get_blank_site()
+        dnshost = site.dnshost
         control_agent = DetailDNSHostControlAgent(dnshost)
         presentation_agent = control_agent.get_presentation_agent()
 

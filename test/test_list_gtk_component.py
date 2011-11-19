@@ -23,25 +23,25 @@ class ListTestControlAgent(ListControlAgent):
         self._detail_dialog_data = ()
         self._detail_delete_id = None
 
-    def show_detail_dialog(self, configuration, read_only=False):
+    def show_detail_dialog(self, site, read_only=False):
         """
-        Shows detail dialog for the specified configuration
+        Shows detail dialog for the specified site
         """
-        self._detail_dialog_data = (configuration, read_only)
+        self._detail_dialog_data = (site, read_only)
 
     def show_delete_dialog(self, confid):
         """
-        Shows detail dialog for the specified configuration
+        Shows detail dialog for the specified site
         """
         self._detail_delete_id = confid
 
-    def get_detail_configuration_data(self):
+    def get_detail_site_data(self):
         """
         Returns data that should have been passed to detail main control agent
         """
         return self._detail_dialog_data
 
-    def get_delete_configuration_data(self):
+    def get_delete_site_data(self):
         """
         Returns data that should have been passed to detail main control agent
         """
@@ -57,26 +57,26 @@ class TestGtkListPresentationAgent(unittest.TestCase):
         """
         set_application_context('test')
 
-    def test_list_configuration_content(self):
+    def test_list_site_content(self):
         """
-        Tests that test configuration is correctly loaded into interface's
+        Tests that test site is correctly loaded into interface's
         treeview component
         """
         control_agent = ListTestControlAgent()
         presentation_agent = control_agent.get_presentation_agent()
         model = presentation_agent['site_list'].get_model()
 
-        configurations = SiteConfigurationManager.get_configuration_all()
-        self.assertEquals(len(configurations), len(model))
+        sites = SiteConfigurationManager.lookup_site_by_name("*", "*")
+        self.assertEquals(len(sites), len(model))
 
-        for i in range(len(configurations)):
-            configuration = configurations[i]
+        for i in range(len(sites)):
+            dnshost = sites[i]
             row = model[i]
 
-            conf_name = configuration.dnshost.name
-            conf_domain = configuration.dnshost.domain
-            conf_plat = configuration.dnshost.platform
-            conf_desc = configuration.dnshost.description
+            conf_name = dnshost.name
+            conf_domain = dnshost.domain
+            conf_plat = dnshost.platform
+            conf_desc = dnshost.description
 
             row_name = row[0]
             row_domain = row[1]
@@ -97,7 +97,7 @@ class TestGtkListPresentationAgent(unittest.TestCase):
         presentation_agent = control_agent.get_presentation_agent()
         presentation_agent['add'].activate()
         refresh_gui()
-        configuration, read_only = control_agent.get_detail_configuration_data()
+        site, read_only = control_agent.get_detail_site_data()
         self.assertFalse(read_only)
 
     def test_list_view_action(self):
@@ -111,22 +111,22 @@ class TestGtkListPresentationAgent(unittest.TestCase):
         presentation_agent['site_list'].get_selection().select_path((row,))
         presentation_agent['view'].activate()
         refresh_gui()
-        configuration, read_only = control_agent.get_detail_configuration_data()
+        site, read_only = control_agent.get_detail_site_data()
 
         conf_fqdn = "%s.%s" % (
-            configuration.dnshost.name,
-            configuration.dnshost.domain)
+            site.dnshost.name,
+            site.dnshost.domain)
 
-        testconf = SiteConfigurationManager.get_configuration_all()[row]
+        testconf = SiteConfigurationManager.lookup_site_by_name("*", "*")[row]
 
         test_fqdn = "%s.%s" % (
-            testconf.dnshost.name,
-            testconf.dnshost.domain)
+            testconf.name,
+            testconf.domain)
 
         self.assertEquals(conf_fqdn, test_fqdn)
         self.assertTrue(read_only)
 
-    def test_list_edit_action(self):
+def test_list_edit_action(self):
         """
         Tests that the correct parameters are sent by control agent when add
         action is activated.
@@ -137,13 +137,13 @@ class TestGtkListPresentationAgent(unittest.TestCase):
         presentation_agent['site_list'].get_selection().select_path((row,))
         presentation_agent['edit'].activate()
         refresh_gui()
-        configuration, read_only = control_agent.get_detail_configuration_data()
+        site, read_only = control_agent.get_detail_site_data()
 
         conf_fqdn = "%s.%s" % (
-            configuration.dnshost.name,
-            configuration.dnshost.domain)
+            site.dnshost.name,
+            site.dnshost.domain)
 
-        testconf = SiteConfigurationManager.get_configuration_all()[row]
+        testconf = SiteConfigurationManager.lookup_site_by_name("*", "*")[row]
 
         test_fqdn = "%s.%s" % (
             testconf.dnshost.name,

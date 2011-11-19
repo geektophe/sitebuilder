@@ -12,8 +12,8 @@ from sitebuilder.abstraction.site.object import Site
 
 def get_default_config_data():
     """
-    Generates the default configuration used to initialize internal
-    configuration structures
+    Generates the default site used to initialize internal
+    site structures
     """
     return {
         # General attributes
@@ -64,66 +64,12 @@ def get_default_config_data():
         }
 
 
-def get_default_config_object():
+def get_test_site(name, domain):
     """
     Generates the default configuration used to initialize internal
-    configuration structures
+    site structures
     """
-    return {
-        # General attributes
-        'general' : {
-            'id' : (None, int, 'Id should be a number'),
-            'platform' : (SiteDefaultsManager.get_default_platform(),
-                          SiteDefaultsManager.get_platforms().keys(),
-                          'Unknown platform'),
-            'domain' : (SiteDefaultsManager.get_default_domain(),
-                        SiteDefaultsManager.get_domains().keys(),
-                        'Unknown domain'),
-            'name' : ('', '^[\d\w_-]*$', 'Name should be an alphanumeric string'),
-            'description' : ('', None),
-            'done' : (False, bool),
-            },
-        # Repository related attriutes
-        'repository' : {
-            'enabled' : (False, bool),
-            'type' : (SiteDefaultsManager.get_default_repository_type(),
-                      SiteDefaultsManager.get_repository_types().keys(),
-                      'Unsupported RCS type'),
-            'name' : ('', '^[\d\w_-]*$', 'Name should be an alphanumeric string or _, without spaces'),
-            'done' : (False, bool)
-            },
-        # Sites related attributes (for each available platform)
-        'website' : {
-            'enabled' : (False, bool),
-            'access' : (SiteDefaultsManager.get_default_site_access(),
-                        SiteDefaultsManager.get_site_accesses().keys(),
-                        'Unsupported access'),
-            'maintenance' : (False, bool),
-            'template' : ('standard',
-                          SiteDefaultsManager.get_site_templates().keys(),
-                          'Unsupported site template'),
-            'done' : (False, bool)
-            },
-        # Databases related attributes (for each available platform)
-        'database' : {
-            'enabled' : (False, bool),
-            'type' : (SiteDefaultsManager.get_default_database_type(),
-                      SiteDefaultsManager.get_database_types().keys(),
-                      'Unsupported database type'),
-            'name' : ('', '^[a-z0-9_]+$', 'Name should be a simple alphanumeric string without spaces'),
-            'username' : ('', '^[a-z0-9_]+$', 'Username should be a simple alphanumeric string without spaces'),
-            'password' : ('', None),
-            'done' : (False, bool)
-            },
-        }
-
-
-def get_test_configuration(name, domain):
-    """
-    Generates the default configuration used to initialize internal
-    configuration structures
-    """
-    config = SiteConfigurationManager.get_blank_configuration()
+    config = SiteConfigurationManager.get_blank_site()
 
     config.dnshost.name = name
     config.dnshost.description = 'desc_%s' % name
@@ -144,9 +90,22 @@ def get_test_configuration(name, domain):
     return config
 
 
+def get_test_sites():
+    """
+    Returns a list of test site set
+    """
+    sites = []
+
+    for identifier in range(10):
+        sites.append(
+            get_test_site("name%s" % identifier, None).dnshost)
+
+    return sites
+
+
 class SiteConfigurationManager(object):
     """
-    Configuration class that handles configuration read an write operations
+    Configuration class that handles site read an write operations
     relative to sitebuilder queries.
 
     It gives informations on queries themselves, but also on certain
@@ -172,84 +131,50 @@ class SiteConfigurationManager(object):
         raise NotImplementedError("Oops. Copy not allowed")
 
     @staticmethod
-    def get_blank_configuration():
+    def get_blank_site():
         """
-        Returns a new blank configuration item.
+        Returns a new blank site item.
         """
         return Site()
 
     @staticmethod
-    def get_test_configuration(name, domain):
+    def get_site_by_name(name, domain):
         """
-        Returns a new blank configuration item.
-        """
-        return get_test_configuration(name, None)
-
-    @staticmethod
-    def get_configuration_by_name(name, domain):
-        """
-        Loads a configuration item based on its id.
+        Loads a site item based on its name and domain. It returns a complete
+        and unique site fully defined using backend driver.
         """
         context = get_application_context()
 
         if context == CONTEXT_NORMAL:
-            return SiteConfigurationManager.get_test_configuration_by_name(
-                    name, domain)
+            # TODO: implement site backend management
+            return get_test_site(name, domain)
         elif context == CONTEXT_TEST:
-            return SiteConfigurationManager.get_real_configuration_by_name(
-                    name, domain)
+            # TODO: implement site backend management
+            return get_test_site(name, domain)
         else:
             return None
 
     @staticmethod
-    def get_test_configuration_by_name(name, domain):
+    def lookup_site_by_name(name, domain):
         """
-        If test context is enabled, returns a test configuration set.
-        """
-        return get_test_configuration(name, domain)
+        Looks for sites using name and domain as search filter.
 
-    @staticmethod
-    def get_real_configuration_by_name(name, domain):
-        """
-        If test context is enabled, returns the real configuration set.
-        """
-        return get_test_configuration(name, domain)
+        It only loads the subset of sites definition necessary to display
+        sites list. Only DNSHost site subset is returned.
 
-    @staticmethod
-    def get_configuration_all():
-        """
-        Loads all configureation items contained in the configuration
-        repository
+        To get fully loaded sites later, use get_site_by_name method.
         """
         context = get_application_context()
 
-        if context == 'normal':
-            return SiteConfigurationManager.get_test_configuration_all()
-        elif context == 'test':
-            return SiteConfigurationManager.get_real_configuration_all()
+        if context == CONTEXT_NORMAL:
+            # TODO: implement site backend management
+            return get_test_sites()
+        elif context == CONTEXT_TEST:
+            # TODO: implement site backend management
+            return get_test_sites()
         else:
             return None
 
-    @staticmethod
-    def get_test_configuration_all():
-        """
-        Returns a list of test configuration set
-        """
-        configurations = []
-
-        for identifier in range(10):
-            configurations.append(
-                get_test_configuration("name%s" % identifier, None))
-
-        return configurations
-
-    @staticmethod
-    def get_real_configuration_all():
-        """
-        Returns the list of all configuration set contained in the
-        configuration repository
-        """
-        return SiteConfigurationManager.get_test_configuration_all()
 
 if __name__ == "__main__":
     import doctest

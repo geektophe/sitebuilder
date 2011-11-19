@@ -57,25 +57,25 @@ class ListControlAgent(ActionActivatedObserver):
         """
         return self._presentation_agent
 
-    def get_configuration_all(self):
+    def lookup_site_by_name(self, name, domain):
         """
         Retrieves all the configuraiton items from the abstraction
         """
-        return SiteConfigurationManager.get_configuration_all()
+        return SiteConfigurationManager.lookup_site_by_name(name, domain)
 
-    def show_detail_dialog(self, configuration, read_only=False):
+    def show_detail_dialog(self, site, read_only=False):
         """
-        Shows detail dialog for the specified configuration
+        Shows detail dialog for the specified site
         """
-        detail = DetailMainControlAgent(configuration, read_only)
+        detail = DetailMainControlAgent(site, read_only)
         presentation = detail.get_presentation_agent()
         presentation.show()
 
-    def show_delete_dialog(self, configuration):
+    def show_delete_dialog(self, site):
         """
-        Shows detail dialog for the specified configuration
+        Shows detail dialog for the specified site
         """
-        dnshost = configuration.dnshost
+        dnshost = site.dnshost
         conf_name = "%s.%s" % (dnshost.name, dnshost.domain)
 
         dialog = gtk.MessageDialog(
@@ -92,37 +92,37 @@ class ListControlAgent(ActionActivatedObserver):
 
     def add_site(self):
         """
-        Display detail dialog in add mode with a new site configuration
+        Display detail dialog in add mode with a new site site
         """
-        configuration = SiteConfigurationManager.get_blank_configuration()
-        self.show_detail_dialog(configuration)
+        site = SiteConfigurationManager.get_blank_site()
+        self.show_detail_dialog(site)
 
     def view_selected_sites(self, selection):
         """
-        Display detail dialog in view mode for each selected configuration id
+        Display detail dialog in view mode for each selected site id
         """
         for name, domain in selection:
-            configuration = SiteConfigurationManager.get_configuration_by_name(
+            site = SiteConfigurationManager.get_site_by_name(
                 name, domain)
-            self.show_detail_dialog(configuration, True)
+            self.show_detail_dialog(site, True)
 
     def edit_selected_sites(self, selection):
         """
-        Display detail dialog in edit mode for each selected configuration id
+        Display detail dialog in edit mode for each selected site id
         """
         for name, domain in selection:
-            configuration = SiteConfigurationManager.get_configuration_by_name(
+            site = SiteConfigurationManager.get_site_by_name(
                 name, domain)
-            self.show_detail_dialog(configuration)
+            self.show_detail_dialog(site)
 
     def delete_selected_sites(self, selection):
         """
-        Display delete dialog for each selected configuration id
+        Display delete dialog for each selected site id
         """
         for name, domain in selection:
-            configuration = SiteConfigurationManager.get_configuration_by_name(
+            site = SiteConfigurationManager.get_site_by_name(
                 name, domain)
-            self.show_delete_dialog(configuration)
+            self.show_delete_dialog(site)
 
     def destroy(self):
         """

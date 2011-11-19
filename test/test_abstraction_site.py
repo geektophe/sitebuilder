@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Test classes for abstraction.configuration moodule
+Test classes for abstraction.site moodule
 """
 
 import unittest
@@ -13,7 +13,7 @@ from zope.schema import ValidationError
 
 class Test(unittest.TestCase):
     """
-    Unist tests for configuration.
+    Unist tests for site.
     """
 
     def setUp(self):
@@ -24,16 +24,16 @@ class Test(unittest.TestCase):
 
     def test_doctests(self):
         """
-        Run configuration doctests
+        Run site doctests
         """
         #doctest.testmod(manager)
 
-    def test_default_configuration(self):
+    def test_default_site(self):
         """
-        Tests that default configuration builds correctly and that attributes
+        Tests that default site builds correctly and that attributes
         work as expected.
         """
-        config = SiteConfigurationManager.get_blank_configuration()
+        config = SiteConfigurationManager.get_blank_site()
 
         dnshost = config.dnshost
         self.assertEquals(dnshost.domain,
@@ -78,12 +78,12 @@ class Test(unittest.TestCase):
         self.assertTrue(database.type in \
                         SiteDefaultsManager.get_database_types())
 
-    def test_set_configuration(self):
+    def test_set_site(self):
         """
-        Tests that configuration attributes react as expected when setting
+        Tests that site attributes react as expected when setting
         attributes value
         """
-        config = SiteConfigurationManager.get_blank_configuration()
+        config = SiteConfigurationManager.get_blank_site()
 
         # DNS Host attributes
         dnshost = config.dnshost

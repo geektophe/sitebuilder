@@ -66,11 +66,11 @@ class TestGtkListPresentationAgent(unittest.TestCase):
         presentation_agent = control_agent.get_presentation_agent()
         model = presentation_agent['site_list'].get_model()
 
-        sites = SiteConfigurationManager.lookup_site_by_name("*", "*")
-        self.assertEquals(len(sites), len(model))
+        hosts = SiteConfigurationManager.lookup_host_by_name("*", "*")
+        self.assertEquals(len(hosts), len(model))
 
-        for i in range(len(sites)):
-            dnshost = sites[i]
+        for i in range(len(hosts)):
+            dnshost = hosts[i]
             row = model[i]
 
             conf_name = dnshost.name
@@ -117,7 +117,7 @@ class TestGtkListPresentationAgent(unittest.TestCase):
             site.dnshost.name,
             site.dnshost.domain)
 
-        testconf = SiteConfigurationManager.lookup_site_by_name("*", "*")[row]
+        testconf = SiteConfigurationManager.lookup_host_by_name("*", "*")[row]
 
         test_fqdn = "%s.%s" % (
             testconf.name,
@@ -126,7 +126,7 @@ class TestGtkListPresentationAgent(unittest.TestCase):
         self.assertEquals(conf_fqdn, test_fqdn)
         self.assertTrue(read_only)
 
-def test_list_edit_action(self):
+    def test_list_edit_action(self):
         """
         Tests that the correct parameters are sent by control agent when add
         action is activated.
@@ -143,11 +143,11 @@ def test_list_edit_action(self):
             site.dnshost.name,
             site.dnshost.domain)
 
-        testconf = SiteConfigurationManager.lookup_site_by_name("*", "*")[row]
+        testconf = SiteConfigurationManager.lookup_host_by_name("*", "*")[row]
 
         test_fqdn = "%s.%s" % (
-            testconf.dnshost.name,
-            testconf.dnshost.domain)
+            testconf.name,
+            testconf.domain)
 
         self.assertEquals(conf_fqdn, test_fqdn)
         self.assertFalse(read_only)

@@ -8,7 +8,8 @@ and delete operations.
 from sitebuilder.utils.parameters import get_application_context
 from sitebuilder.utils.parameters import CONTEXT_NORMAL, CONTEXT_TEST
 from sitebuilder.abstraction.site.defaults import SiteDefaultsManager
-from sitebuilder.abstraction.site.object import Site
+from sitebuilder.abstraction.site.factory import site_factory
+from sitebuilder.utils.driver.test import TestBackendDriver
 
 def get_default_config_data():
     """
@@ -64,44 +65,6 @@ def get_default_config_data():
         }
 
 
-def get_test_site(name, domain):
-    """
-    Generates the default configuration used to initialize internal
-    site structures
-    """
-    config = SiteConfigurationManager.get_blank_site()
-
-    config.dnshost.name = name
-    config.dnshost.description = 'desc_%s' % name
-
-    config.repository.enabled = True
-    config.repository.done = True
-
-    config.website.enabled = True
-    config.website.maintenance = True
-    config.website.done = True
-
-    config.database.enabled = True
-    config.database.name = 'db_%s' % name
-    config.database.username = 'username_%s' % name
-    config.database.password = 'password_%s' % name
-    config.database.done = True
-
-    return config
-
-
-def get_test_sites():
-    """
-    Returns a list of test site set
-    """
-    sites = []
-
-    for identifier in range(10):
-        sites.append(
-            get_test_site("name%s" % identifier, None).dnshost)
-
-    return sites
-
 
 class SiteConfigurationManager(object):
     """
@@ -131,11 +94,31 @@ class SiteConfigurationManager(object):
         raise NotImplementedError("Oops. Copy not allowed")
 
     @staticmethod
+    def _get_backend_driver():
+        """
+        Returns backend driver depending on application execution context
+        """
+        try:
+            return SiteConfigurationManager._backend_driver
+        except AttributeError:
+            context = get_application_context()
+
+            if context == CONTEXT_NORMAL:
+                driver = TestBackendDriver
+            elif context == CONTEXT_TEST:
+                driver = TestBackendDriver
+            else:
+                driver = TestBackendDriver
+
+            SiteConfigurationManager._backend_driver = driver
+            return driver
+
+    @staticmethod
     def get_blank_site():
         """
         Returns a new blank site item.
         """
-        return Site()
+        return site_factory()
 
     @staticmethod
     def get_site_by_name(name, domain):
@@ -143,37 +126,21 @@ class SiteConfigurationManager(object):
         Loads a site item based on its name and domain. It returns a complete
         and unique site fully defined using backend driver.
         """
-        context = get_application_context()
-
-        if context == CONTEXT_NORMAL:
-            # TODO: implement site backend management
-            return get_test_site(name, domain)
-        elif context == CONTEXT_TEST:
-            # TODO: implement site backend management
-            return get_test_site(name, domain)
-        else:
-            return None
+        driver = SiteConfigurationManager._get_backend_driver()
+        return driver.get_site_by_name(name, domain)
 
     @staticmethod
-    def lookup_site_by_name(name, domain):
+    def lookup_host_by_name(name, domain):
         """
         Looks for sites using name and domain as search filter.
 
         It only loads the subset of sites definition necessary to display
-        sites list. Only DNSHost site subset is returned.
+        sites list. Only DNSHost site subset attribute is returned.
 
         To get fully loaded sites later, use get_site_by_name method.
         """
-        context = get_application_context()
-
-        if context == CONTEXT_NORMAL:
-            # TODO: implement site backend management
-            return get_test_sites()
-        elif context == CONTEXT_TEST:
-            # TODO: implement site backend management
-            return get_test_sites()
-        else:
-            return None
+        driver = SiteConfigurationManager._get_backend_driver()
+        return driver.lookup_host_by_name(name, domain)
 
 
 if __name__ == "__main__":

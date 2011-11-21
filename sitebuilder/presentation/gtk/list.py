@@ -62,7 +62,7 @@ class ListPresentationAgent(GtkBasePresentationAgent):
         # Appends items to the site_list
         model = self['site_list'].get_model()
         model.clear()
-        hosts = self.get_control_agent().lookup_site_by_name("*", "*")
+        hosts = self.get_control_agent().lookup_host_by_name("*", "*")
 
         for dnshost in hosts:
             name = dnshost.name

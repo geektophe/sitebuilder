@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 """
 Site configuration objects related classes
 """

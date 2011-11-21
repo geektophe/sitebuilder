@@ -57,11 +57,11 @@ class ListControlAgent(ActionActivatedObserver):
         """
         return self._presentation_agent
 
-    def lookup_site_by_name(self, name, domain):
+    def lookup_host_by_name(self, name, domain):
         """
         Retrieves all the configuraiton items from the abstraction
         """
-        return SiteConfigurationManager.lookup_site_by_name(name, domain)
+        return SiteConfigurationManager.lookup_host_by_name(name, domain)
 
     def show_detail_dialog(self, site, read_only=False):
         """

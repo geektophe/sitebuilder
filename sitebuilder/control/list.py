@@ -6,50 +6,50 @@ Main list interface control agent
 from sitebuilder.presentation.gtk.list import ListPresentationAgent
 from sitebuilder.control.detail import DetailMainControlAgent
 from sitebuilder.abstraction.site.manager import SiteConfigurationManager
-from sitebuilder.observer.action import ActionActivatedObserver
+from sitebuilder.interfaces.action  import IActionObserver
 from sitebuilder.utils.parameters import ACTION_ADD, ACTION_VIEW
 from sitebuilder.utils.parameters import ACTION_EDIT, ACTION_DELETE
+from zope.interface import implements
 import gtk
 
 
-class ListControlAgent(ActionActivatedObserver):
+class ListControlAgent(object):
     """
     List main component control agent
     """
+    implements(IActionObserver)
 
     def __init__(self):
         """
         Initializes control agent.
         """
         self._presentation_agent = ListPresentationAgent(self)
-        self._presentation_agent.register_action_activated_observer(self)
+        self._presentation_agent.register_action_observer(self)
 
-    def action_activated(self, event=None):
+    def action_activated(self, action=None):
         """
         ActionActivatedObserver trigger mmethod local implementation
         """
-        action = event.get_name()
-
         # Handles add action that do nat need any parameter
-        if action == ACTION_ADD:
+        if action.name == ACTION_ADD:
             self.add_site()
             return
 
         # Checks that ids parameter is correctly set in event parameters
-        parms = event.get_parameters()
+        parms = action.parameters
 
         if not parms.has_key('sites'):
             raise AttributeError('sites parameter is not set in action parameters')
 
         # Handles view action
-        if action == ACTION_VIEW:
+        if action.name == ACTION_VIEW:
             self.view_selected_sites(parms['sites'])
-        elif action == ACTION_EDIT:
+        elif action.name == ACTION_EDIT:
             self.edit_selected_sites(parms['sites'])
-        elif action == ACTION_DELETE:
+        elif action.name == ACTION_DELETE:
             self.delete_selected_sites(parms['sites'])
         else:
-            raise NotImplementedError("Unhandled action %d triggered" % action)
+            raise NotImplementedError("Unhandled action %s triggered" % action)
 
     def get_presentation_agent(self):
         """
@@ -129,7 +129,7 @@ class ListControlAgent(ActionActivatedObserver):
         Cleanly destroyes components
         """
         # Destroyes presentation
-        self._presentation_agent.register_action_activated_observer(self)
+        self._presentation_agent.register_action_observer(self)
         self._presentation_agent.destroy()
 
 

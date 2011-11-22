@@ -9,14 +9,17 @@ from sitebuilder.presentation.gtk.detail import DetailDNSHostPresentationAgent
 from sitebuilder.presentation.gtk.detail import DetailSitePresentationAgent
 from sitebuilder.presentation.gtk.detail import DetailRepositoryPresentationAgent
 from sitebuilder.abstraction.site.manager import SiteConfigurationManager
+from sitebuilder.interfaces.action  import IActionObserver
 from sitebuilder.control.base import BaseControlAgent
 from sitebuilder.utils.parameters import ACTION_SUBMIT, ACTION_CANCEL
+from zope.interface import implements
 import gtk
 
 class DetailMainControlAgent(BaseControlAgent):
     """
     Site details main interface's control agent
     """
+    implements(IActionObserver)
 
     def __init__(self, site, read_only):
         """
@@ -26,10 +29,10 @@ class DetailMainControlAgent(BaseControlAgent):
         self.set_site(site)
         self.set_read_only_flag(read_only)
         presentation_agent = DetailMainPresentationAgent(self)
-        presentation_agent.register_action_activated_observer(self)
+        presentation_agent.register_action_observer(self)
         # Main detail presentation agent has no reason to listen to changed
         # attribute events. Disabled.
-        # site.register_attribute_changed_observer(presentation_agent)
+        # site.register_attribute_observer(presentation_agent)
         self.set_presentation_agent(presentation_agent)
         self._slaves = []
 
@@ -57,17 +60,15 @@ class DetailMainControlAgent(BaseControlAgent):
         self._presentation_agent.attach_slave('database',
                 'hbox_databases', slave.get_presentation_agent())
 
-    def action_activated(self, event=None):
+    def action_activated(self, action=None):
         """
         ActionPerformedObserver trigger mmethod local implementation
         """
-        action = event.get_name()
-
-        if action == ACTION_SUBMIT:
+        if action.name == ACTION_SUBMIT:
             # Informs upper component from the submit action
             # Adds site as parameter to event
             self.submit()
-        elif action == ACTION_CANCEL:
+        elif action.name == ACTION_CANCEL:
             # No need to inform upper component
             self.cancel()
         else:
@@ -91,7 +92,7 @@ class DetailMainControlAgent(BaseControlAgent):
         """
         Cleanly destroyes all components
         """
-        self.get_presentation_agent().remove_action_activated_observer(self)
+        self.get_presentation_agent().remove_action_observer(self)
         # Destroyes slave components
         for slave in self._slaves:
             slave.destroy()
@@ -109,7 +110,7 @@ class DetailSiteControlAgent(BaseControlAgent):
         self.set_site(site)
         self.set_read_only_flag(read_only)
         presentation_agent = DetailSitePresentationAgent(self)
-        site.register_attribute_changed_observer(presentation_agent)
+        site.register_attribute_observer(presentation_agent)
         self.set_presentation_agent(presentation_agent)
 
     def destroy(self):
@@ -117,7 +118,7 @@ class DetailSiteControlAgent(BaseControlAgent):
         Cleanly destroyes all components
         """
         # Unregisters presetations view from site
-        self.get_site().remove_attribute_changed_observer(
+        self.get_site().remove_attribute_observer(
             self.get_presentation_agent())
         BaseControlAgent.destroy(self)
 
@@ -132,7 +133,7 @@ class DetailDatabaseControlAgent(BaseControlAgent):
         self.set_site(site)
         self.set_read_only_flag(read_only)
         presentation_agent = DetailDatabasePresentationAgent(self)
-        site.register_attribute_changed_observer(presentation_agent)
+        site.register_attribute_observer(presentation_agent)
         self.set_presentation_agent(presentation_agent)
 
     def destroy(self):
@@ -140,7 +141,7 @@ class DetailDatabaseControlAgent(BaseControlAgent):
         Cleanly destroyes all components
         """
         # Unregisters presetations view from site
-        self.get_site().remove_attribute_changed_observer(
+        self.get_site().remove_attribute_observer(
             self.get_presentation_agent())
         BaseControlAgent.destroy(self)
 
@@ -155,7 +156,7 @@ class DetailRepositoryControlAgent(BaseControlAgent):
         self.set_site(site)
         self.set_read_only_flag(read_only)
         presentation_agent = DetailRepositoryPresentationAgent(self)
-        site.register_attribute_changed_observer(presentation_agent)
+        site.register_attribute_observer(presentation_agent)
         self.set_presentation_agent(presentation_agent)
 
     def destroy(self):
@@ -163,7 +164,7 @@ class DetailRepositoryControlAgent(BaseControlAgent):
         Cleanly destroyes all components
         """
         # Unregisters presetations view from site
-        self.get_site().remove_attribute_changed_observer(
+        self.get_site().remove_attribute_observer(
             self.get_presentation_agent())
         BaseControlAgent.destroy(self)
 
@@ -178,7 +179,7 @@ class DetailDNSHostControlAgent(BaseControlAgent):
         self.set_site(site)
         self.set_read_only_flag(read_only)
         presentation_agent = DetailDNSHostPresentationAgent(self)
-        site.register_attribute_changed_observer(presentation_agent)
+        site.register_attribute_observer(presentation_agent)
         self.set_presentation_agent(presentation_agent)
 
     def destroy(self):
@@ -186,7 +187,7 @@ class DetailDNSHostControlAgent(BaseControlAgent):
         Cleanly destroyes all components
         """
         # Unregisters presetations view from site
-        self.get_site().remove_attribute_changed_observer(
+        self.get_site().remove_attribute_observer(
             self.get_presentation_agent())
         BaseControlAgent.destroy(self)
 

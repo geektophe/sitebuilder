@@ -65,7 +65,6 @@ def get_default_config_data():
         }
 
 
-
 class SiteConfigurationManager(object):
     """
     Configuration class that handles site read an write operations
@@ -80,7 +79,6 @@ class SiteConfigurationManager(object):
     This class is to be used as a static class and then should never be
     instanciated.
     """
-
     def __init__(self):
         """
         Since it should be used as a static class, instaciation is forbdden.
@@ -108,7 +106,7 @@ class SiteConfigurationManager(object):
             elif context == CONTEXT_TEST:
                 driver = TestBackendDriver
             else:
-                driver = TestBackendDriver
+                raise RuntimeError("unknonw application context: %s" % context)
 
             SiteConfigurationManager._backend_driver = driver
             return driver

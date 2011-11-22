@@ -3,137 +3,108 @@
 Observer classes associated with the ValidityChanged events
 """
 
+from zope.interface import implements
+from zope.schema.fieldproperty import FieldProperty
+from sitebuilder.interfaces.validity import IValiditySubject, IValidityObserver
+from sitebuilder.interfaces.validity import IValidityChangedEvent
+
+
 class ValidityChangedEvent(object):
     """
     Event class used to notify a validity state changed event.
     """
+    implements(IValidityChangedEvent)
+
+    state = FieldProperty(IValidityChangedEvent['state'])
+    source_id = FieldProperty(IValidityChangedEvent['source_id'])
 
     def __init__(self, state, source_id=None):
         """
         The event takes the attribute object that has been changed as
         parameter.
         """
-        self._state = state
-        self._source_id = source_id
-
-    def get_state(self):
-        """
-        Returns attached attribute instance
-        """
-        return self._state
-
-    def get_source_id(self):
-        """
-        Returns the event source id hash. It may be used to build a matrix
-        components validity.
-        """
-        return self._source_id
+        self.state = state
+        self.source_id = source_id
 
 
-class ValidityChangedObserver(object):
+
+class ValiditySubject(object):
     """
-    Observer class that may be called when a validity state has been changed
-    and an action is needed from other components to take it in account.
+    Subject base class to handle Validity events
     """
 
-    def validity_changed(self, event=None):
-        """
-        This method has to be overridden by listeners implementations
-        """
-        raise NotImplementedError("This method has currently no " + \
-                                  "implmentation and has to be overridden")
-
-
-class ValidityChangedSubject(object):
-    """
-    Subject base class that objects may subclass to dispatch
-    'validity state changed' events.
-    """
+    implements(IValiditySubject)
 
     def __init__(self):
         """
         Subject initialization
         """
-        self._validity_changed_observers = []
+        self._validity_observers = []
 
-    def register_validity_changed_observer(self, observer):
+    def register_validity_observer(self, observer):
         """
-        Adds a ValidityChangedObserver observer object to observers list
+        Adds a ValidityObserver observer object to observers list
 
-        We may add a ValidityChangedObserver instance
+        We may add a ValidityObserver instance
 
-        >>> subject = ValidityChangedSubject()
-        >>> observer = ValidityChangedObserver()
-        >>> subject.register_validity_changed_observer(observer)
+        >>> class TestObserver(object):
+        ...     implements(IValidityObserver)
+        ...     notified = False
+        ...     def validity_changed(self, validity):
+        ...         self.notified = True
+        ...
+        >>> subject = ValiditySubject()
+        >>> observer = TestObserver()
+        >>> subject.register_validity_observer(observer)
+        >>> subject.notify_validity_changed(ValidityChangedEvent(True, 1))
+        >>> observer.notified
+        True
 
-        Adding an object that is not a ValidityChangedObserver should raise an
-        exception
+        Adding an object that does not implement IValidityObserver should raise
+        an exception
 
-        >>> subject = ValidityChangedSubject()
-        >>> subject.register_validity_changed_observer('fake')
+        >>> subject.register_validity_observer('fake')
         Traceback (most recent call last):
             ...
-        AttributeError: Listener must be an instance of ValidityChangedObserver
-        """
-        if not isinstance(observer, ValidityChangedObserver):
-            raise AttributeError(
-                "Listener must be an instance of ValidityChangedObserver")
-        self._validity_changed_observers.append(observer)
+        AttributeError: Observer should implement IValidityObserver
 
-    def remove_validity_changed_observer(self, observer):
-        """
-        Deletes a ValidityChangedObserver observer object to observers list
-        """
-        try:
-            self._validity_changed_observers.remove(observer)
-        except ValueError:
-            pass
+        Notified object should implement IValidityObserver. If not so, an
+        exception should be risen
 
-    def clear_validity_changed_observers(self):
-        """
-        Deletes all AddActionActivatedListener observers object from observers
-        list
-        """
-        del self._validity_changed_observers[:]
-
-    def notify_validity_changed(self, event=None):
-        """
-        Notifies all observers that a data has changed
-
-        As the ValidityChangedObserver instance we use for the test is only
-        used as an abstract class, the notify method should raise a
-        NotImplementedError
-
-        >>> subject = ValidityChangedSubject()
-        >>> observer = ValidityChangedObserver()
-        >>> subject.register_validity_changed_observer(observer)
-        >>> subject.notify_validity_changed()
-        Traceback (most recent call last):
-            ...
-        NotImplementedError: This method has currently no implmentation and has to be overridden
-
-        An event containing the context that triggered the event may also be
-        passed to observers
-
-        >>> event = ValidityChangedEvent('test')
-        >>> subject.notify_validity_changed(event)
-        Traceback (most recent call last):
-            ...
-        NotImplementedError: This method has currently no implmentation and has to be overridden
-
-        Using a parameter that is not an event shold raise en exception
         >>> subject.notify_validity_changed('fake')
         Traceback (most recent call last):
             ...
-        AttributeError: event parameter should be an instance of ValidityChangedEvent
+        AttributeError: event parameter should implement IValidityChandEvent
         """
-        if event is not None and not isinstance(event, ValidityChangedEvent):
-            raise AttributeError("event parameter should be an instance " + \
-                                 "of ValidityChangedEvent")
+        if not IValidityObserver.providedBy(observer):
+            raise AttributeError("Observer should implement IValidityObserver")
+        self._validity_observers.append(observer)
 
-        for observer in self._validity_changed_observers:
+    def remove_validity_observer(self, observer):
+        """
+        Deletes a ValidityObserver observer object to observers list
+        """
+        try:
+            self._validity_observers.remove(observer)
+        except ValueError:
+            pass
+
+    def clear_validity_observers(self):
+        """
+        Deletes all AddValidityListener observers object from observers
+        list
+        """
+        del self._validity_observers[:]
+
+    def notify_validity_changed(self, event=None):
+        """
+        Notifies all observers that that an validity has been changed
+        """
+        if event is not None and not IValidityChangedEvent.providedBy(event):
+            raise AttributeError("event parameter should implement IValidityChandEvent")
+
+        for observer in self._validity_observers:
             observer.validity_changed(event)
-
 
 if __name__ == "__main__":
     import doctest

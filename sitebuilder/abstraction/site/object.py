@@ -3,97 +3,59 @@
 Site configuration objects related classes
 """
 
-from sitebuilder.abstraction.attribute import TriggerFieldProperty
-from sitebuilder.abstraction.attribute import UnicodeTriggerFieldProperty
+from sitebuilder.utils.attribute import TriggerFieldProperty
+from sitebuilder.utils.attribute import UnicodeTriggerFieldProperty
 from sitebuilder.interfaces.site import ISite, IWebsite, IDNSHost, IDatabase
 from sitebuilder.interfaces.site import IRCSRepository
-from sitebuilder.observer.attribute import AttributeChangedSubject
-from sitebuilder.observer.attribute import AttributeChangedObserver
+from sitebuilder.observer.attribute import AttributeSubject
+from sitebuilder.interfaces.attribute import IAttributeObserver
+from sitebuilder.abstraction.site.defaults import SiteDefaultsManager
 from zope.interface import implements
+from zope.schema.fieldproperty import FieldProperty
 from zope.schema import getValidationErrors
 
 
-class DNSHost(AttributeChangedSubject):
+class DNSHost(AttributeSubject):
     """
     DNS configuration description object
 
     >>> host = DNSHost()
     >>> IDNSHost.providedBy(host)
     True
-    >>> class TestObsrver(AttributeChangedObserver):
-    ...     flag = False
-    ...     def attribute_changed(self, event=None):
-    ...         self.flag = True
+    >>> class TestObsrver(object):
+    ...     implements(IAttributeObserver)
+    ...     notified = False
+    ...     def attribute_changed(self, attribute=None):
+    ...         self.notified = True
     ...
-
-    Name is mandatory and object should not pass shema validation
-
-    >>> getValidationErrors(IDNSHost, host)
-    [('name', ConstraintNotSatisfied(u''))]
 
     When observer is set, any  attribute set should call observer
 
     >>> observer = TestObsrver()
-    >>> host.register_attribute_changed_observer(observer)
-    >>> host.name = 'hostname'
-    >>> observer.flag
+    >>> host.register_attribute_observer(observer)
+    >>> host.name = u'hostname'
+    >>> observer.notified
     True
 
-    >>> observer.flag = False
+    >>> observer.notified = False
     >>> host.domain = SiteDefaultsManager.get_default_domain()
-    >>> observer.flag
+    >>> observer.notified
     True
 
-    >>> observer.flag = False
+    >>> observer.notified = False
     >>> host.platform = SiteDefaultsManager.get_default_platform()
-    >>> observer.flag
+    >>> observer.notified
     True
 
-    >>> observer.flag = False
+    >>> observer.notified = False
     >>> host.done = True
-    >>> observer.flag
+    >>> observer.notified
     True
 
-    >>> observer.flag = False
-    >>> host.description = 'desc'
-    >>> observer.flag
+    >>> observer.notified = False
+    >>> host.description = u'desc'
+    >>> observer.notified
     True
-
-    Name should contain only alphanumeric characters
-
-    >>> host.name = '@'
-    >>> getValidationErrors(IDNSHost, host)
-    [('name', ConstraintNotSatisfied(u'@'))]
-    >>> host.name = 'allowed'
-    >>> getValidationErrors(IDNSHost, host)
-    []
-
-    Domain should contain only alloued value
-
-    >>> host.domain = 'fakedomain'
-    >>> getValidationErrors(IDNSHost, host)
-    [('domain', ConstraintNotSatisfied(u'fakedomain'))]
-    >>> host.domain = SiteDefaultsManager.get_default_domain()
-    >>> getValidationErrors(IDNSHost, host)
-    []
-
-    Platform should contain only alloued value
-
-    >>> host.platform = 'fakeplatform'
-    >>> getValidationErrors(IDNSHost, host)
-    [('platform', ConstraintNotSatisfied(u'fakeplatform'))]
-    >>> host.platform = SiteDefaultsManager.get_default_platform()
-    >>> getValidationErrors(IDNSHost, host)
-    []
-
-    Done should only be a boolean value
-
-    >>> host.done = 'fake'
-    >>> getValidationErrors(IDNSHost, host)
-    [('done', WrongType('fake', <type 'bool'>, 'done'))]
-    >>> host.done = True
-    >>> getValidationErrors(IDNSHost, host)
-    []
     """
     implements(IDNSHost)
 
@@ -107,92 +69,46 @@ class DNSHost(AttributeChangedSubject):
         """
         Object initialization
         """
-        AttributeChangedSubject.__init__(self)
-        # Bypass security to set proper default value
-        #self.__dict__['name'] = u''
-        #self.__dict__['description '] = u''
-        #self.domain = SiteDefaultsManager.get_default_domain()
-        #self.platform = SiteDefaultsManager.get_default_platform()
-        #self.done = False
+        AttributeSubject.__init__(self)
 
 
-class RCSRepository(AttributeChangedSubject):
+class RCSRepository(AttributeSubject):
     """
     RCS repository configuration description object
 
     >>> repo = RCSRepository()
     >>> IRCSRepository.providedBy(repo)
     True
-    >>> class TestObsrver(AttributeChangedObserver):
-    ...     flag = False
-    ...     def attribute_changed(self, event=None):
-    ...         self.flag = True
+    >>> class TestObsrver(object):
+    ...     implements(IAttributeObserver)
+    ...     notified = False
+    ...     def attribute_changed(self, attribute=None):
+    ...         self.notified = True
     ...
-
-    Name is mandatory and object should not pass shema validation
-
-    >>> getValidationErrors(IRCSRepository, repo)
-    [('name', ConstraintNotSatisfied(u''))]
 
     When observer is set, any  attribute set should call observer
 
     >>> observer = TestObsrver()
-    >>> repo.register_attribute_changed_observer(observer)
+    >>> repo.register_attribute_observer(observer)
 
     >>> repo.enabled = True
-    >>> observer.flag
+    >>> observer.notified
     True
 
-    >>> observer.flag = False
-    >>> repo.name = 'reponame'
-    >>> observer.flag
+    >>> observer.notified = False
+    >>> repo.name = u'reponame'
+    >>> observer.notified
     True
 
-    >>> observer.flag = False
+    >>> observer.notified = False
     >>> repo.type = SiteDefaultsManager.get_default_repository_type()
-    >>> observer.flag
+    >>> observer.notified
     True
 
-    >>> observer.flag = False
+    >>> observer.notified = False
     >>> repo.done = True
-    >>> observer.flag
+    >>> observer.notified
     True
-
-    Enabled should only be a boolean value
-
-    >>> repo.enabled = 'fake'
-    >>> getValidationErrors(IRCSRepository, repo)
-    [('enabled', WrongType('fake', <type 'bool'>, 'enabled'))]
-    >>> repo.enabled = True
-    >>> getValidationErrors(IRCSRepository, repo)
-    []
-
-    Name should contain only alphanumeric characters
-
-    >>> repo.name = '@'
-    >>> getValidationErrors(IRCSRepository, repo)
-    [('name', ConstraintNotSatisfied(u'@'))]
-    >>> repo.name = 'allowed'
-    >>> getValidationErrors(IRCSRepository, repo)
-    []
-
-    Type should contain only alloued value
-
-    >>> repo.type = 'faketype'
-    >>> getValidationErrors(IRCSRepository, repo)
-    [('type', ConstraintNotSatisfied(u'faketype'))]
-    >>> repo.type = SiteDefaultsManager.get_default_repository_type()
-    >>> getValidationErrors(IRCSRepository, repo)
-    []
-
-    Done should only be a boolean value
-
-    >>> repo.done = 'fake'
-    >>> getValidationErrors(IRCSRepository, repo)
-    [('done', WrongType('fake', <type 'bool'>, 'done'))]
-    >>> repo.done = True
-    >>> getValidationErrors(IRCSRepository, repo)
-    []
     """
     implements(IRCSRepository)
 
@@ -205,100 +121,51 @@ class RCSRepository(AttributeChangedSubject):
         """
         Object initialization
         """
-        AttributeChangedSubject.__init__(self)
-        # Bypass security to set proper default value
-        #self.__dict__['name'] = u''
-        #self.enabled = False
-        #self.type = SiteDefaultsManager.get_default_repository_type()
-        #self.done = False
+        AttributeSubject.__init__(self)
 
 
-class Website(AttributeChangedSubject):
+class Website(AttributeSubject):
     """
     Site configuration description object
 
     >>> site = Website()
     >>> IWebsite.providedBy(site)
     True
-    >>> class TestObsrver(AttributeChangedObserver):
-    ...     flag = False
-    ...     def attribute_changed(self, event=None):
-    ...         self.flag = True
+    >>> class TestObsrver(object):
+    ...     implements(IAttributeObserver)
+    ...     notified = False
+    ...     def attribute_changed(self, attribute=None):
+    ...         self.notified = True
     ...
 
     When observer is set, any  attribute set should call observer
 
     >>> observer = TestObsrver()
-    >>> site.register_attribute_changed_observer(observer)
+    >>> site.register_attribute_observer(observer)
 
     >>> site.enabled = True
-    >>> observer.flag
+    >>> observer.notified
     True
 
-    >>> observer.flag = False
+    >>> observer.notified = False
     >>> site.maintenance = True
-    >>> observer.flag
+    >>> observer.notified
     True
 
-    >>> observer.flag = False
+    >>> observer.notified = False
     >>> site.access = SiteDefaultsManager.get_default_site_access()
-    >>> observer.flag
+    >>> observer.notified
     True
 
-    >>> observer.flag = False
+    >>> observer.notified = False
     >>> site.template = SiteDefaultsManager.get_default_site_template()
-    >>> observer.flag
+    >>> observer.notified
     True
 
-    >>> observer.flag = False
+    >>> observer.notified = False
     >>> site.done = True
-    >>> observer.flag
+    >>> observer.notified
     True
-
-    Enabled should only be a boolean value
-
-    >>> site.enabled = 'fake'
-    >>> getValidationErrors(IWebsite, site)
-    [('enabled', WrongType('fake', <type 'bool'>, 'enabled'))]
-    >>> site.enabled = True
-    >>> getValidationErrors(IWebsite, site)
-    []
-
-    Maintenance should only be a boolean value
-
-    >>> site.maintenance = 'fake'
-    >>> getValidationErrors(IWebsite, site)
-    [('maintenance', WrongType('fake', <type 'bool'>, 'maintenance'))]
-    >>> site.maintenance = True
-    >>> getValidationErrors(IWebsite, site)
-    []
-
-    Access should contain only alloued value
-
-    >>> site.access = 'fakeaccess'
-    >>> getValidationErrors(IWebsite, site)
-    [('access', ConstraintNotSatisfied(u'fakeaccess'))]
-    >>> site.access = SiteDefaultsManager.get_default_site_access()
-    >>> getValidationErrors(IWebsite, site)
-    []
-
-    Access should contain only alloued value
-
-    >>> site.template = 'faketemplate'
-    >>> getValidationErrors(IWebsite, site)
-    [('template', ConstraintNotSatisfied(u'faketemplate'))]
-    >>> site.template = SiteDefaultsManager.get_default_site_template()
-    >>> getValidationErrors(IWebsite, site)
-    []
-
-    Done should only be a boolean value
-
-    >>> site.done = 'fake'
-    >>> getValidationErrors(IWebsite, site)
-    [('done', WrongType('fake', <type 'bool'>, 'done'))]
-    >>> site.done = True
-    >>> getValidationErrors(IWebsite, site)
-    []
     """
     implements(IWebsite)
 
@@ -312,110 +179,56 @@ class Website(AttributeChangedSubject):
         """
         Object initialization
         """
-        AttributeChangedSubject.__init__(self)
-        #self.enabled = False
-        #self.template = SiteDefaultsManager.get_default_site_template()
-        #self.access = SiteDefaultsManager.get_default_site_access()
-        #self.maintenance = False
-        #self.done = False
+        AttributeSubject.__init__(self)
 
 
-class Database(AttributeChangedSubject):
+class Database(AttributeSubject):
     """
     Database configuration description object
 
     >>> db = Database()
     >>> IDatabase.providedBy(db)
     True
-    >>> class TestObsrver(AttributeChangedObserver):
-    ...     flag = False
-    ...     def attribute_changed(self, event=None):
-    ...         self.flag = True
+    >>> class TestObsrver(object):
+    ...     implements(IAttributeObserver)
+    ...     notified = False
+    ...     def attribute_changed(self, attribute=None):
+    ...         self.notified = True
     ...
-
-    Name and username are mandatory and object should not pass shema validation
-
-    >>> getValidationErrors(IDatabase, db)
-    [('username', ConstraintNotSatisfied(u'')), ('name', ConstraintNotSatisfied(u''))]
 
     When observer is set, any  attribute set should call observer
 
     >>> observer = TestObsrver()
-    >>> db.register_attribute_changed_observer(observer)
+    >>> db.register_attribute_observer(observer)
 
     >>> db.enabled = True
-    >>> observer.flag
+    >>> observer.notified
     True
 
-    >>> observer.flag = False
-    >>> db.name = 'dbname'
-    >>> observer.flag
+    >>> observer.notified = False
+    >>> db.name = u'dbname'
+    >>> observer.notified
     True
 
-    >>> observer.flag = False
-    >>> db.username = 'dbusername'
-    >>> observer.flag
+    >>> observer.notified = False
+    >>> db.username = u'dbusername'
+    >>> observer.notified
     True
 
-    >>> observer.flag = False
-    >>> db.password = 'dbpassword'
-    >>> observer.flag
+    >>> observer.notified = False
+    >>> db.password = u'dbpassword'
+    >>> observer.notified
     True
 
-    >>> observer.flag = False
+    >>> observer.notified = False
     >>> db.type = SiteDefaultsManager.get_default_database_type()
-    >>> observer.flag
+    >>> observer.notified
     True
 
-    >>> observer.flag = False
+    >>> observer.notified = False
     >>> db.done = True
-    >>> observer.flag
+    >>> observer.notified
     True
-
-    Enabled should only be a boolean value
-
-    >>> db.enabled = 'fake'
-    >>> getValidationErrors(IDatabase, db)
-    [('enabled', WrongType('fake', <type 'bool'>, 'enabled'))]
-    >>> db.enabled = True
-    >>> getValidationErrors(IDatabase, db)
-    []
-
-    Name should contain only alphanumeric characters
-
-    >>> db.name = '@'
-    >>> getValidationErrors(IDatabase, db)
-    [('name', ConstraintNotSatisfied(u'@'))]
-    >>> db.name = 'allowed'
-    >>> getValidationErrors(IDatabase, db)
-    []
-
-    Username should contain only alphanumeric characters
-
-    >>> db.username = '@'
-    >>> getValidationErrors(IDatabase, db)
-    [('username', ConstraintNotSatisfied(u'@'))]
-    >>> db.username = 'allowed'
-    >>> getValidationErrors(IDatabase, db)
-    []
-
-    Type should contain only alloued value
-
-    >>> db.type = 'faketype'
-    >>> getValidationErrors(IDatabase, db)
-    [('type', ConstraintNotSatisfied(u'faketype'))]
-    >>> db.type = SiteDefaultsManager.get_default_database_type()
-    >>> getValidationErrors(IDatabase, db)
-    []
-
-    Done should only be a boolean value
-
-    >>> db.done = 'fake'
-    >>> getValidationErrors(IDatabase, db)
-    [('done', WrongType('fake', <type 'bool'>, 'done'))]
-    >>> db.done = True
-    >>> getValidationErrors(IDatabase, db)
-    []
     """
     implements(IDatabase)
 
@@ -430,7 +243,7 @@ class Database(AttributeChangedSubject):
         """
         Object initialization
         """
-        AttributeChangedSubject.__init__(self)
+        AttributeSubject.__init__(self)
         # Bypass security to set proper default value
         #self.__dict__['name'] = u''
         #self.__dict__['username'] = u''
@@ -440,7 +253,7 @@ class Database(AttributeChangedSubject):
         #self.done = False
 
 
-class Site(AttributeChangedSubject, AttributeChangedObserver):
+class Site(AttributeSubject):
     """
     Root object describing a whole site configuration.
 
@@ -448,31 +261,37 @@ class Site(AttributeChangedSubject, AttributeChangedObserver):
     configuartions.
     """
 
-    implements(ISite)
+    implements(ISite, IAttributeObserver)
+
+    dnshost = TriggerFieldProperty(ISite['dnshost'])
+    website = TriggerFieldProperty(ISite['website'])
+    repository = TriggerFieldProperty(ISite['repository'])
+    database = TriggerFieldProperty(ISite['database'])
+    status = FieldProperty(ISite['status'])
 
     def __init__(self):
         """
         Object initialization
         """
-        AttributeChangedSubject.__init__(self)
+        AttributeSubject.__init__(self)
 
         self.dnshost = DNSHost()
-        self.dnshost.register_attribute_changed_observer(self)
+        self.dnshost.register_attribute_observer(self)
 
         self.repository = RCSRepository()
-        self.repository.register_attribute_changed_observer(self)
+        self.repository.register_attribute_observer(self)
 
         self.website = Website()
-        self.website.register_attribute_changed_observer(self)
+        self.website.register_attribute_observer(self)
 
         self.database = Database()
-        self.database.register_attribute_changed_observer(self)
+        self.database.register_attribute_observer(self)
 
-    def attribute_changed(self, event=None):
+    def attribute_changed(self, attribute=None):
         """
         Notifies all observers that upper attribute has changed
         """
-        self.notify_attribute_changed(event)
+        self.notify_attribute_changed(attribute)
 
 
 if __name__ == "__main__":

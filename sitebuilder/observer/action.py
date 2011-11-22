@@ -1,149 +1,109 @@
 #!/usr/bin/env python
 """
-Observer classes associated with the ActionActivated events
+Observer classes associated with the Action events
 """
 
-class ActionActivatedEvent(object):
+from zope.interface import implements
+from zope.schema.fieldproperty import FieldProperty
+from sitebuilder.interfaces.action import IAction, IActionSubject, IActionObserver
+
+class Action(object):
     """
-    Event class used to notify that a specific action has been asked on a
-    configuraiton instance.
-
-    Mainly used for communications between control agents and presentation
-    agents to report user actions.
-
-    It contains an action name and an optional parameters object.
+    Action asked with specific parameters
     """
+    implements(IAction)
 
-    def __init__(self, name, parameters=None):
+    name = FieldProperty(IAction['name'])
+    parameters = FieldProperty(IAction['parameters'])
+
+
+    def __init__(self, name, parameters={}):
         """
         The event take action name and its associated parameters as arguments.
 
         Name is a string representing the action type.
         Parameters, if set, should be an instance of dict.
         """
-        if parameters is not None and not isinstance(parameters, dict):
-            raise TypeError("parameters should be an instance of dict")
-
-        self._name = name
-        self._parameters = parameters
-
-    def get_name(self):
-        """
-        Returns trigered action name
-        """
-        return self._name
-
-    def get_parameters(self):
-        """
-        Returns action parameters
-        """
-        return self._parameters
+        self.name = name
+        self.parameters = parameters
 
 
-class ActionActivatedObserver(object):
+class ActionSubject(object):
     """
-    Observer class that may be called when an an action has been trigered in an
-    user interface.
+    Subject base class to handle Action events
     """
 
-    def action_activated(self, action_name, data=None):
-        """
-        This method has to be overridden by listeners implementations
-        """
-        raise NotImplementedError("This method has currently no " + \
-                                  "implmentation and has to be overridden")
-
-
-class ActionActivatedSubject(object):
-    """
-    Subject base class that objects may subclass to dispatch
-    'attribute changed' events.
-    """
+    implements(IActionSubject)
 
     def __init__(self):
         """
         Subject initialization
         """
-        self._action_activated_observers = []
+        self._action_observers = []
 
-    def register_action_activated_observer(self, observer):
+    def register_action_observer(self, observer):
         """
-        Adds a ActionActivatedObserver observer object to observers list
+        Adds a ActionObserver observer object to observers list
 
-        We may add a ActionActivatedObserver instance
+        We may add a ActionObserver instance
 
-        >>> subject = ActionActivatedSubject()
-        >>> observer = ActionActivatedObserver()
-        >>> subject.register_action_activated_observer(observer)
+        >>> class TestObserver(object):
+        ...     implements(IActionObserver)
+        ...     notified = False
+        ...     def action_activated(self, action):
+        ...         self.notified = True
+        ...
+        >>> subject = ActionSubject()
+        >>> observer = TestObserver()
+        >>> subject.register_action_observer(observer)
+        >>> subject.notify_action_activated(Action(u'test'))
+        >>> observer.notified
+        True
 
-        Adding an object that is not a ActionActivatedObserver should raise an
-        exception
+        Adding an object that does not implement IActionObserver should raise
+        an exception
 
-        >>> subject = ActionActivatedSubject()
-        >>> subject.register_action_activated_observer('fake')
+        >>> subject.register_action_observer('fake')
         Traceback (most recent call last):
             ...
-        AttributeError: Listener must be an instance of ActionActivatedObserver
-        """
-        if not isinstance(observer, ActionActivatedObserver):
-            raise AttributeError(
-                "Listener must be an instance of ActionActivatedObserver")
-        self._action_activated_observers.append(observer)
+        AttributeError: Observer should implement IActionObserver
 
-    def remove_action_activated_observer(self, observer):
-        """
-        Deletes a ActionActivatedObserver observer object to observers list
-        """
-        try:
-            self._action_activated_observers.remove(observer)
-        except ValueError:
-            pass
-
-    def clear_action_activated_observers(self):
-        """
-        Deletes all AddActionActivatedListener observers object from observers
-        list
-        """
-        del self._action_activated_observers[:]
-
-    def notify_action_activated(self, event):
-        """
-        Notifies all observers that a data has changed
-
-        As the ActionActivatedObserver instance we use for the test is only
-        used as an abstract class, the notify method should raise a
-        NotImplementedError
-
-        >>> subject = ActionActivatedSubject()
-        >>> observer = ActionActivatedObserver()
-        >>> subject.register_action_activated_observer(observer)
-        >>> event = ActionActivatedEvent('test')
-        >>> subject.notify_action_activated(event)
-        Traceback (most recent call last):
-            ...
-        NotImplementedError: This method has currently no implmentation and has to be overridden
-
-        An event containing the context that triggered the event may also be
-        passed to observers
-
-        >>> event = ActionActivatedEvent('test')
-        >>> subject.notify_action_activated(event)
-        Traceback (most recent call last):
-            ...
-        NotImplementedError: This method has currently no implmentation and has to be overridden
-
-        Using a parameter that is not an event shold raise en exception
+        Notified object should implement IAction. If not so, an exception
+        should be risen
         >>> subject.notify_action_activated('fake')
         Traceback (most recent call last):
             ...
-        AttributeError: event parameter should be an instance of ActionActivatedEvent
+        AttributeError: action parameter should implement IAction
         """
-        if event is not None and not isinstance(event, ActionActivatedEvent):
-            raise AttributeError("event parameter should be an instance " + \
-                                 "of ActionActivatedEvent")
+        if not IActionObserver.providedBy(observer):
+            raise AttributeError("Observer should implement IActionObserver")
+        self._action_observers.append(observer)
 
-        for observer in self._action_activated_observers:
-            observer.action_activated(event)
+    def remove_action_observer(self, observer):
+        """
+        Deletes a ActionObserver observer object to observers list
+        """
+        try:
+            self._action_observers.remove(observer)
+        except ValueError:
+            pass
+
+    def clear_action_observers(self):
+        """
+        Deletes all AddActionListener observers object from observers
+        list
+        """
+        del self._action_observers[:]
+
+    def notify_action_activated(self, action=None):
+        """
+        Notifies all observers that that an action has been activated
+        """
+        if action is not None and not IAction.providedBy(action):
+            raise AttributeError("action parameter should implement IAction")
+
+        for observer in self._action_observers:
+            observer.action_activated(action)
 
 
 if __name__ == "__main__":

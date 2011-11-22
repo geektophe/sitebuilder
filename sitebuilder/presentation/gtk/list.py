@@ -7,7 +7,7 @@ from sitebuilder.utils.parameters import GLADE_BASEDIR
 from sitebuilder.utils.parameters import ACTION_ADD, ACTION_VIEW
 from sitebuilder.utils.parameters import ACTION_EDIT, ACTION_DELETE
 from sitebuilder.presentation.gtk.base import GtkBasePresentationAgent
-from sitebuilder.observer.action import ActionActivatedEvent
+from sitebuilder.observer.action import Action
 import gtk
 
 class ListPresentationAgent(GtkBasePresentationAgent):
@@ -18,12 +18,13 @@ class ListPresentationAgent(GtkBasePresentationAgent):
     """
 
     GLADE_FILE = "%s/%s" % (GLADE_BASEDIR, 'list.glade')
+    TOPLEVEL_NAME = "list"
 
     def __init__(self, control_agent):
         """
         Class initialization.
         """
-        GtkBasePresentationAgent.__init__(self, 'list', control_agent)
+        GtkBasePresentationAgent.__init__(self, control_agent)
         site_list = self['site_list']
 
         model = gtk.ListStore(str, str, str, str)
@@ -102,27 +103,27 @@ class ListPresentationAgent(GtkBasePresentationAgent):
         Signal handler associated with the view action
         """
         self.notify_action_activated(
-            ActionActivatedEvent(ACTION_VIEW, {'sites': self.get_selected_items()}))
+            Action(ACTION_VIEW, {'sites': self.get_selected_items()}))
 
     def on_add_activate(self, widget):
         """
         Signal handler associated with the view action
         """
-        self.notify_action_activated(ActionActivatedEvent(ACTION_ADD))
+        self.notify_action_activated(Action(ACTION_ADD))
 
     def on_edit_activate(self, widget):
         """
         Signal handler associated with the view action
         """
         self.notify_action_activated(
-            ActionActivatedEvent(ACTION_EDIT, {'sites': self.get_selected_items()}))
+            Action(ACTION_EDIT, {'sites': self.get_selected_items()}))
 
     def on_delete_activate(self, widget):
         """
         Signal handler associated with the view action
         """
         self.notify_action_activated(
-            ActionActivatedEvent(ACTION_DELETE, {'sites': self.get_selected_items()}))
+            Action(ACTION_DELETE, {'sites': self.get_selected_items()}))
 
     def destroy(self):
         """

@@ -6,41 +6,41 @@ Base view to be subclassed
 import pygtk
 import gtk
 import os
-from sitebuilder.observer.validity import ValidityChangedObserver
-from sitebuilder.observer.validity import ValidityChangedSubject
+from sitebuilder.interfaces.validity import IValidityObserver
+from sitebuilder.observer.validity import ValiditySubject
 from sitebuilder.observer.validity import ValidityChangedEvent
-from sitebuilder.observer.attribute import AttributeChangedObserver
-from sitebuilder.observer.action import ActionActivatedSubject
+from sitebuilder.interfaces.attribute import IAttributeObserver
+from sitebuilder.interfaces.presentation import IPresentationAgent
+from sitebuilder.observer.action import ActionSubject
 from sitebuilder.exception import FieldFormatError
+from zope.interface import implements
 from zope.schema import ValidationError
 
 pygtk.require("2.0")
 
-class GtkBasePresentationAgent(ValidityChangedSubject,
-                               ValidityChangedObserver,
-                               ActionActivatedSubject,
-                               AttributeChangedObserver):
+class GtkBasePresentationAgent(ValiditySubject, ActionSubject):
     """
     Main site add/edit/view interface.
 
     The interface design is loaded from a glade file.
     """
+    implements(IValidityObserver, IAttributeObserver, IPresentationAgent)
 
     GLADE_FILE = ""
+    TOPLEVEL_NAME = ""
 
-    def __init__(self, toplevel_name, control_agent):
+    def __init__(self, control_agent):
         """
         Basic view to be subclassed.
         """
         if not os.path.isfile(self.GLADE_FILE):
             raise RuntimeError("No glade file found.")
 
-        ValidityChangedSubject.__init__(self)
-        ActionActivatedSubject.__init__(self)
+        ValiditySubject.__init__(self)
+        ActionSubject.__init__(self)
         self._control_agent = control_agent
         self._builder = gtk.Builder()
         self._builder.add_from_file(self.GLADE_FILE)
-        self._toplevel_name = toplevel_name
         self._slaves = {}
         self._attr_validity = {}
 
@@ -66,13 +66,7 @@ class GtkBasePresentationAgent(ValidityChangedSubject,
         """
         Returns toplevel component
         """
-        return self[self._toplevel_name]
-
-    def get_toplevel_name(self):
-        """
-        Returns toplevel name component
-        """
-        return self._toplevel_name
+        return self[self.TOPLEVEL_NAME]
 
     def attach_slave(self, name, container_name, slave):
         """
@@ -159,7 +153,7 @@ class GtkBasePresentationAgent(ValidityChangedSubject,
         else:
             combobox.set_active(-1)
 
-    def set_entry_attribute(self, widget, attr_name):
+    def set_entry_attribute(self, widget, attr_name, empty_allowed=True):
         """
         Retrieves an entry widget text, and tries to set it in the model.
 
@@ -170,6 +164,9 @@ class GtkBasePresentationAgent(ValidityChangedSubject,
         value = widget.get_text()
 
         try:
+            if not empty_allowed and not value:
+                raise FieldFormatError('Required value')
+
             self.get_control_agent().set_attribute_value(attr_name, value)
             widget.set_tooltip_text('')
             widget.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('#90EE90'))
@@ -179,14 +176,14 @@ class GtkBasePresentationAgent(ValidityChangedSubject,
             widget.set_tooltip_text(str(e))
             self.set_validity_flag(attr_name, False)
 
-    def validity_changed(self, event):
+    def validity_changed(self, state):
         """
         ValidityChangedObserver trigger mmethod local implementation
 
         Default behaviour is to forwards ValidityChangedEvent to other
         components such as upper level presentation agents.
         """
-        self.notify_validity_changed(event)
+        self.notify_validity_changed(state)
 
     def set_validity_flag(self, attr_name, flag):
         """
@@ -212,7 +209,7 @@ class GtkBasePresentationAgent(ValidityChangedSubject,
 
         return flag
 
-    def attribute_changed(self, event=None):
+    def attribute_changed(self, attribute=None):
         """
         AttributeChangedObserver trigger mmethod local implementation
         """

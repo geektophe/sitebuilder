@@ -6,6 +6,7 @@ Presentation agent interface definition
 
 from zope.interface import Interface
 
+
 class IPresentationAgent(Interface):
     """
     Presentation agent interface definition
@@ -14,6 +15,11 @@ class IPresentationAgent(Interface):
     def get_control_agent():
         """
         Returns control agent instance
+        """
+
+    def get_toplevel():
+        """
+        Returns toplevel component
         """
 
     def attach_slave(name, container_name, slave):

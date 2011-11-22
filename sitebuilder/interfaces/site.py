@@ -5,9 +5,12 @@ Site components related interfaces definition
 
 from sitebuilder.abstraction.site.defaults import SiteDefaultsManager
 from zope.interface import Interface
-from zope.schema import Object, Choice, TextLine, Bool
+from zope.schema import Object, Choice, TextLine, Bool, Int
 import re
 
+# Site related constants
+SITE_NEW    = 0
+SITE_EXISTS = 1
 
 class IDNSHost(Interface):
     """
@@ -17,8 +20,8 @@ class IDNSHost(Interface):
         title=u"Host name",
         required=True,
         description=u"Should be an alphanumeric string (^[\w\d_-]+$)",
-        constraint=re.compile(r'^[\w\d_-]+$').match)
-        #default=u'')
+        constraint=re.compile(r'^[\w\d_-]*$').match,
+        default=u'')
 
     domain = Choice(
         SiteDefaultsManager.get_domains().keys(),
@@ -36,8 +39,9 @@ class IDNSHost(Interface):
 
     description = TextLine(
         title=u"Description",
-        description=u"Site description")
-        #default=u'')
+        required=True,
+        description=u"Site description",
+        default=u'')
 
     done = Bool(
         title=u"Done",
@@ -60,8 +64,8 @@ class IRCSRepository(Interface):
         title=u"Repository name",
         required=True,
         description=u"Should be an alphanumeric string (^[\w\d_-]+$)",
-        constraint=re.compile(r'^[\w\d_-]+$').match)
-        #default=u'')
+        constraint=re.compile(r'^[\w\d_-]*$').match,
+        default=u'')
 
     type = Choice(
         SiteDefaultsManager.get_repository_types().keys(),
@@ -135,21 +139,21 @@ class IDatabase(Interface):
         title=u"Database name",
         required=True,
         description=u"Should be an alphanumeric string (^[\w\d_]+$)",
-        constraint=re.compile(r'^[\w\d_]+$').match)
-        #default=u'')
+        constraint=re.compile(r'^[\w\d_]*$').match,
+        default=u'')
 
     username = TextLine(
         title=u"Database owner",
         required=True,
         description=u"Should be an alphanumeric string (^[\w\d_]+$)",
-        constraint=re.compile(r'^[\w\d_]+$').match)
-        #default=u'')
+        constraint=re.compile(r'^[\w\d_]*$').match,
+        default=u'')
 
     password = TextLine(
         title=u"Owner password",
         required=True,
-        description=u"Database owner password")
-        #default=u'')
+        description=u"Database owner password",
+        default=u'')
 
     done = Bool(
         title=u"Done",
@@ -183,4 +187,11 @@ class ISite(Interface):
     database = Object(
         required=True,
         schema=IDatabase,
+        title=u"Datababse",
         description=u"Database definition object")
+
+    status = Int(
+        title=u"Status",
+        required=True,
+        description=u"Should be an integer value",
+        default=SITE_NEW)

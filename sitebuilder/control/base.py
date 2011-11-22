@@ -3,14 +3,13 @@
 Base control Agent class to be subclassed
 """
 
-from sitebuilder.observer.attribute import AttributeChangedObserver
-from sitebuilder.observer.action  import ActionActivatedObserver
+from sitebuilder.interfaces.presentation import IPresentationAgent
 from sitebuilder.exception import FieldFormatError
 from zope.schema import ValidationError
 from zope.interface import providedBy
 
 
-class BaseControlAgent(ActionActivatedObserver):
+class BaseControlAgent(object):
     """
     Base control Agent class to be subclassed
     """
@@ -46,9 +45,9 @@ class BaseControlAgent(ActionActivatedObserver):
         Sets local PresentationAgent implementation instance
         """
         # TODO: perform better instance check on presentation agent
-        if not isinstance(presentation_agent, AttributeChangedObserver):
-            raise AttributeError("presentation agent should be an instance " +
-                                 "of AttributeChangedObserver")
+        if not IPresentationAgent.providedBy(presentation_agent):
+            raise AttributeError("presentation agent should implement " +
+                                 "IPresentationAgent")
 
         self._presentation_agent = presentation_agent
 
@@ -102,7 +101,7 @@ class BaseControlAgent(ActionActivatedObserver):
                     try:
                         raise FieldFormatError(field.description)
                     except AttributeError:
-                        pass
+                        raise e
 
             # No field was found under name. The original exception is risen
             raise e

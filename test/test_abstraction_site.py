@@ -26,7 +26,7 @@ class Test(unittest.TestCase):
         """
         Run site doctests
         """
-        #doctest.testmod(manager)
+        doctest.testmod(manager)
 
     def test_default_site(self):
         """
@@ -38,17 +38,17 @@ class Test(unittest.TestCase):
         dnshost = config.dnshost
         self.assertEquals(dnshost.domain,
                           SiteDefaultsManager.get_default_domain())
-        self.assertEquals(dnshost.name, None)
+        self.assertEquals(dnshost.name, u'')
         self.assertEquals(dnshost.platform,
                           SiteDefaultsManager.get_default_platform())
         self.assertTrue(dnshost.platform in \
                        SiteDefaultsManager.get_platforms())
-        self.assertEquals(dnshost.description, None)
+        self.assertEquals(dnshost.description, u'')
 
         repository = config.repository
         self.assertEquals(repository.enabled, False)
         self.assertEquals(repository.done, False)
-        self.assertEquals(repository.name, None)
+        self.assertEquals(repository.name, u'')
         self.assertEquals(repository.type,
                           SiteDefaultsManager.get_default_repository_type())
         self.assertTrue(repository.type in \
@@ -70,9 +70,9 @@ class Test(unittest.TestCase):
         database = config.database
         self.assertEquals(database.enabled, False)
         self.assertEquals(database.done, False)
-        self.assertEquals(database.name, None)
-        self.assertEquals(database.username, None)
-        self.assertEquals(database.password, None)
+        self.assertEquals(database.name, u'')
+        self.assertEquals(database.username, u'')
+        self.assertEquals(database.password, u'')
         self.assertEquals(database.type,
                           SiteDefaultsManager.get_default_database_type())
         self.assertTrue(database.type in \

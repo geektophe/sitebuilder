@@ -622,7 +622,8 @@ class TestDetailDNSHostGtkPresentationAgent(BaseTestGtkPresentationAgent):
         """
         Tests repository detail component's presentation_agent initial state
         """
-        site = SiteConfigurationManager.get_site_by_name('name1', None)
+        dnshost = SiteConfigurationManager.lookup_host_by_name('*', '*')[0]
+        site = SiteConfigurationManager.get_site_by_name(dnshost.name, dnshost.domain)
         dnshost = site.dnshost
         control_agent = DetailDNSHostControlAgent(dnshost)
         presentation_agent = control_agent.get_presentation_agent()
@@ -641,7 +642,8 @@ class TestDetailDNSHostGtkPresentationAgent(BaseTestGtkPresentationAgent):
         """
         Tests dnshost detail component's presentation agent in done state
         """
-        site = SiteConfigurationManager.get_site_by_name('name1', None)
+        dnshost = SiteConfigurationManager.lookup_host_by_name('*', '*')[0]
+        site = SiteConfigurationManager.get_site_by_name(dnshost.name, dnshost.domain)
         dnshost = site.dnshost
         dnshost.done = True
         control_agent = DetailDNSHostControlAgent(dnshost)

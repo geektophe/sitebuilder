@@ -79,6 +79,8 @@ class SiteConfigurationManager(object):
     This class is to be used as a static class and then should never be
     instanciated.
     """
+    backend_driver = None
+
     def __init__(self):
         """
         Since it should be used as a static class, instaciation is forbdden.
@@ -92,13 +94,11 @@ class SiteConfigurationManager(object):
         raise NotImplementedError("Oops. Copy not allowed")
 
     @staticmethod
-    def _get_backend_driver():
+    def get_backend_driver():
         """
         Returns backend driver depending on application execution context
         """
-        try:
-            return SiteConfigurationManager._backend_driver
-        except AttributeError:
+        if SiteConfigurationManager.backend_driver is None:
             context = get_application_context()
 
             if context == CONTEXT_NORMAL:
@@ -108,8 +108,9 @@ class SiteConfigurationManager(object):
             else:
                 raise RuntimeError("unknonw application context: %s" % context)
 
-            SiteConfigurationManager._backend_driver = driver
-            return driver
+            SiteConfigurationManager.backend_driver = driver
+
+        return SiteConfigurationManager.backend_driver
 
     @staticmethod
     def get_blank_site():
@@ -124,7 +125,7 @@ class SiteConfigurationManager(object):
         Loads a site item based on its name and domain. It returns a complete
         and unique site fully defined using backend driver.
         """
-        driver = SiteConfigurationManager._get_backend_driver()
+        driver = SiteConfigurationManager.get_backend_driver()
         return driver.get_site_by_name(name, domain)
 
     @staticmethod
@@ -137,7 +138,7 @@ class SiteConfigurationManager(object):
 
         To get fully loaded sites later, use get_site_by_name method.
         """
-        driver = SiteConfigurationManager._get_backend_driver()
+        driver = SiteConfigurationManager.get_backend_driver()
         return driver.lookup_host_by_name(name, domain)
 
 

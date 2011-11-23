@@ -3,8 +3,8 @@
 Command components related interfaces definition
 """
 
-from zope.interface import Interface
-from zope.schema import Int, Text, Object
+from zope.interface import Interface, Attribute
+from zope.schema import Int
 
 # Command status constants
 COMMAND_PENDING = 0
@@ -19,16 +19,16 @@ class ICommand(Interface):
     """
 
     # Command status
-    status = Int(title="Command status", required=True, default=False)
-
-    # Command result
-    result = Object(title="Command result", required=True, default=0)
+    status = Int(title=u"Command status", required=True, default=False)
 
     # Command return code (Unix command return code equivalent)
-    return_code = Int(title="Return code", required=True, default=0)
+    return_code = Int(title=u"Return code", required=True, default=0)
+
+    # Command result
+    result = Attribute(u"Command result")
 
     # Error message is error occured
-    error = Text(title="Error message", required=True, default=0)
+    error = Attribute(u"Error message")
 
     def execute(driver):
         """
@@ -39,7 +39,7 @@ class ICommand(Interface):
         have to initialize the connection tothe database server.
         """
 
-    def wait():
+    def wait(timeout=None):
         """
         Waits for the command to be executed.
         """

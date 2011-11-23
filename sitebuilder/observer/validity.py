@@ -27,10 +27,38 @@ class ValidityChangedEvent(object):
         self.source_id = source_id
 
 
-
 class ValiditySubject(object):
     """
     Subject base class to handle Validity events
+
+    >>> class TestObserver(object):
+    ...     implements(IValidityObserver)
+    ...     notified = False
+    ...     def validity_changed(self, validity):
+    ...         self.notified = True
+    ...
+    >>> subject = ValiditySubject()
+    >>> observer = TestObserver()
+    >>> subject.register_validity_observer(observer)
+    >>> subject.notify_validity_changed(ValidityChangedEvent(True, 1))
+    >>> observer.notified
+    True
+
+    Adding an object that does not implement IValidityObserver should raise
+    an exception
+
+    >>> subject.register_validity_observer('fake')
+    Traceback (most recent call last):
+        ...
+    AttributeError: Observer should implement IValidityObserver
+
+    Notified object should implement IValidityObserver. If not so, an
+    exception should be risen
+
+    >>> subject.notify_validity_changed('fake')
+    Traceback (most recent call last):
+        ...
+    AttributeError: event parameter should implement IValidityChandEvent
     """
 
     implements(IValiditySubject)
@@ -44,37 +72,6 @@ class ValiditySubject(object):
     def register_validity_observer(self, observer):
         """
         Adds a ValidityObserver observer object to observers list
-
-        We may add a ValidityObserver instance
-
-        >>> class TestObserver(object):
-        ...     implements(IValidityObserver)
-        ...     notified = False
-        ...     def validity_changed(self, validity):
-        ...         self.notified = True
-        ...
-        >>> subject = ValiditySubject()
-        >>> observer = TestObserver()
-        >>> subject.register_validity_observer(observer)
-        >>> subject.notify_validity_changed(ValidityChangedEvent(True, 1))
-        >>> observer.notified
-        True
-
-        Adding an object that does not implement IValidityObserver should raise
-        an exception
-
-        >>> subject.register_validity_observer('fake')
-        Traceback (most recent call last):
-            ...
-        AttributeError: Observer should implement IValidityObserver
-
-        Notified object should implement IValidityObserver. If not so, an
-        exception should be risen
-
-        >>> subject.notify_validity_changed('fake')
-        Traceback (most recent call last):
-            ...
-        AttributeError: event parameter should implement IValidityChandEvent
         """
         if not IValidityObserver.providedBy(observer):
             raise AttributeError("Observer should implement IValidityObserver")

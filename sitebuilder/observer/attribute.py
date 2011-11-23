@@ -10,6 +10,27 @@ from sitebuilder.interfaces.attribute import IAttributeSubject, IAttributeObserv
 class AttributeSubject(object):
     """
     Subject base class to handle Attribute events
+
+    >>> class TestObserver(object):
+    ...     implements(IAttributeObserver)
+    ...     notified = False
+    ...     def attribute_changed(self, attribute):
+    ...         self.notified = True
+    ...
+    >>> subject = AttributeSubject()
+    >>> observer = TestObserver()
+    >>> subject.register_attribute_observer(observer)
+    >>> subject.notify_attribute_changed(u'test')
+    >>> observer.notified
+    True
+
+    Adding an object that does not implement IAttributeObserver should raise
+    an exception
+
+    >>> subject.register_attribute_observer('fake')
+    Traceback (most recent call last):
+        ...
+    AttributeError: Observer should implement IAttributeObserver
     """
 
     implements(IAttributeSubject)
@@ -23,29 +44,6 @@ class AttributeSubject(object):
     def register_attribute_observer(self, observer):
         """
         Adds a AttributeObserver observer object to observers list
-
-        We may add a AttributeObserver instance
-
-        >>> class TestObserver(object):
-        ...     implements(IAttributeObserver)
-        ...     notified = False
-        ...     def attribute_changed(self, attribute):
-        ...         self.notified = True
-        ...
-        >>> subject = AttributeSubject()
-        >>> observer = TestObserver()
-        >>> subject.register_attribute_observer(observer)
-        >>> subject.notify_attribute_changed(u'test')
-        >>> observer.notified
-        True
-
-        Adding an object that does not implement IAttributeObserver should raise
-        an exception
-
-        >>> subject.register_attribute_observer('fake')
-        Traceback (most recent call last):
-            ...
-        AttributeError: Observer should implement IAttributeObserver
         """
         if not IAttributeObserver.providedBy(observer):
             raise AttributeError("Observer should implement IAttributeObserver")

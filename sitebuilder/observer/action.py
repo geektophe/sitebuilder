@@ -31,6 +31,34 @@ class Action(object):
 class ActionSubject(object):
     """
     Subject base class to handle Action events
+
+    >>> class TestObserver(object):
+    ...     implements(IActionObserver)
+    ...     notified = False
+    ...     def action_activated(self, action):
+    ...         self.notified = True
+    ...
+    >>> subject = ActionSubject()
+    >>> observer = TestObserver()
+    >>> subject.register_action_observer(observer)
+    >>> subject.notify_action_activated(Action(u'test'))
+    >>> observer.notified
+    True
+
+    Adding an object that does not implement IActionObserver should raise
+    an exception
+
+    >>> subject.register_action_observer('fake')
+    Traceback (most recent call last):
+        ...
+    AttributeError: Observer should implement IActionObserver
+
+    Notified object should implement IAction. If not so, an exception
+    should be risen
+    >>> subject.notify_action_activated('fake')
+    Traceback (most recent call last):
+        ...
+    AttributeError: action parameter should implement IAction
     """
 
     implements(IActionSubject)
@@ -44,36 +72,6 @@ class ActionSubject(object):
     def register_action_observer(self, observer):
         """
         Adds a ActionObserver observer object to observers list
-
-        We may add a ActionObserver instance
-
-        >>> class TestObserver(object):
-        ...     implements(IActionObserver)
-        ...     notified = False
-        ...     def action_activated(self, action):
-        ...         self.notified = True
-        ...
-        >>> subject = ActionSubject()
-        >>> observer = TestObserver()
-        >>> subject.register_action_observer(observer)
-        >>> subject.notify_action_activated(Action(u'test'))
-        >>> observer.notified
-        True
-
-        Adding an object that does not implement IActionObserver should raise
-        an exception
-
-        >>> subject.register_action_observer('fake')
-        Traceback (most recent call last):
-            ...
-        AttributeError: Observer should implement IActionObserver
-
-        Notified object should implement IAction. If not so, an exception
-        should be risen
-        >>> subject.notify_action_activated('fake')
-        Traceback (most recent call last):
-            ...
-        AttributeError: action parameter should implement IAction
         """
         if not IActionObserver.providedBy(observer):
             raise AttributeError("Observer should implement IActionObserver")

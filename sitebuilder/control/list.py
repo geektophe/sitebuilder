@@ -9,6 +9,10 @@ from sitebuilder.abstraction.site.manager import SiteConfigurationManager
 from sitebuilder.interfaces.action  import IActionObserver
 from sitebuilder.utils.parameters import ACTION_ADD, ACTION_VIEW
 from sitebuilder.utils.parameters import ACTION_EDIT, ACTION_DELETE
+from sitebuilder.interfaces.command import COMMAND_SUCCESS
+from sitebuilder.command.scheduler import scheduler
+from sitebuilder.command.host import LookupHostByName
+from sitebuilder.command.site import GetSiteByName
 from zope.interface import implements
 import gtk
 
@@ -61,7 +65,14 @@ class ListControlAgent(object):
         """
         Retrieves all the configuraiton items from the abstraction
         """
-        return SiteConfigurationManager.lookup_host_by_name(name, domain)
+        command = LookupHostByName("*", "*")
+        scheduler.put(command)
+        command.wait()
+
+        if command.status == COMMAND_SUCCESS:
+            return command.result
+        else:
+            raise command.error
 
     def show_detail_dialog(self, site, read_only=False):
         """
@@ -97,13 +108,25 @@ class ListControlAgent(object):
         site = SiteConfigurationManager.get_blank_site()
         self.show_detail_dialog(site)
 
+    def get_site_by_name(self, name, domain):
+        """
+        Utility method used to get a site based on its host settings
+        """
+        command = GetSiteByName("*", "*")
+        scheduler.put(command)
+        command.wait()
+
+        if command.status == COMMAND_SUCCESS:
+            return command.result
+        else:
+            raise command.error
+
     def view_selected_sites(self, selection):
         """
         Display detail dialog in view mode for each selected site id
         """
         for name, domain in selection:
-            site = SiteConfigurationManager.get_site_by_name(
-                name, domain)
+            site = self.get_site_by_name(name, domain)
             self.show_detail_dialog(site, True)
 
     def edit_selected_sites(self, selection):
@@ -111,8 +134,7 @@ class ListControlAgent(object):
         Display detail dialog in edit mode for each selected site id
         """
         for name, domain in selection:
-            site = SiteConfigurationManager.get_site_by_name(
-                name, domain)
+            site = self.get_site_by_name(name, domain)
             self.show_detail_dialog(site)
 
     def delete_selected_sites(self, selection):
@@ -120,8 +142,7 @@ class ListControlAgent(object):
         Display delete dialog for each selected site id
         """
         for name, domain in selection:
-            site = SiteConfigurationManager.get_site_by_name(
-                name, domain)
+            site = self.get_site_by_name(name, domain)
             self.show_delete_dialog(site)
 
     def destroy(self):

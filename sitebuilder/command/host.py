@@ -3,10 +3,11 @@
 DNSHost objects related commands
 """
 
-from sitebuilder.interface.command import ICommand
+from sitebuilder.interfaces.command import ICommand
 from sitebuilder.command.base import BaseCommand
 from zope.interface import implements
-import threading
+from threading import Event
+import re
 
 class LookupHostByName(BaseCommand):
     """
@@ -15,6 +16,8 @@ class LookupHostByName(BaseCommand):
     implements(ICommand)
     name = ""
     domain = ""
+    name_re = re.compile("^[\w\*_-]+$")
+    domain_re = re.compile("^[\w\*\._-]+$")
 
     def __init__(self, name, domain):
         """
@@ -24,9 +27,17 @@ class LookupHostByName(BaseCommand):
             name    Host name (may use wilcards characher *)
             domain  Domain name (may use wilcards characher *)
         """
+        BaseCommand.__init__(self)
+
+        # Parameters check
+        if not self.name_re.match(name):
+            raise AttributeError("Invalid host name. Should match /^[\w\*_-]+$/")
+        if not self.name_re.match(name):
+            raise AttributeError("Invalid domain name. Should match /^^[\w\*\._-]+$/")
+
         self.name = name
         self.domain = domain
-        self.executed = threading.Event()
+        self.executed = Event()
 
     def wait(self, timeout=None):
         """
@@ -39,3 +50,6 @@ class LookupHostByName(BaseCommand):
         Looks for an host by host and domain name. Result is set a list of
         DNSHost objects.
         """
+        result = driver.lookup_host_by_name(self.name, self.domain)
+        self.result = result
+        self.executed.set()

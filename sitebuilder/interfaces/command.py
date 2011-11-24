@@ -28,7 +28,7 @@ class ICommand(Interface):
     result = Attribute(u"Command result")
 
     # Error message is error occured
-    error = Attribute(u"Error message")
+    mesg = Attribute(u"Success or error message")
 
     def execute(driver):
         """
@@ -78,3 +78,10 @@ class ICommandSubject(Interface):
         """
         Notifies all observers that a data has changed
         """
+
+
+class ICommandLogged(Interface):
+    """
+    Marker interface a command should implement for its result to be logged
+    in log subsystem
+    """

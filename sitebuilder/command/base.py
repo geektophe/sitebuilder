@@ -3,8 +3,8 @@
 Base command that command implementations may subclass
 """
 
-from zope.schema.dieldproperty import FieldProperty
-from sitebuilder.interface.command import ICommand
+from zope.schema.fieldproperty import FieldProperty
+from sitebuilder.interfaces.command import ICommand, COMMAND_PENDING
 
 
 #TODO: write a decorator that checks execute parameter type
@@ -15,7 +15,10 @@ class BaseCommand(object):
 
     Base subclasses should implement execute and wait methods
     """
-    state = FieldProperty(ICommand['state'])
+    status = FieldProperty(ICommand['status'])
     return_code = FieldProperty(ICommand['return_code'])
-    error = None
+    mesg = None
     result = None
+
+    def __init__(self):
+        self.state = COMMAND_PENDING

@@ -27,8 +27,6 @@ class ListPresentationAgent(GtkBasePresentationAgent):
         GtkBasePresentationAgent.__init__(self, control_agent)
         site_list = self['site_list']
 
-        model = gtk.ListStore(str, str, str, str)
-        site_list.set_model(model)
         renderer = gtk.CellRendererText()
 
         cname = gtk.TreeViewColumn("Name", renderer, text=0)
@@ -39,14 +37,16 @@ class ListPresentationAgent(GtkBasePresentationAgent):
         cname.set_sort_column_id(1)
         site_list.append_column(cname)
 
-        cdesc = gtk.TreeViewColumn("Platform", renderer, text=2)
+        cplat = gtk.TreeViewColumn("Platform", renderer, text=2)
         cname.set_sort_column_id(2)
-        site_list.append_column(cdesc)
+        site_list.append_column(cplat)
 
         cdesc = gtk.TreeViewColumn("Description", renderer, text=3)
         cname.set_sort_column_id(3)
         site_list.append_column(cdesc)
 
+        model = gtk.ListStore(str, str, str, str)
+        site_list.set_model(model)
         self.load_widgets_data()
 
         self['site_list'].connect('row-activated', self.on_site_list_row_activated)
@@ -59,9 +59,15 @@ class ListPresentationAgent(GtkBasePresentationAgent):
         """
         Loads site items data into widgets
         """
-
         # Appends items to the site_list
         model = self['site_list'].get_model()
+
+        if model is None:
+            print "No model !"
+            model = gtk.ListStore(str, str, str, str)
+            self['site_list'].set_model(model)
+
+        # FIXME: problem on reloding sites
         model.clear()
         hosts = self.get_control_agent().lookup_host_by_name("*", "*")
 
@@ -70,6 +76,7 @@ class ListPresentationAgent(GtkBasePresentationAgent):
             domain = dnshost.domain
             platform = dnshost.platform
             description = dnshost.description
+            print "loading %s.%s" % (name, domain)
             model.append((name, domain, platform, description))
 
     def get_selected_items(self):

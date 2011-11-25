@@ -86,3 +86,11 @@ class TestBackendDriver(object):
                 sites.append(deepcopy(dnshost))
 
         return sites
+
+    @staticmethod
+    def add_site(site):
+        """
+        Adds a site to the site list
+        """
+        global _SITES
+        _SITES.append(site)

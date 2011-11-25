@@ -10,22 +10,25 @@ from sitebuilder.presentation.gtk.detail import DetailSitePresentationAgent
 from sitebuilder.presentation.gtk.detail import DetailRepositoryPresentationAgent
 from sitebuilder.abstraction.site.manager import SiteConfigurationManager
 from sitebuilder.interfaces.action  import IActionObserver
+from sitebuilder.interfaces.action  import IActionSubject
+from sitebuilder.observer.action  import Action, ActionSubject
 from sitebuilder.control.base import BaseControlAgent
 from sitebuilder.utils.parameters import ACTION_SUBMIT, ACTION_CANCEL
 from zope.interface import implements
 import gtk
 
-class DetailMainControlAgent(BaseControlAgent):
+class DetailMainControlAgent(BaseControlAgent, ActionSubject):
     """
     Site details main interface's control agent
     """
-    implements(IActionObserver)
+    implements(IActionObserver, IActionSubject)
 
     def __init__(self, site, read_only):
         """
         ControlAgent initialization
         """
         BaseControlAgent.__init__(self)
+        ActionSubject.__init__(self)
         self.set_site(site)
         self.set_read_only_flag(read_only)
         presentation_agent = DetailMainPresentationAgent(self)
@@ -79,8 +82,9 @@ class DetailMainControlAgent(BaseControlAgent):
         """
         The interface submit action has been asked.
         """
-        # TODO: implement message passing
-        print "site configuration submitted"
+        self.notify_action_activated(Action(
+            ACTION_SUBMIT,
+            {'sites': [ self.get_site() ]} ))
         self.destroy()
 
     def cancel(self):

@@ -4,11 +4,10 @@ This module contains application wide functions and settings
 """
 
 from threading import Event
+from signal import signal, SIGTERM
+import sys
 
-
-if 'threadstop' not in locals():
-    # Threads should listen to this event to stop
-    threadstop = Event()
+threadstop = Event()
 
 
 def init():
@@ -17,10 +16,20 @@ def init():
     """
     pass
 
-
 def uninit():
     """
     Leaves application
     """
     global threadstop
     threadstop.set()
+
+def sig_stop(signum, frame):
+    """
+    Signal handler used to cleanly stop application on various signals
+    """
+    uninit()
+    sys.exit()
+
+
+# Registers signal handlers
+#signal(SIGTERM, sig_stop)

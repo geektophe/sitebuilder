@@ -42,11 +42,11 @@ class LogManager(Thread):
             if command.status == COMMAND_SUCCESS:
                 print "%s: success: %s" % (str(type(command)), command.result)
             elif command.status == COMMAND_ERROR:
-                print "%s: error: %s" % (str(type(command)), command.result)
+                print "%s: error: %s" % (str(type(command)), command.mesg)
             else:
-                print "Unknown command status"
+                print "Unknown command status: %s" % command.status
 
-            self.exec_queue.task_done()
+            self.log_queue.task_done()
         # End while
 
 

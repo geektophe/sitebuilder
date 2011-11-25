@@ -68,6 +68,7 @@ class CommandScheduler(Thread):
             except Empty:
                 continue
 
+            print "executing comamnd %s" % str(command)
             command.status = COMMAND_RUNNING
 
             if ICommandSubject.providedBy(command) and \
@@ -81,9 +82,12 @@ class CommandScheduler(Thread):
                 command.execute(self.get_backend_driver())
                 command.status = COMMAND_SUCCESS
             except Exception, e:
-                self.status = COMMAND_ERROR
-                self.mesg = str(e)
-                self.exception = e
+                command.status = COMMAND_ERROR
+                command.mesg = str(e)
+                command.exception = e
+
+            if ICommandSubject.providedBy(command):
+                command.notify_command_executed(command)
 
             command.release()
             self.exec_queue.task_done()

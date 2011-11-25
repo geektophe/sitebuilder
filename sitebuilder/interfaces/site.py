@@ -195,3 +195,9 @@ class ISite(Interface):
         required=True,
         description=u"Should be an integer value",
         default=SITE_NEW)
+
+
+class ISiteNew(Interface):
+    """
+    Marker interface to specify that a site is new, and should be added.
+    """

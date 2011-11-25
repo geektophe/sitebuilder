@@ -11,10 +11,3 @@ class FieldFormatError(Exception):
     The exception should contain the required format rather the the technical
     reason it was reasen.
     """
-
-
-class LookupError(Exception):
-    """
-    Exception that should be risen when a search has failed in the backend
-    driver.
-    """

@@ -4,9 +4,11 @@ DNSHost objects related commands
 """
 
 from sitebuilder.interfaces.command import ICommand
+from sitebuilder.interfaces.command import ICommandLogged, ICommandSubject
+from sitebuilder.interfaces.site import ISite
 from sitebuilder.command.base import BaseCommand
+from sitebuilder.observer.command import CommandSubject
 from zope.interface import implements
-from threading import Event
 import re
 
 class GetSiteByName(BaseCommand):
@@ -36,7 +38,6 @@ class GetSiteByName(BaseCommand):
 
         self.name = name
         self.domain = domain
-        self.executed = Event()
 
     def execute(self, driver):
         """
@@ -45,3 +46,41 @@ class GetSiteByName(BaseCommand):
         """
         result = driver.get_site_by_name(self.name, self.domain)
         self.result = result
+
+
+class AddSite(BaseCommand, CommandSubject):
+    """
+    Adds a new site into the backend
+    """
+    implements(ICommand, ICommandLogged, ICommandSubject)
+
+    site = None
+
+    def __init__(self, site):
+        """
+        Command initialization.
+
+        Parameters:
+            site    Site object to add to backend
+        """
+        BaseCommand.__init__(self)
+        CommandSubject.__init__(self)
+
+        if not ISite.providedBy(site):
+            raise AttributeError("Invalid site parametee. Should implement ISite")
+
+        self.site = site
+
+    def execute(self, driver):
+        """
+        Looks for an host by host and domain name. Result is set a list of
+        DNSHost objects.
+        """
+        name = self.site.dnshost.name
+        domain = self.site.dnshost.domain
+        hosts = driver.lookup_host_by_name(name, domain)
+
+        if len(hosts):
+            raise ValueError("Site %s.%s already exists" % (name, domain))
+
+        driver.add_site(self.site)

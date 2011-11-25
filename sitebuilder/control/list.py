@@ -6,14 +6,15 @@ Main list interface control agent
 from sitebuilder.presentation.gtk.list import ListPresentationAgent
 from sitebuilder.control.detail import DetailMainControlAgent
 from sitebuilder.abstraction.site.factory import site_factory
-from sitebuilder.interfaces.action  import IActionObserver
-from sitebuilder.utils.parameters import ACTION_ADD, ACTION_VIEW
+from sitebuilder.interfaces.action  import IActionObserver, IActionSubject
+from sitebuilder.interfaces.command import ICommandObserver, COMMAND_SUCCESS
+from sitebuilder.interfaces.site import ISiteNew
+from sitebuilder.utils.parameters import ACTION_ADD, ACTION_VIEW, ACTION_SUBMIT
 from sitebuilder.utils.parameters import ACTION_EDIT, ACTION_DELETE
-from sitebuilder.interfaces.command import COMMAND_SUCCESS
 from sitebuilder.command.scheduler import scheduler
 from sitebuilder.command.host import LookupHostByName
-from sitebuilder.command.site import GetSiteByName
-from zope.interface import implements
+from sitebuilder.command.site import GetSiteByName, AddSite
+from zope.interface import implements, alsoProvides
 import gtk
 
 
@@ -21,7 +22,7 @@ class ListControlAgent(object):
     """
     List main component control agent
     """
-    implements(IActionObserver)
+    implements(IActionObserver, ICommandObserver)
 
     def __init__(self):
         """
@@ -52,8 +53,20 @@ class ListControlAgent(object):
             self.edit_selected_sites(parms['sites'])
         elif action.name == ACTION_DELETE:
             self.delete_selected_sites(parms['sites'])
+        elif action.name == ACTION_SUBMIT:
+            self.submit_sites(parms['sites'])
         else:
             raise NotImplementedError("Unhandled action %s triggered" % action)
+
+    def command_executed(self, command):
+        """
+        A command has been executted and sites list should be refreshed
+        """
+        if command.status == COMMAND_SUCCESS:
+            print "reloading sites"
+            self.get_presentation_agent().load_widgets_data()
+        else:
+            print "command error: %s" % command.mesg
 
     def get_presentation_agent(self):
         """
@@ -79,6 +92,10 @@ class ListControlAgent(object):
         Shows detail dialog for the specified site
         """
         detail = DetailMainControlAgent(site, read_only)
+
+        if IActionSubject.providedBy(detail):
+            detail.register_action_observer(self)
+
         presentation = detail.get_presentation_agent()
         presentation.show()
 
@@ -106,6 +123,7 @@ class ListControlAgent(object):
         Display detail dialog in add mode with a new site site
         """
         site = site_factory()
+        alsoProvides(site, ISiteNew)
         self.show_detail_dialog(site)
 
     def get_site_by_name(self, name, domain):
@@ -145,6 +163,17 @@ class ListControlAgent(object):
             site = self.get_site_by_name(name, domain)
             self.show_delete_dialog(site)
 
+    def submit_sites(self, sites):
+        """
+        Submits sites changes to backend
+        """
+        for site in sites:
+            if ISiteNew.providedBy(site):
+                command = AddSite(site)
+                command.register_command_observer(self)
+                print "submitting site"
+                scheduler.put(command)
+
     def destroy(self):
         """
         Cleanly destroyes components
@@ -155,11 +184,15 @@ class ListControlAgent(object):
 
 
 if __name__ == '__main__':
+
     from sitebuilder.application import init, uninit
+
     init()
-    control = ListControlAgent()
-    presentation = control.get_presentation_agent()
-    presentation.get_toplevel().connect("destroy", gtk.main_quit)
-    presentation.show()
-    gtk.main()
-    uninit()
+    try:
+        control = ListControlAgent()
+        presentation = control.get_presentation_agent()
+        presentation.get_toplevel().connect("destroy", gtk.main_quit)
+        presentation.show()
+        gtk.main()
+    finally:
+        uninit()

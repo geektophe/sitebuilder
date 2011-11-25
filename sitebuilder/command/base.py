@@ -5,6 +5,7 @@ Base command that command implementations may subclass
 
 from zope.schema.fieldproperty import FieldProperty
 from sitebuilder.interfaces.command import ICommand, COMMAND_PENDING
+from threading import Event
 
 
 #TODO: write a decorator that checks execute parameter type
@@ -19,6 +20,20 @@ class BaseCommand(object):
     return_code = FieldProperty(ICommand['return_code'])
     mesg = None
     result = None
+    exception=None
 
     def __init__(self):
         self.state = COMMAND_PENDING
+        self._lock = Event()
+
+    def wait(self, timeout=None):
+        """
+        Waits for command to be executed
+        """
+        self._lock.wait(timeout)
+
+    def release(self):
+        """
+        Releases execution lock
+        """
+        self._lock.set()

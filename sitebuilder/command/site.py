@@ -16,8 +16,8 @@ class GetSiteByName(BaseCommand):
     implements(ICommand)
     name = ""
     domain = ""
-    name_re = re.compile("^[\w_-]+$")
-    domain_re = re.compile("^[\w\._-]+$")
+    name_re = re.compile(r"^[\w\d_-]+$")
+    domain_re = re.compile(r"^[\w\d\._-]+$")
 
     def __init__(self, name, domain):
         """
@@ -30,25 +30,18 @@ class GetSiteByName(BaseCommand):
         BaseCommand.__init__(self)
 
         if not self.name_re.match(name):
-            raise AttributeError("Invalid host name. Should match /^[\w_-]+$/")
-        if not self.name_re.match(name):
-            raise AttributeError("Invalid domain name. Should match /^[\w\._-]+$/")
+            raise AttributeError(r"Invalid host name. Should match /^[\w\d_-]+$/")
+        if not self.domain_re.match(domain):
+            raise AttributeError(r"Invalid domain name. Should match /^[\w\d\._-]+$/")
 
         self.name = name
         self.domain = domain
         self.executed = Event()
 
-    def wait(self, timeout=None):
-        """
-        Waits for command to be executed
-        """
-        self.executed.wait()
-
-    def excecute(self, driver):
+    def execute(self, driver):
         """
         Looks for an host by host and domain name. Result is set a list of
         DNSHost objects.
         """
         result = driver.get_site_by_name(self.name, self.domain)
         self.result = result
-        self.executed.set()

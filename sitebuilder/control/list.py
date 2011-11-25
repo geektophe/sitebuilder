@@ -5,7 +5,7 @@ Main list interface control agent
 
 from sitebuilder.presentation.gtk.list import ListPresentationAgent
 from sitebuilder.control.detail import DetailMainControlAgent
-from sitebuilder.abstraction.site.manager import SiteConfigurationManager
+from sitebuilder.abstraction.site.factory import site_factory
 from sitebuilder.interfaces.action  import IActionObserver
 from sitebuilder.utils.parameters import ACTION_ADD, ACTION_VIEW
 from sitebuilder.utils.parameters import ACTION_EDIT, ACTION_DELETE
@@ -72,7 +72,7 @@ class ListControlAgent(object):
         if command.status == COMMAND_SUCCESS:
             return command.result
         else:
-            raise command.error
+            raise command.exception
 
     def show_detail_dialog(self, site, read_only=False):
         """
@@ -105,21 +105,21 @@ class ListControlAgent(object):
         """
         Display detail dialog in add mode with a new site site
         """
-        site = SiteConfigurationManager.get_blank_site()
+        site = site_factory()
         self.show_detail_dialog(site)
 
     def get_site_by_name(self, name, domain):
         """
         Utility method used to get a site based on its host settings
         """
-        command = GetSiteByName("*", "*")
+        command = GetSiteByName(name, domain)
         scheduler.put(command)
         command.wait()
 
         if command.status == COMMAND_SUCCESS:
             return command.result
         else:
-            raise command.error
+            raise command.exception
 
     def view_selected_sites(self, selection):
         """
@@ -155,8 +155,11 @@ class ListControlAgent(object):
 
 
 if __name__ == '__main__':
+    from sitebuilder.application import init, uninit
+    init()
     control = ListControlAgent()
     presentation = control.get_presentation_agent()
     presentation.get_toplevel().connect("destroy", gtk.main_quit)
     presentation.show()
     gtk.main()
+    uninit()

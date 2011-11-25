@@ -339,7 +339,7 @@ class DetailDNSHostPresentationAgent(GtkBasePresentationAgent):
     """
 
     GLADE_FILE = "%s/%s" % (GLADE_BASEDIR, 'edit_dnshost.glade')
-    TOPLEVEL_NAME = "dnsohst"
+    TOPLEVEL_NAME = "dnshost"
 
     def __init__(self, control_agent):
         """

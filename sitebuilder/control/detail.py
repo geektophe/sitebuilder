@@ -39,6 +39,7 @@ class DetailMainControlAgent(BaseControlAgent):
         # Creates general component
         slave = DetailDNSHostControlAgent(site.dnshost, read_only)
         self._slaves.append(slave)
+        presentation_agent = slave.get_presentation_agent()
         self._presentation_agent.attach_slave('dnshost', 'hbox_general',
                 slave.get_presentation_agent())
 

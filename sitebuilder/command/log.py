@@ -3,13 +3,14 @@
 Log manager classes
 """
 
+from sitebuilder.application import threadstop
 from sitebuilder.interfaces.command import ICommandObserver
 from sitebuilder.interfaces.command import COMMAND_SUCCESS, COMMAND_ERROR
 from zope.interface import implements
+from Queue import Queue, Empty
 from threading import Thread
-from Queue import Queue
 
-class LogManager(object):
+class LogManager(Thread):
     """
     Logs commands into log system
     """
@@ -19,7 +20,7 @@ class LogManager(object):
         """
         Logger initialization
         """
-        #Thread.__init__(self)
+        Thread.__init__(self)
         self.log_queue = Queue()
 
     def command_executed(self, command):
@@ -27,17 +28,16 @@ class LogManager(object):
         Adds a command into the log queue
         """
         self.log_queue.put(command)
-        #TODO: find a way to exit threads cleanly
-        self.run()
 
     def run(self):
         """
         Continuously loops on commands and log messages
         """
-        i = 0
-
-        while i < 1:
-            command = self.log_queue.get(block=True)
+        while not threadstop.is_set():
+            try:
+                command = self.log_queue.get(block=True, timeout=0.1)
+            except Empty:
+                continue
 
             if command.status == COMMAND_SUCCESS:
                 print "%s: success: %s" % (str(type(command)), command.result)
@@ -45,10 +45,11 @@ class LogManager(object):
                 print "%s: error: %s" % (str(type(command)), command.result)
             else:
                 print "Unknown command status"
-            i += 1
+
+            self.exec_queue.task_done()
         # End while
 
 
 if not 'logger' in locals():
     logger = LogManager()
-    #logger.start()
+    logger.start()

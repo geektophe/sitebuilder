@@ -4,6 +4,7 @@
 Command scheduler class
 """
 
+from sitebuilder.application import threadstop
 from sitebuilder.utils.parameters import get_application_context
 from sitebuilder.utils.parameters import CONTEXT_NORMAL, CONTEXT_TEST
 from sitebuilder.utils.driver.test import TestBackendDriver
@@ -13,11 +14,11 @@ from sitebuilder.interfaces.command import COMMAND_RUNNING
 from sitebuilder.interfaces.command import COMMAND_SUCCESS
 from sitebuilder.interfaces.command import COMMAND_ERROR
 from sitebuilder.command.log import logger
-from Queue import Queue
+from Queue import Queue, Empty
 from threading import Thread
 
 
-class CommandScheduler(object):
+class CommandScheduler(Thread):
     """
     Command scheduler enques commands and exectes them. Command queue is
     managed in a separate thread to avoid.
@@ -27,7 +28,7 @@ class CommandScheduler(object):
         """
         Schedule initialization
         """
-        #Thread.__init__(self)
+        Thread.__init__(self)
         self.backend_driver = None
         self.exec_queue = Queue()
 
@@ -56,17 +57,17 @@ class CommandScheduler(object):
         if not ICommand.providedBy(command):
             raise AttributeError("command parameter should be an instance of ICommand")
         self.exec_queue.put(command)
-        #TODO: find a way to exit threads cleanly
-        self.run()
 
     def run(self):
         """
         Continuously loops on commands and executes them
         """
-        i = 0
+        while not threadstop.is_set():
+            try:
+                command = self.exec_queue.get(block=True, timeout=0.1)
+            except Empty:
+                continue
 
-        while i < 1:
-            command = self.exec_queue.get(block=True)
             command.status = COMMAND_RUNNING
 
             if ICommandSubject.providedBy(command) and \
@@ -77,18 +78,21 @@ class CommandScheduler(object):
                 command.register_command_observer(logger)
 
             try:
-                command.execute(CommandScheduler.get_backend_driver())
+                command.execute(self.get_backend_driver())
                 command.status = COMMAND_SUCCESS
             except Exception, e:
                 self.status = COMMAND_ERROR
-                self.mesg = e
-            i += 1
+                self.mesg = str(e)
+                self.exception = e
+
+            command.release()
+            self.exec_queue.task_done()
         # End while
 
 
 if not 'scheduler' in locals():
     scheduler = CommandScheduler()
-    #scheduler.start()
+    scheduler.start()
 
 
 if __name__ == "__main__":

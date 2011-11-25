@@ -16,8 +16,8 @@ class LookupHostByName(BaseCommand):
     implements(ICommand)
     name = ""
     domain = ""
-    name_re = re.compile("^[\w\*_-]+$")
-    domain_re = re.compile("^[\w\*\._-]+$")
+    name_re = re.compile(r"^[\w\d\*_-]+$")
+    domain_re = re.compile(r"^[\w\d\*\._-]+$")
 
     def __init__(self, name, domain):
         """
@@ -31,25 +31,18 @@ class LookupHostByName(BaseCommand):
 
         # Parameters check
         if not self.name_re.match(name):
-            raise AttributeError("Invalid host name. Should match /^[\w\*_-]+$/")
-        if not self.name_re.match(name):
-            raise AttributeError("Invalid domain name. Should match /^^[\w\*\._-]+$/")
+            raise AttributeError("Invalid host name. Should match /^[\w\d\*_-]+$/")
+        if not self.domain_re.match(domain):
+            raise AttributeError("Invalid domain name. Should match /^^[\w\d\*\._-]+$/")
 
         self.name = name
         self.domain = domain
         self.executed = Event()
 
-    def wait(self, timeout=None):
-        """
-        Waits for command to be executed
-        """
-        self.executed.wait()
-
-    def excecute(self, driver):
+    def execute(self, driver):
         """
         Looks for an host by host and domain name. Result is set a list of
         DNSHost objects.
         """
         result = driver.lookup_host_by_name(self.name, self.domain)
         self.result = result
-        self.executed.set()

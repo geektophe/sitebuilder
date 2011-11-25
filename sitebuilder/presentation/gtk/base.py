@@ -88,7 +88,7 @@ class GtkBasePresentationAgent(ValiditySubject, ActionSubject):
         container.pack_start(widget)
         # When a slave is attached, the master should be informed of its
         # validity changes
-        slave.register_validity_changed_observer(self)
+        slave.register_validity_observer(self)
         self._slaves[name] = slave
 
     def get_objects(self):
@@ -228,11 +228,11 @@ class GtkBasePresentationAgent(ValiditySubject, ActionSubject):
         """
         # Destroyes slaves if it has some
         for name, slave in self._slaves.items():
-            slave.remove_validity_changed_observer(self)
+            slave.remove_validity_observer(self)
             slave.destroy()
             del self._slaves[name]
 
         # Clears observers lists
-        self.clear_validity_changed_observers()
-        self.clear_action_activated_observers()
+        self.clear_validity_observers()
+        self.clear_action_observers()
         self.get_toplevel().destroy()

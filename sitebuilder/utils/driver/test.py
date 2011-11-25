@@ -56,7 +56,8 @@ class TestBackendDriver(object):
 
         for site in _SITES:
             dnshost = site.dnshost
-            if dnshost.name == name  and dnshost.domain == domain:
+            if dnshost.name.lower() == name.lower() and \
+               dnshost.domain.lower() == domain.lower():
                 return deepcopy(site)
 
         return None

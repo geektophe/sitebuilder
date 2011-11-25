@@ -30,6 +30,9 @@ class ICommand(Interface):
     # Error message is error occured
     mesg = Attribute(u"Success or error message")
 
+    # Error message is error occured
+    exception = Attribute(u"Exception object risen if error occured")
+
     def execute(driver):
         """
         Executes the specific command actions using a backend driver.
@@ -42,6 +45,11 @@ class ICommand(Interface):
     def wait(timeout=None):
         """
         Waits for the command to be executed.
+        """
+
+    def release():
+        """
+        Releases a locked command
         """
 
 class ICommandObserver(Interface):

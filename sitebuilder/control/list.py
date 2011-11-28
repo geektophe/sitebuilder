@@ -11,9 +11,10 @@ from sitebuilder.interfaces.command import ICommandObserver, COMMAND_SUCCESS
 from sitebuilder.interfaces.site import ISiteNew
 from sitebuilder.utils.parameters import ACTION_ADD, ACTION_VIEW, ACTION_SUBMIT
 from sitebuilder.utils.parameters import ACTION_EDIT, ACTION_DELETE
-from sitebuilder.command.scheduler import scheduler
+from sitebuilder.command.scheduler import enqueue_command
 from sitebuilder.command.host import LookupHostByName
-from sitebuilder.command.site import GetSiteByName, AddSite
+from sitebuilder.command.site import GetSiteByName, AddSite, UpdateSite
+from sitebuilder.command.site import DeleteSite
 from zope.interface import implements, alsoProvides
 import gtk
 
@@ -63,7 +64,6 @@ class ListControlAgent(object):
         A command has been executted and sites list should be refreshed
         """
         if command.status == COMMAND_SUCCESS:
-            print "reloading sites"
             self.get_presentation_agent().load_widgets_data()
         else:
             print "command error: %s" % command.mesg
@@ -79,7 +79,7 @@ class ListControlAgent(object):
         Retrieves all the configuraiton items from the abstraction
         """
         command = LookupHostByName("*", "*")
-        scheduler.put(command)
+        enqueue_command(command)
         command.wait()
 
         if command.status == COMMAND_SUCCESS:
@@ -116,6 +116,9 @@ class ListControlAgent(object):
         dialog.destroy()
 
         if response == gtk.RESPONSE_YES:
+            command = DeleteSite(dnshost.name, dnshost.domain)
+            command.register_command_observer(self)
+            enqueue_command(command)
             print "deleted site id %s" % conf_name
 
     def add_site(self):
@@ -131,7 +134,7 @@ class ListControlAgent(object):
         Utility method used to get a site based on its host settings
         """
         command = GetSiteByName(name, domain)
-        scheduler.put(command)
+        enqueue_command(command)
         command.wait()
 
         if command.status == COMMAND_SUCCESS:
@@ -170,9 +173,12 @@ class ListControlAgent(object):
         for site in sites:
             if ISiteNew.providedBy(site):
                 command = AddSite(site)
-                command.register_command_observer(self)
-                print "submitting site"
-                scheduler.put(command)
+            else:
+                command = UpdateSite(site)
+
+            command.register_command_observer(self)
+            enqueue_command(command)
+
 
     def destroy(self):
         """
@@ -188,11 +194,9 @@ if __name__ == '__main__':
     from sitebuilder.application import init, uninit
 
     init()
-    try:
-        control = ListControlAgent()
-        presentation = control.get_presentation_agent()
-        presentation.get_toplevel().connect("destroy", gtk.main_quit)
-        presentation.show()
-        gtk.main()
-    finally:
-        uninit()
+    control = ListControlAgent()
+    presentation = control.get_presentation_agent()
+    presentation.get_toplevel().connect("destroy", gtk.main_quit)
+    presentation.show()
+    gtk.main()
+    uninit()

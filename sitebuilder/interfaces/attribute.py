@@ -11,7 +11,7 @@ class IAttributeObserver(Interface):
     Observers methods are called on attribute activaee event.
     """
 
-    def attribute_changed(self, event=None):
+    def attribute_changed(self, attribute):
         """
         Observer method run on attribute changed event
         """
@@ -37,7 +37,7 @@ class IAttributeSubject(Interface):
         Deletes all observers object from observers list
         """
 
-    def notify_attribute_changed(attribute=None):
+    def notify_attribute_changed(attribute):
         """
         Notifies all observers that a data has changed
         """

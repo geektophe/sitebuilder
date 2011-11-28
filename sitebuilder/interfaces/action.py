@@ -20,7 +20,7 @@ class IActionObserver(Interface):
     Observers methods are called on action activaee event.
     """
 
-    def action_activated(self, event=None):
+    def action_activated(self, action):
         """
         Observer method run on action avtivated event
         """
@@ -45,7 +45,7 @@ class IActionSubject(Interface):
         Deletes all observers object from observers list
         """
 
-    def notify_action_activated(event):
+    def notify_action_activated(action):
         """
         Notifies all observers that a data has changed
         """

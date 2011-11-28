@@ -76,7 +76,6 @@ class ListPresentationAgent(GtkBasePresentationAgent):
             domain = dnshost.domain
             platform = dnshost.platform
             description = dnshost.description
-            print "loading %s.%s" % (name, domain)
             model.append((name, domain, platform, description))
 
     def get_selected_items(self):

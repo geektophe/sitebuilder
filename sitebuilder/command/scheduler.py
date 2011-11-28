@@ -18,7 +18,23 @@ from Queue import Queue, Empty
 from threading import Thread
 
 
-class CommandScheduler(Thread):
+# Module level execution queue
+exec_queue = Queue()
+notify_queue = Queue()
+
+
+def enqueue_command(command):
+    """
+    Adds a command to the execution queue
+    """
+    if not ICommand.providedBy(command):
+        raise AttributeError("command parameter should be an instance of ICommand")
+
+    # Adds command to execution queue
+    exec_queue.put(command)
+
+
+class CommandExecScheduler(Thread):
     """
     Command scheduler enques commands and exectes them. Command queue is
     managed in a separate thread to avoid.
@@ -30,7 +46,8 @@ class CommandScheduler(Thread):
         """
         Thread.__init__(self)
         self.backend_driver = None
-        self.exec_queue = Queue()
+        self.name = "CommandExecScheduler"
+        self.daemon = True
 
     def get_backend_driver(self):
         """
@@ -50,54 +67,79 @@ class CommandScheduler(Thread):
 
         return self.backend_driver
 
-    def put(self, command):
-        """
-        Adds a command in the execution queue
-        """
-        if not ICommand.providedBy(command):
-            raise AttributeError("command parameter should be an instance of ICommand")
-        self.exec_queue.put(command)
-
     def run(self):
         """
         Continuously loops on commands and executes them
         """
         while not threadstop.is_set():
             try:
-                command = self.exec_queue.get(block=True, timeout=0.1)
+                command = exec_queue.get(timeout=0.1)
             except Empty:
                 continue
 
-            print "executing comamnd %s" % str(command)
-            command.status = COMMAND_RUNNING
 
             if ICommandSubject.providedBy(command) and \
                ICommandLogged.providedBy(command):
-
                 # Register logger as command observer for it to be notified
                 # when execution has finished
                 command.register_command_observer(logger)
+
+            command.status = COMMAND_RUNNING
 
             try:
                 command.execute(self.get_backend_driver())
                 command.status = COMMAND_SUCCESS
             except Exception, e:
                 command.status = COMMAND_ERROR
-                command.mesg = str(e)
                 command.exception = e
+
+            command.release()
+
+            if ICommandSubject.providedBy(command):
+                notify_queue.put_nowait(command)
+
+            exec_queue.task_done()
+        # End while
+
+
+class CommandNotificationScheduler(Thread):
+    """
+    Command scheduler enques commands and exectes them. Command queue is
+    managed in a separate thread to avoid.
+    """
+
+    def __init__(self):
+        """
+        Schedule initialization
+        """
+        Thread.__init__(self)
+        self.name = "CommandNotificationScheduler"
+        self.daemon = True
+
+    def run(self):
+        """
+        Continuously loops on commands and notify them
+        """
+        while not threadstop.is_set():
+            try:
+                command = notify_queue.get(timeout=0.1)
+            except Empty:
+                continue
 
             if ICommandSubject.providedBy(command):
                 command.notify_command_executed(command)
 
-            command.release()
-            self.exec_queue.task_done()
+            notify_queue.task_done()
         # End while
 
 
-if not 'scheduler' in locals():
-    scheduler = CommandScheduler()
-    scheduler.start()
+# Command execution scheduler module level instance
+scheduler = CommandExecScheduler()
+scheduler.start()
 
+# Commend notifications scheduler module level instance
+notifier = CommandNotificationScheduler()
+notifier.start()
 
 if __name__ == "__main__":
     import doctest

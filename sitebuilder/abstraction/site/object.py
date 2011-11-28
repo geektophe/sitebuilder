@@ -9,7 +9,6 @@ from sitebuilder.interfaces.site import ISite, IWebsite, IDNSHost, IDatabase
 from sitebuilder.interfaces.site import IRCSRepository
 from sitebuilder.observer.attribute import AttributeSubject
 from sitebuilder.interfaces.attribute import IAttributeObserver
-from sitebuilder.abstraction.site.defaults import SiteDefaultsManager
 from zope.interface import implements
 from zope.schema.fieldproperty import FieldProperty
 from zope.schema import getValidationErrors

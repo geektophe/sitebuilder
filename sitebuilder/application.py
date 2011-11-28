@@ -6,6 +6,7 @@ This module contains application wide functions and settings
 from threading import Event
 from signal import signal, SIGTERM
 import sys
+import gobject
 
 threadstop = Event()
 
@@ -14,7 +15,7 @@ def init():
     """
     Setup application wide locks
     """
-    pass
+    gobject.threads_init()
 
 def uninit():
     """
@@ -33,3 +34,4 @@ def sig_stop(signum, frame):
 
 # Registers signal handlers
 #signal(SIGTERM, sig_stop)
+

@@ -57,7 +57,7 @@ class ICommandObserver(Interface):
     Observers methods are called on command executed event.
     """
 
-    def command_executed(self, command=None):
+    def command_executed(self, command):
         """
         Observer method run on command avtivated event
         """

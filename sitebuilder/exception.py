@@ -11,3 +11,9 @@ class FieldFormatError(Exception):
     The exception should contain the required format rather the the technical
     reason it was reasen.
     """
+
+
+class BackendError(Exception):
+    """
+    Exception that should be risen when an error occurs in a backend driver
+    """

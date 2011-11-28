@@ -9,6 +9,10 @@ from sitebuilder.interfaces.command import COMMAND_SUCCESS, COMMAND_ERROR
 from zope.interface import implements
 from Queue import Queue, Empty
 from threading import Thread
+import sys
+
+# Module level log queue
+log_queue = Queue()
 
 class LogManager(Thread):
     """
@@ -16,18 +20,19 @@ class LogManager(Thread):
     """
     implements(ICommandObserver)
 
+    name = "LogManager"
+
     def __init__(self):
         """
         Logger initialization
         """
         Thread.__init__(self)
-        self.log_queue = Queue()
 
     def command_executed(self, command):
         """
         Adds a command into the log queue
         """
-        self.log_queue.put(command)
+        log_queue.put(command)
 
     def run(self):
         """
@@ -35,7 +40,7 @@ class LogManager(Thread):
         """
         while not threadstop.is_set():
             try:
-                command = self.log_queue.get(block=True, timeout=0.1)
+                command = log_queue.get(timeout=0.1)
             except Empty:
                 continue
 
@@ -46,10 +51,10 @@ class LogManager(Thread):
             else:
                 print "Unknown command status: %s" % command.status
 
-            self.log_queue.task_done()
+            sys.stdout.flush()
+            log_queue.task_done()
         # End while
 
 
-if not 'logger' in locals():
-    logger = LogManager()
-    logger.start()
+logger = LogManager()
+logger.start()

@@ -16,6 +16,7 @@ from sitebuilder.interfaces.command import COMMAND_ERROR
 from sitebuilder.command.log import logger
 from Queue import Queue, Empty
 from threading import Thread
+import gobject
 
 
 # Module level execution queue
@@ -77,7 +78,6 @@ class CommandExecScheduler(Thread):
             except Empty:
                 continue
 
-
             if ICommandSubject.providedBy(command) and \
                ICommandLogged.providedBy(command):
                 # Register logger as command observer for it to be notified
@@ -127,7 +127,9 @@ class CommandNotificationScheduler(Thread):
                 continue
 
             if ICommandSubject.providedBy(command):
-                command.notify_command_executed()
+                # Sends back notification method execution in main thread
+                # Very important with PyGTK !
+                gobject.idle_add(command.notify_command_executed)
 
             notify_queue.task_done()
         # End while

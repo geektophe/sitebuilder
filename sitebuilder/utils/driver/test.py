@@ -211,7 +211,6 @@ class TestBackendDriver(object):
                dnshost.domain.lower() == domain.lower():
                 break
 
-        print "updating site %s.%s" % (dbsite.dnshost.name, dbsite.dnshost.domain)
         # Apply changes. No chnage on name nor domain allowed
         dbsite.dnshost.description = site.dnshost.description
         dbsite.dnshost.platform = site.dnshost.platform

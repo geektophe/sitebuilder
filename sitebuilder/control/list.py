@@ -16,7 +16,6 @@ from sitebuilder.command.host import LookupHostByName
 from sitebuilder.command.site import GetSiteByName, AddSite, UpdateSite
 from sitebuilder.command.site import DeleteSite
 from sitebuilder.exception import SiteError
-import thread
 from zope.interface import implements, alsoProvides
 import gtk
 
@@ -95,7 +94,7 @@ class ListControlAgent(object):
         """
         if command.status == COMMAND_SUCCESS:
             site = command.result
-            self.show_detail_dialog(site, True)
+            self.show_detail_dialog(site, False)
         else:
             raise command.exception
 
@@ -113,7 +112,6 @@ class ListControlAgent(object):
         """
         Shows detail dialog for the specified site
         """
-        #print thread.get_ident()
         detail = DetailMainControlAgent(site, read_only)
 
         if IActionSubject.providedBy(detail):
@@ -210,7 +208,7 @@ class ListControlAgent(object):
 
     def submit_sites(self, sites):
         """
-        Submits sites changes to backend
+        Submits sites changes coming from detail compoenent to backend
         """
         for site in sites:
             if ISiteNew.providedBy(site):

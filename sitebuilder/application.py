@@ -16,7 +16,7 @@ def sig_stop(signum, frame):
     Signal handler used to cleanly stop application on various signals
     """
     uninit()
-    sys.exit()
+    sys._exit()
 
 
 def init():
@@ -24,7 +24,7 @@ def init():
     Setup application wide locks
     """
     # Registers signal handlers
-    signal(SIGTERM, sig_stop)
+    #signal(SIGTERM, sig_stop)
     gobject.threads_init()
 
 

@@ -3,17 +3,18 @@
 DNSHost objects related commands
 """
 
-from sitebuilder.interfaces.command import ICommand
+from sitebuilder.interfaces.command import ICommand, ICommandSubject
 from sitebuilder.command.base import BaseCommand
+from sitebuilder.observer.command import CommandSubject
 from zope.interface import implements
 from threading import Event
 import re
 
-class LookupHostByName(BaseCommand):
+class LookupHostByName(BaseCommand, CommandSubject):
     """
     Looks for a host using its name and domain
     """
-    implements(ICommand)
+    implements(ICommand, ICommandSubject)
     name = ""
     domain = ""
     name_re = re.compile(r"^[\w\d\*_-]+$")
@@ -28,6 +29,7 @@ class LookupHostByName(BaseCommand):
             domain  Domain name (may use wilcards characher *)
         """
         BaseCommand.__init__(self)
+        CommandSubject.__init__(self)
 
         # Parameters check
         if not self.name_re.match(name):

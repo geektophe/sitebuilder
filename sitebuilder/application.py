@@ -11,19 +11,6 @@ import gobject
 threadstop = Event()
 
 
-def init():
-    """
-    Setup application wide locks
-    """
-    gobject.threads_init()
-
-def uninit():
-    """
-    Leaves application
-    """
-    global threadstop
-    threadstop.set()
-
 def sig_stop(signum, frame):
     """
     Signal handler used to cleanly stop application on various signals
@@ -32,6 +19,18 @@ def sig_stop(signum, frame):
     sys.exit()
 
 
-# Registers signal handlers
-#signal(SIGTERM, sig_stop)
+def init():
+    """
+    Setup application wide locks
+    """
+    # Registers signal handlers
+    signal(SIGTERM, sig_stop)
+    gobject.threads_init()
 
+
+def uninit():
+    """
+    Leaves application
+    """
+    global threadstop
+    threadstop.set()

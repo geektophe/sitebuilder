@@ -52,6 +52,7 @@ class ICommand(Interface):
         Releases a locked command
         """
 
+
 class ICommandObserver(Interface):
     """
     Observers methods are called on command executed event.
@@ -62,29 +63,66 @@ class ICommandObserver(Interface):
         Observer method run on command avtivated event
         """
 
+
 class ICommandSubject(Interface):
     """
     Subject notify observers on command events
+
+    Command subject may be used in both ways :
+
+        - Using observer object implementing ICommandObserver, registered
+          using register_command_observer method (the safest)
+
+        - Using callback functions (or callable objects), registerd using
+          register_command_callback method.
+
+    Prefer using observer objects in standard usage.
+
+    If the same object has to listen to several commands and react differently
+    to each one, you may use callbacks.
     """
 
     def register_command_observer(observer):
         """
-        Adds a CommandActivatedObserver observer object to observers list
+        Adds a CommandActivatedObserver observer object to observers list to
+        be notified when command execution has finished
+        """
+
+    def register_command_callback(callback):
+        """
+        Adds a callback function (or callable object) to cvallback list to be
+        notified when command execution has finished
+
+        Callback signature should be :
+
+            callback(command)
+
+        Where command is the command object itself
         """
 
     def remove_command_observer(observer):
         """
-        Deletes a CommandActivatedObserver observer object to observers list
+        Removes a CommandActivatedObserver observer object from observer list
+        """
+
+    def remove_command_callback(callback):
+        """
+        Deletes a callback function (or callable object) from callback list
         """
 
     def clear_command_observers():
         """
-        Deletes all observers object from observers list
+        Removes all observers object from observers list
         """
 
-    def notify_command_executed(command):
+    def clear_command_callbacks():
         """
-        Notifies all observers that a data has changed
+        Removes all callback references from callback list
+        """
+
+    def notify_command_executed():
+        """
+        Notifies all observers that the command has been executed
         """
 
 

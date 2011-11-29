@@ -8,6 +8,7 @@ from gtktest import refresh_gui
 from sitebuilder.utils.parameters import set_application_context
 from sitebuilder.control.list import ListControlAgent
 from sitebuilder.abstraction.site.manager import SiteConfigurationManager
+from sitebuilder.application import init, uninit
 
 
 class ListTestControlAgent(ListControlAgent):
@@ -55,7 +56,14 @@ class TestGtkListPresentationAgent(unittest.TestCase):
         """
         Enables test context
         """
+        init()
         set_application_context('test')
+
+    def tearDown(self):
+        """
+        Cleans execution context
+        """
+        uninit()
 
     def test_list_site_content(self):
         """

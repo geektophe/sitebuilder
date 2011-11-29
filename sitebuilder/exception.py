@@ -17,3 +17,9 @@ class BackendError(Exception):
     """
     Exception that should be risen when an error occurs in a backend driver
     """
+
+
+class SiteError(Exception):
+    """
+    Exception that should be risen when an error occurs on a site configuration
+    """

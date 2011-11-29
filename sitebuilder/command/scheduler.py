@@ -127,7 +127,7 @@ class CommandNotificationScheduler(Thread):
                 continue
 
             if ICommandSubject.providedBy(command):
-                command.notify_command_executed(command)
+                command.notify_command_executed()
 
             notify_queue.task_done()
         # End while

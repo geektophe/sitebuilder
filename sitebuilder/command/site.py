@@ -11,11 +11,11 @@ from sitebuilder.observer.command import CommandSubject
 from zope.interface import implements
 import re
 
-class GetSiteByName(BaseCommand):
+class GetSiteByName(BaseCommand, CommandSubject):
     """
     Looks for a host using its name and domain
     """
-    implements(ICommand)
+    implements(ICommand, ICommandSubject)
     name = ""
     domain = ""
     name_re = re.compile(r"^[\w\d_-]+$")
@@ -30,6 +30,7 @@ class GetSiteByName(BaseCommand):
             domain  Domain name
         """
         BaseCommand.__init__(self)
+        CommandSubject.__init__(self)
 
         if not self.name_re.match(name):
             raise AttributeError(r"Invalid host name. Should match /^[\w\d_-]+$/")
@@ -52,7 +53,7 @@ class AddSite(BaseCommand, CommandSubject):
     """
     Adds a new site into the backend
     """
-    implements(ICommand, ICommandLogged, ICommandSubject)
+    implements(ICommand, ICommandSubject, ICommandLogged)
 
     site = None
 
@@ -90,7 +91,7 @@ class UpdateSite(BaseCommand, CommandSubject):
     """
     Edits a new site into the backend applying the values from site object
     """
-    implements(ICommand, ICommandLogged, ICommandSubject)
+    implements(ICommand, ICommandSubject, ICommandLogged)
 
     site = None
 
@@ -132,7 +133,7 @@ class DeleteSite(BaseCommand, CommandSubject):
     """
     Deletes a site using its name and domain
     """
-    implements(ICommand)
+    implements(ICommand, ICommandSubject, ICommandLogged)
     name = ""
     domain = ""
     name_re = re.compile(r"^[\w\d_-]+$")

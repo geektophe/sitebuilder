@@ -15,9 +15,10 @@ from sitebuilder.command.scheduler import enqueue_command
 from sitebuilder.command.host import LookupHostByName
 from sitebuilder.command.site import GetSiteByName, AddSite, UpdateSite
 from sitebuilder.command.site import DeleteSite
-from sitebuilder.exception import SiteError
+from sitebuilder.exception import SiteError, FieldFormatError
 from zope.interface import implements, alsoProvides
 import gtk
+import re
 
 
 class ListControlAgent(object):
@@ -30,8 +31,46 @@ class ListControlAgent(object):
         """
         Initializes control agent.
         """
+        self._hosts = []
+        self._name_filter = '*'
+        self._name_filter_re = re.compile(r"^[\w\d\*_-]$")
+        self._domain_filter = '*'
+        self._name_filter_re = re.compile(r"^[\w\d\*\._-]$")
         self._presentation_agent = ListPresentationAgent(self)
         self._presentation_agent.register_action_observer(self)
+        self.reload_sites()
+
+    def get_attribute_value(self, name):
+        """
+        Returns a site attribute value
+        """
+        if name == "hosts":
+            return self._hosts
+        elif name == "name_filter":
+            return self._name_filter
+        elif name == "domain_filter":
+            return self._domain_filter
+        else:
+            raise AttributeError("%s object has no attribute '%s'" % \
+                                 (self.__class__.__name__, name))
+
+    def set_attribute_value(self, name, value):
+        """
+        Returns a site attribute value
+        """
+        if name == "name_filter":
+            if not self._name_filter_re.match(value):
+                raise FieldFormatError("Invalid name filter. Should match /^[\w\d\*_-]$/")
+            self._name_filter = value
+            self.reload_sites()
+        elif name == "domain_filter":
+            if not self._domain_filter_re.match(value):
+                raise FieldFormatError("Invalid name filter. Should match /^[\w\d\*\._-]$/")
+            self._domain_filter = value
+            self.reload_sites()
+        else:
+            raise AttributeError("%s object has no attribute '%s'" % \
+                                 (self.__class__.__name__, name))
 
     def action_activated(self, action=None):
         """
@@ -60,53 +99,11 @@ class ListControlAgent(object):
         else:
             raise NotImplementedError("Unhandled action %s triggered" % action)
 
-    def cb_reload_site_list(self, command):
-        """
-        A command has been executted and sites list should be refreshed
-        """
-        if command.status == COMMAND_SUCCESS:
-            self.get_presentation_agent().load_widgets_data()
-        else:
-            print "command error: %s" % command.mesg
-
     def get_presentation_agent(self):
         """
         Returns ListPresentationAgent presentation instance
         """
         return self._presentation_agent
-
-    def lookup_host_by_name(self, name, domain):
-        """
-        Retrieves all the configuraiton items from the abstraction
-        """
-        command = LookupHostByName("*", "*")
-        enqueue_command(command)
-        command.wait()
-
-        if command.status == COMMAND_SUCCESS:
-            return command.result
-        else:
-            raise command.exception
-
-    def cb_show_detail_dialog_rw(self, command):
-        """
-        Command callback method to show detail dialog in read/write mode
-        """
-        if command.status == COMMAND_SUCCESS:
-            site = command.result
-            self.show_detail_dialog(site, False)
-        else:
-            raise command.exception
-
-    def cb_show_detail_dialog_ro(self, command):
-        """
-        Command callback method to show detail dialog in read only mode
-        """
-        if command.status == COMMAND_SUCCESS:
-            site = command.result
-            self.show_detail_dialog(site, True)
-        else:
-            raise command.exception
 
     def show_detail_dialog(self, site, read_only=False):
         """
@@ -119,38 +116,6 @@ class ListControlAgent(object):
 
         presentation = detail.get_presentation_agent()
         presentation.show()
-
-    def cb_show_delete_dialog(self, command):
-        """
-        Shows detail dialog for the specified site
-        """
-        if not  command.status == COMMAND_SUCCESS:
-            raise command.exception
-
-        conf_name = "%s.%s" % (command.name, command.domain)
-        if not command.result:
-            raise SiteError("Unknown site %s" % conf_name)
-
-        if len(command.result) > 1:
-            raise SiteError("Several sites named %s found" % conf_name)
-
-        dnshost = command.result[0]
-
-        dialog = gtk.MessageDialog(
-            self.get_presentation_agent().get_toplevel(),
-            #gtk.DIALOG_MODAL|gtk.DIALOG_DESTROY_WITH_PARENT,
-            gtk.DIALOG_DESTROY_WITH_PARENT,
-            gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO,
-            "Are you sure you want to delete configuraiton '%s' ?" % conf_name)
-
-        response = dialog.run()
-        dialog.destroy()
-
-        if response == gtk.RESPONSE_YES:
-            command = DeleteSite(dnshost.name, dnshost.domain)
-            command.register_command_observer(self)
-            enqueue_command(command)
-            print "deleted site id %s" % conf_name
 
     def add_site(self):
         """
@@ -183,32 +148,26 @@ class ListControlAgent(object):
         Display delete dialog for each selected site id
         """
         for name, domain in selection:
-            if 1:
-                conf_name = "%s.%s" % (name, domain)
+            conf_name = "%s.%s" % (name, domain)
 
-                dialog = gtk.MessageDialog(
-                    self.get_presentation_agent().get_toplevel(),
-                    gtk.DIALOG_MODAL|gtk.DIALOG_DESTROY_WITH_PARENT,
-                    gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO,
-                    "Are you sure you want to delete configuraiton '%s' ?" % conf_name)
+            dialog = gtk.MessageDialog(
+                self.get_presentation_agent().get_toplevel(),
+                gtk.DIALOG_MODAL|gtk.DIALOG_DESTROY_WITH_PARENT,
+                gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO,
+                "Are you sure you want to delete configuraiton '%s' ?" % conf_name)
 
-                response = dialog.run()
-                dialog.destroy()
+            response = dialog.run()
+            dialog.destroy()
 
-                if response == gtk.RESPONSE_YES:
-                    command = DeleteSite(name, domain)
-                    command.register_command_callback(self.cb_reload_site_list)
-                    enqueue_command(command)
-                    print "deleted site id %s" % conf_name
-
-            else:
-                command = LookupHostByName(name, domain)
-                command.register_command_callback(self.cb_show_delete_dialog)
+            if response == gtk.RESPONSE_YES:
+                command = DeleteSite(name, domain)
+                command.register_command_callback(self.cb_reload_sites)
                 enqueue_command(command)
+                print "deleted site id %s" % conf_name
 
     def submit_sites(self, sites):
         """
-        Submits sites changes coming from detail compoenent to backend
+        Submits sites changes coming from detail component to backend
         """
         for site in sites:
             if ISiteNew.providedBy(site):
@@ -216,8 +175,87 @@ class ListControlAgent(object):
             else:
                 command = UpdateSite(site)
 
-            command.register_command_callback(self.cb_reload_site_list)
+            command.register_command_callback(self.cb_reload_sites)
             enqueue_command(command)
+
+    def reload_sites(self):
+        """
+        Reloads site list by submitting a lookup query
+        """
+        command = LookupHostByName(self._name_filter, self._domain_filter)
+        command.register_command_callback(self.cb_set_sites)
+        enqueue_command(command)
+
+    def cb_set_sites(self, command):
+        """
+        Site list has been reloaded and result has to be taken in account
+        """
+        if command.status == COMMAND_SUCCESS:
+            self._hosts = command.result
+            self.get_presentation_agent().load_widgets_data()
+        else:
+            raise command.exception
+
+    def cb_reload_sites(self, command):
+        """
+        A command has been executted that needs sites list to be refreshed
+        """
+        if command.status == COMMAND_SUCCESS:
+            self.reload_sites()
+        else:
+            raise command.exception
+
+    def cb_show_detail_dialog_rw(self, command):
+        """
+        Command callback method to show detail dialog in read/write mode
+        """
+        if command.status == COMMAND_SUCCESS:
+            site = command.result
+            self.show_detail_dialog(site, False)
+        else:
+            raise command.exception
+
+    def cb_show_detail_dialog_ro(self, command):
+        """
+        Command callback method to show detail dialog in read only mode
+        """
+        if command.status == COMMAND_SUCCESS:
+            site = command.result
+            self.show_detail_dialog(site, True)
+        else:
+            raise command.exception
+
+    def cb_show_delete_dialog(self, command):
+        """
+        Shows detail dialog for the specified site
+        """
+        if not  command.status == COMMAND_SUCCESS:
+            raise command.exception
+
+        conf_name = "%s.%s" % (command.name, command.domain)
+        if not command.result:
+            raise SiteError("Unknown site %s" % conf_name)
+
+        if len(command.result) > 1:
+            raise SiteError("Several sites named %s found" % conf_name)
+
+        dnshost = command.result[0]
+
+        dialog = gtk.MessageDialog(
+            self.get_presentation_agent().get_toplevel(),
+            #gtk.DIALOG_MODAL|gtk.DIALOG_DESTROY_WITH_PARENT,
+            gtk.DIALOG_DESTROY_WITH_PARENT,
+            gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO,
+            "Are you sure you want to delete configuraiton '%s' ?" % conf_name)
+
+        response = dialog.run()
+        dialog.destroy()
+
+        if response == gtk.RESPONSE_YES:
+            command = DeleteSite(dnshost.name, dnshost.domain)
+            command.register_command_observer(self)
+            enqueue_command(command)
+            print "deleted site id %s" % conf_name
 
     def destroy(self):
         """

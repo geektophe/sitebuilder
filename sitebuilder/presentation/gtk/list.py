@@ -69,7 +69,7 @@ class ListPresentationAgent(GtkBasePresentationAgent):
 
         # FIXME: problem on reloding sites
         model.clear()
-        hosts = self.get_control_agent().lookup_host_by_name("*", "*")
+        hosts = self.get_control_agent().get_attribute_value('hosts')
 
         for dnshost in hosts:
             name = dnshost.name

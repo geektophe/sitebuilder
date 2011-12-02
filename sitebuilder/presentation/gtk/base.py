@@ -153,6 +153,26 @@ class GtkBasePresentationAgent(ValiditySubject, ActionSubject):
         else:
             combobox.set_active(-1)
 
+    def set_combobox_attribute(self, widget, attr_name):
+        """
+        Retrieves an entry widget text, and tries to set it in the model.
+
+        If an AttributeError is risen while setting the attribute (indicating
+        an incorrect value), the widget backgroud is set red and a tooltip
+        indicates the error.
+        """
+        value = self.get_combobox_selection(widget)
+
+        try:
+            self.get_control_agent().set_attribute_value(attr_name, value)
+            widget.set_tooltip_text('')
+            widget.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('#90EE90'))
+            self.set_validity_flag(attr_name, True)
+        except (ValidationError, FieldFormatError), e:
+            widget.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('#FFCCCC'))
+            widget.set_tooltip_text(str(e))
+            self.set_validity_flag(attr_name, False)
+
     def set_entry_attribute(self, widget, attr_name, empty_allowed=True):
         """
         Retrieves an entry widget text, and tries to set it in the model.

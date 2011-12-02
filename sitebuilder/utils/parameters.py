@@ -15,6 +15,7 @@ ACTION_ADD    = u'add'
 ACTION_VIEW   = u'view'
 ACTION_EDIT   = u'edit'
 ACTION_DELETE = u'delete'
+ACTION_RELOAD = u'reload'
 
 # The following variables are module closed. They should NEVER be directly set
 CONTEXT_NORMAL = u'normal'

@@ -151,15 +151,13 @@ class DetailSitePresentationAgent(GtkBasePresentationAgent):
         """
         Signal handler associated with the template combobox
         """
-        template_name = self.get_combobox_selection(self['template'])
-        self.get_control_agent().set_attribute_value('template', template_name )
+        self.set_combobox_attribute(widget, 'template')
 
     def on_access_changed(self, widget):
         """
         Signal handler associated with the access combobox
         """
-        access = self.get_combobox_selection(self['access'])
-        self.get_control_agent().set_attribute_value('access', access )
+        self.set_combobox_attribute(widget, 'access')
 
 
 class DetailDatabasePresentationAgent(GtkBasePresentationAgent):
@@ -254,8 +252,7 @@ class DetailDatabasePresentationAgent(GtkBasePresentationAgent):
         """
         Signal handler associated with the type combobox
         """
-        type_name = self.get_combobox_selection(self['type'])
-        self.get_control_agent().set_attribute_value('type', type_name )
+        self.set_combobox_attribute(widget, 'type')
 
 
 class DetailRepositoryPresentationAgent(GtkBasePresentationAgent):
@@ -327,8 +324,7 @@ class DetailRepositoryPresentationAgent(GtkBasePresentationAgent):
         """
         Signal handler associated with the type combobox
         """
-        type_name = self.get_combobox_selection(self['type'])
-        self.get_control_agent().set_attribute_value('type', type_name )
+        self.set_combobox_attribute(widget, 'type')
 
 
 class DetailDNSHostPresentationAgent(GtkBasePresentationAgent):
@@ -406,12 +402,10 @@ class DetailDNSHostPresentationAgent(GtkBasePresentationAgent):
         """
         Signal handler associated with the domain combobox
         """
-        domain_name = self.get_combobox_selection(self['domain'])
-        self.get_control_agent().set_attribute_value('domain', domain_name )
+        self.set_combobox_attribute(widget, 'domain')
 
     def on_platform_changed(self, widget):
         """
         Signal handler associated with the platform combobox
         """
-        platform_name = self.get_combobox_selection(self['platform'])
-        self.get_control_agent().set_attribute_value('platform', platform_name )
+        self.set_combobox_attribute(widget, 'platform')

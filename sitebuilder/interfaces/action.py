@@ -25,6 +25,7 @@ class IActionObserver(Interface):
         Observer method run on action avtivated event
         """
 
+
 class IActionSubject(Interface):
     """
     Subject notify observers on action events

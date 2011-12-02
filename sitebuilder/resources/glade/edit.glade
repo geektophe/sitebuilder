@@ -159,7 +159,6 @@
               <object class="GtkFrame" id="frame_general">
                 <property name="visible">True</property>
                 <property name="label_xalign">0</property>
-                <property name="shadow_type">none</property>
                 <child>
                   <object class="GtkAlignment" id="alignment4">
                     <property name="visible">True</property>
@@ -190,7 +189,6 @@
               <object class="GtkFrame" id="frame_repository">
                 <property name="visible">True</property>
                 <property name="label_xalign">0</property>
-                <property name="shadow_type">none</property>
                 <child>
                   <object class="GtkAlignment" id="alignment3">
                     <property name="visible">True</property>
@@ -221,7 +219,6 @@
               <object class="GtkFrame" id="frame_sites">
                 <property name="visible">True</property>
                 <property name="label_xalign">0</property>
-                <property name="shadow_type">none</property>
                 <child>
                   <object class="GtkAlignment" id="alignment1">
                     <property name="visible">True</property>
@@ -252,7 +249,6 @@
               <object class="GtkFrame" id="frame_dbs">
                 <property name="visible">True</property>
                 <property name="label_xalign">0</property>
-                <property name="shadow_type">none</property>
                 <child>
                   <object class="GtkAlignment" id="alignment2">
                     <property name="visible">True</property>
@@ -295,6 +291,7 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="related_action">submit</property>
+                <property name="image">gtk-ok</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -309,6 +306,7 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="related_action">cancel</property>
+                <property name="image">gtk-cancel</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -318,6 +316,8 @@
             </child>
           </object>
           <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
             <property name="position">3</property>
           </packing>
         </child>
@@ -329,5 +329,13 @@
   </object>
   <object class="GtkAction" id="cancel">
     <property name="stock_id">gtk-delete</property>
+  </object>
+  <object class="GtkImage" id="gtk-ok">
+    <property name="visible">True</property>
+    <property name="stock">gtk-ok</property>
+  </object>
+  <object class="GtkImage" id="gtk-cancel">
+    <property name="visible">True</property>
+    <property name="stock">gtk-cancel</property>
   </object>
 </interface>

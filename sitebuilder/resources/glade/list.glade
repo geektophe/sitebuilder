@@ -156,30 +156,89 @@
           <object class="GtkVBox" id="vbox_list">
             <property name="visible">True</property>
             <child>
-              <object class="GtkTreeView" id="site_list">
+              <object class="GtkFrame" id="frame_filter">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-              </object>
-              <packing>
-                <property name="position">0</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="position">2</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkHButtonBox" id="hbuttonbox">
-            <property name="visible">True</property>
-            <property name="layout_style">center</property>
-            <child>
-              <object class="GtkButton" id="add_btn">
-                <property name="label" translatable="yes">Add</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="related_action">add</property>
+                <property name="label_xalign">0</property>
+                <child>
+                  <object class="GtkAlignment" id="alignment_filter">
+                    <property name="visible">True</property>
+                    <property name="left_padding">12</property>
+                    <child>
+                      <object class="GtkTable" id="table_filter">
+                        <property name="visible">True</property>
+                        <property name="n_rows">2</property>
+                        <property name="n_columns">3</property>
+                        <child>
+                          <object class="GtkLabel" id="label_filter_name">
+                            <property name="visible">True</property>
+                            <property name="label" translatable="yes">Name</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkEntry" id="filter_name">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="invisible_char">&#x25CF;</property>
+                          </object>
+                          <packing>
+                            <property name="top_attach">1</property>
+                            <property name="bottom_attach">2</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="label_filter_name1">
+                            <property name="visible">True</property>
+                            <property name="label" translatable="yes">Domain</property>
+                          </object>
+                          <packing>
+                            <property name="left_attach">1</property>
+                            <property name="right_attach">2</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkComboBox" id="filter_domain">
+                            <property name="visible">True</property>
+                          </object>
+                          <packing>
+                            <property name="left_attach">1</property>
+                            <property name="right_attach">2</property>
+                            <property name="top_attach">1</property>
+                            <property name="bottom_attach">2</property>
+                            <property name="y_options">GTK_EXPAND | GTK_SHRINK | GTK_FILL</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="button_reload">
+                            <property name="label" translatable="yes">Reload</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                            <property name="tooltip_text" translatable="yes">Reload sites list</property>
+                            <property name="related_action">reload</property>
+                            <property name="image">gtk-refresh</property>
+                          </object>
+                          <packing>
+                            <property name="left_attach">2</property>
+                            <property name="right_attach">3</property>
+                            <property name="top_attach">1</property>
+                            <property name="bottom_attach">2</property>
+                            <property name="y_options">GTK_EXPAND | GTK_SHRINK | GTK_FILL</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child type="label">
+                  <object class="GtkLabel" id="label_frame_filter">
+                    <property name="visible">True</property>
+                    <property name="label" translatable="yes">&lt;b&gt;Filter sites&lt;/b&gt;</property>
+                    <property name="use_markup">True</property>
+                  </object>
+                </child>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -188,26 +247,139 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="view_btn">
-                <property name="label" translatable="yes">View</property>
+              <object class="GtkFrame" id="frame_sites">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="related_action">view</property>
+                <property name="label_xalign">0</property>
+                <child>
+                  <object class="GtkAlignment" id="alignment_sites">
+                    <property name="visible">True</property>
+                    <property name="left_padding">12</property>
+                    <child>
+                      <object class="GtkVBox" id="vbox_sites">
+                        <property name="visible">True</property>
+                        <child>
+                          <object class="GtkTreeView" id="site_list">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                          </object>
+                          <packing>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkHButtonBox" id="hbuttonbox">
+                            <property name="visible">True</property>
+                            <property name="layout_style">center</property>
+                            <child>
+                              <object class="GtkButton" id="add_btn">
+                                <property name="label" translatable="yes">Add</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">True</property>
+                                <property name="tooltip_text" translatable="yes">Add a new site</property>
+                                <property name="related_action">add</property>
+                                <property name="image">gtk-add</property>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkButton" id="view_btn">
+                                <property name="label" translatable="yes">View</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">True</property>
+                                <property name="tooltip_text" translatable="yes">Get information on the selected sites</property>
+                                <property name="related_action">view</property>
+                                <property name="image">gtk-info</property>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkButton" id="edit_btn">
+                                <property name="label" translatable="yes">Edit</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">True</property>
+                                <property name="tooltip_text" translatable="yes">Edit the selected sites</property>
+                                <property name="related_action">edit</property>
+                                <property name="image">gtk-edit</property>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">2</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkButton" id="delete_btn">
+                                <property name="label" translatable="yes">Delete</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">True</property>
+                                <property name="tooltip_text" translatable="yes">Delete the selected sites</property>
+                                <property name="related_action">delete</property>
+                                <property name="image">gtk-delete</property>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">3</property>
+                              </packing>
+                            </child>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child type="label">
+                  <object class="GtkLabel" id="label_sites">
+                    <property name="visible">True</property>
+                    <property name="label" translatable="yes">&lt;b&gt;Sites&lt;/b&gt;</property>
+                    <property name="use_markup">True</property>
+                  </object>
+                </child>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
                 <property name="position">1</property>
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="edit_btn">
-                <property name="label" translatable="yes">Edit</property>
+              <object class="GtkFrame" id="frame_logs">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="related_action">edit</property>
+                <property name="label_xalign">0</property>
+                <child>
+                  <object class="GtkAlignment" id="alignment_logs">
+                    <property name="visible">True</property>
+                    <property name="left_padding">12</property>
+                    <child>
+                      <object class="GtkTreeView" id="log_list">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child type="label">
+                  <object class="GtkLabel" id="label_logs">
+                    <property name="visible">True</property>
+                    <property name="label" translatable="yes">&lt;b&gt;Logs&lt;/b&gt;</property>
+                    <property name="use_markup">True</property>
+                  </object>
+                </child>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -216,22 +388,18 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="delete_btn">
-                <property name="label" translatable="yes">Delete</property>
+              <object class="GtkStatusbar" id="statusbar1">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="related_action">delete</property>
+                <property name="spacing">2</property>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">False</property>
                 <property name="position">3</property>
               </packing>
             </child>
           </object>
           <packing>
-            <property name="position">3</property>
+            <property name="position">2</property>
           </packing>
         </child>
       </object>
@@ -241,4 +409,25 @@
   <object class="GtkAction" id="view"/>
   <object class="GtkAction" id="edit"/>
   <object class="GtkAction" id="delete"/>
+  <object class="GtkAction" id="reload"/>
+  <object class="GtkImage" id="gtk-add">
+    <property name="visible">True</property>
+    <property name="stock">gtk-add</property>
+  </object>
+  <object class="GtkImage" id="gtk-info">
+    <property name="visible">True</property>
+    <property name="stock">gtk-info</property>
+  </object>
+  <object class="GtkImage" id="gtk-delete">
+    <property name="visible">True</property>
+    <property name="stock">gtk-delete</property>
+  </object>
+  <object class="GtkImage" id="gtk-edit">
+    <property name="visible">True</property>
+    <property name="stock">gtk-edit</property>
+  </object>
+  <object class="GtkImage" id="gtk-refresh">
+    <property name="visible">True</property>
+    <property name="stock">gtk-refresh</property>
+  </object>
 </interface>

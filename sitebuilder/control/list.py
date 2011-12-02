@@ -11,6 +11,7 @@ from sitebuilder.interfaces.command import ICommandObserver, COMMAND_SUCCESS
 from sitebuilder.interfaces.site import ISiteNew
 from sitebuilder.utils.parameters import ACTION_ADD, ACTION_VIEW, ACTION_SUBMIT
 from sitebuilder.utils.parameters import ACTION_EDIT, ACTION_DELETE
+from sitebuilder.utils.parameters import ACTION_RELOAD
 from sitebuilder.command.scheduler import enqueue_command
 from sitebuilder.command.host import LookupHostByName
 from sitebuilder.command.site import GetSiteByName, AddSite, UpdateSite
@@ -32,10 +33,10 @@ class ListControlAgent(object):
         Initializes control agent.
         """
         self._hosts = []
-        self._name_filter = '*'
-        self._name_filter_re = re.compile(r"^[\w\d\*_-]$")
-        self._domain_filter = '*'
-        self._name_filter_re = re.compile(r"^[\w\d\*\._-]$")
+        self._filter_name = '*'
+        self._filter_name_re = re.compile(r"^[\w\d\*_-]*$")
+        self._filter_domain = '*'
+        self._filter_domain_re = re.compile(r"^[\w\d\*\._-]*$")
         self._presentation_agent = ListPresentationAgent(self)
         self._presentation_agent.register_action_observer(self)
         self.reload_sites()
@@ -46,10 +47,10 @@ class ListControlAgent(object):
         """
         if name == "hosts":
             return self._hosts
-        elif name == "name_filter":
-            return self._name_filter
-        elif name == "domain_filter":
-            return self._domain_filter
+        elif name == "filter_name":
+            return self._filter_name
+        elif name == "filter_domain":
+            return self._filter_domain
         else:
             raise AttributeError("%s object has no attribute '%s'" % \
                                  (self.__class__.__name__, name))
@@ -58,15 +59,21 @@ class ListControlAgent(object):
         """
         Returns a site attribute value
         """
-        if name == "name_filter":
-            if not self._name_filter_re.match(value):
-                raise FieldFormatError("Invalid name filter. Should match /^[\w\d\*_-]$/")
-            self._name_filter = value
+        if name == "filter_name":
+            if not self._filter_name_re.match(value):
+                raise FieldFormatError("Invalid name filter. Should match /^[\w\d\*_-]*$/")
+            # Atomatically appends * to name filter
+            if not len(value):
+                value = '*'
+            elif len(value) and value[-1] != '*':
+                value = '%s*' % value
+
+            self._filter_name = value
             self.reload_sites()
-        elif name == "domain_filter":
-            if not self._domain_filter_re.match(value):
-                raise FieldFormatError("Invalid name filter. Should match /^[\w\d\*\._-]$/")
-            self._domain_filter = value
+        elif name == "filter_domain":
+            if not self._filter_domain_re.match(value):
+                raise FieldFormatError("Invalid name filter. Should match /^[\w\d\*\._-]*$/")
+            self._filter_domain = value
             self.reload_sites()
         else:
             raise AttributeError("%s object has no attribute '%s'" % \
@@ -79,6 +86,9 @@ class ListControlAgent(object):
         # Handles add action that do nat need any parameter
         if action.name == ACTION_ADD:
             self.add_site()
+            return
+        if action.name == ACTION_RELOAD:
+            self.reload_sites()
             return
 
         # Checks that ids parameter is correctly set in event parameters
@@ -182,7 +192,7 @@ class ListControlAgent(object):
         """
         Reloads site list by submitting a lookup query
         """
-        command = LookupHostByName(self._name_filter, self._domain_filter)
+        command = LookupHostByName(self._filter_name, self._filter_domain)
         command.register_command_callback(self.cb_set_sites)
         enqueue_command(command)
 

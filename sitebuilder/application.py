@@ -3,12 +3,13 @@
 This module contains application wide functions and settings
 """
 
-from threading import Event
 from signal import signal, SIGTERM
+from sitebuilder.command.scheduler import start as sched_start
+from sitebuilder.command.scheduler import stop as sched_stop
+from sitebuilder.command.log import start as log_start
+from sitebuilder.command.log import stop as log_stop
 import sys
 import gobject
-
-threadstop = Event()
 
 
 def sig_stop(signum, frame):
@@ -26,11 +27,13 @@ def init():
     # Registers signal handlers
     #signal(SIGTERM, sig_stop)
     gobject.threads_init()
+    sched_start()
+    log_start()
 
 
 def uninit():
     """
     Leaves application
     """
-    global threadstop
-    threadstop.set()
+    sched_stop()
+    log_stop()

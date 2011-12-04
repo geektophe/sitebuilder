@@ -4,7 +4,6 @@
 Command scheduler class
 """
 
-from sitebuilder.application import threadstop
 from sitebuilder.utils.parameters import get_application_context
 from sitebuilder.utils.parameters import CONTEXT_NORMAL, CONTEXT_TEST
 from sitebuilder.utils.driver.test import TestBackendDriver
@@ -13,21 +12,55 @@ from sitebuilder.interfaces.command import ICommandSubject, ICommandLogged
 from sitebuilder.interfaces.command import COMMAND_RUNNING
 from sitebuilder.interfaces.command import COMMAND_SUCCESS
 from sitebuilder.interfaces.command import COMMAND_ERROR
-from sitebuilder.command.log import logger
+from sitebuilder.command.log import enqueue_command as log_enqueue_command
 from Queue import Queue, Empty
-from threading import Thread
+from threading import Thread, Event
+from warnings import warn
 import gobject
 
 
 # Module level execution queue
 exec_queue = Queue()
 notify_queue = Queue()
+thread_stop = Event()
+scheduler = None
+notifier = None
+
+
+def start():
+    """
+    Initialises scheduler and notifier instances and start threads
+    """
+    global scheduler
+    global notifier
+
+    if scheduler is None:
+        # Command execution scheduler module level instance
+        scheduler = CommandExecScheduler()
+        scheduler.start()
+
+        # Commend notifications scheduler module level instance
+        notifier = CommandNotificationScheduler()
+        notifier.start()
+    else:
+        warn("'start' called on an already initialized instance")
+
+
+def stop():
+    """
+    Stops scheduler and notifier instances
+    """
+    thread_stop.set()
 
 
 def enqueue_command(command):
     """
     Adds a command to the execution queue
     """
+    if scheduler is None:
+        warn("enqued command but scheduler has not been initialized. " +
+             "use 'start' function to initialize it")
+
     if not ICommand.providedBy(command):
         raise AttributeError("command parameter should be an instance of ICommand")
 
@@ -72,7 +105,7 @@ class CommandExecScheduler(Thread):
         """
         Continuously loops on commands and executes them
         """
-        while not threadstop.is_set():
+        while not thread_stop.is_set():
             try:
                 command = exec_queue.get(timeout=0.1)
             except Empty:
@@ -82,7 +115,7 @@ class CommandExecScheduler(Thread):
                ICommandLogged.providedBy(command):
                 # Register logger as command observer for it to be notified
                 # when execution has finished
-                command.register_command_observer(logger)
+                command.register_command_callback(log_enqueue_command)
 
             command.status = COMMAND_RUNNING
 
@@ -120,7 +153,7 @@ class CommandNotificationScheduler(Thread):
         """
         Continuously loops on commands and notify them
         """
-        while not threadstop.is_set():
+        while not thread_stop.is_set():
             try:
                 command = notify_queue.get(timeout=0.1)
             except Empty:
@@ -135,13 +168,6 @@ class CommandNotificationScheduler(Thread):
         # End while
 
 
-# Command execution scheduler module level instance
-scheduler = CommandExecScheduler()
-scheduler.start()
-
-# Commend notifications scheduler module level instance
-notifier = CommandNotificationScheduler()
-notifier.start()
 
 if __name__ == "__main__":
     import doctest

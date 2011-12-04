@@ -3,16 +3,54 @@
 Log manager classes
 """
 
-from sitebuilder.application import threadstop
-from sitebuilder.interfaces.command import ICommandObserver
+from sitebuilder.interfaces.command import ICommand, ICommandObserver
 from sitebuilder.interfaces.command import COMMAND_SUCCESS, COMMAND_ERROR
 from zope.interface import implements
 from Queue import Queue, Empty
-from threading import Thread
+from warnings import warn
+from threading import Thread, Event
 import sys
 
 # Module level log queue
 log_queue = Queue()
+thread_stop = Event()
+logger = None
+
+
+def start():
+    """
+    Initialises logger instance and start threads
+    """
+    global logger
+
+    if logger is None:
+        logger = LogManager()
+        logger.start()
+    else:
+        warn("'start' called on an already initialized instance")
+
+
+def stop():
+    """
+    Stops logger instances
+    """
+    thread_stop.set()
+
+
+def enqueue_command(command):
+    """
+    Adds a command to the execution queue
+    """
+    if logger is None:
+        warn("enqued command but logger has not been initialized. " +
+             "use 'start' function to initialize it")
+
+    if not ICommand.providedBy(command):
+        raise AttributeError("command parameter should be an instance of ICommand")
+
+    # Adds command to execution queue
+    log_queue.put(command)
+
 
 class LogManager(Thread):
     """
@@ -28,17 +66,11 @@ class LogManager(Thread):
         """
         Thread.__init__(self)
 
-    def command_executed(self, command):
-        """
-        Adds a command into the log queue
-        """
-        log_queue.put(command)
-
     def run(self):
         """
         Continuously loops on commands and log messages
         """
-        while not threadstop.is_set():
+        while not thread_stop.is_set():
             try:
                 command = log_queue.get(timeout=0.1)
             except Empty:
@@ -54,7 +86,3 @@ class LogManager(Thread):
             sys.stdout.flush()
             log_queue.task_done()
         # End while
-
-
-logger = LogManager()
-logger.start()

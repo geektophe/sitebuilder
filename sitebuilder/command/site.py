@@ -85,6 +85,7 @@ class AddSite(BaseCommand, CommandSubject):
             raise ValueError(self.mesg)
 
         driver.add_site(self.site)
+        self.mesg = "Site %s.%s successfully added" % (name, domain)
 
 
 class UpdateSite(BaseCommand, CommandSubject):
@@ -127,6 +128,7 @@ class UpdateSite(BaseCommand, CommandSubject):
             raise ValueError(self.mesg)
 
         driver.update_site(self.site)
+        self.mesg = "Site %s.%s successfully updated" % (name, domain)
 
 
 class DeleteSite(BaseCommand, CommandSubject):
@@ -174,3 +176,4 @@ class DeleteSite(BaseCommand, CommandSubject):
             raise ValueError(self.mesg)
 
         driver.delete_site(self.name, self.domain)
+        self.mesg = "Site %s.%s successfully deleted" % (self.name, self.domain)

@@ -10,6 +10,9 @@ from sitebuilder.utils.parameters import ACTION_RELOAD
 from sitebuilder.presentation.gtk.base import GtkBasePresentationAgent
 from sitebuilder.abstraction.site.defaults import SiteDefaultsManager
 from sitebuilder.observer.action import Action
+from sitebuilder.interfaces.log import ILogObserver
+from zope.interface import implements
+from warnings import warn
 import gtk
 
 class ListPresentationAgent(GtkBasePresentationAgent):
@@ -18,6 +21,7 @@ class ListPresentationAgent(GtkBasePresentationAgent):
 
     The interface design is loaded from a glade file.
     """
+    implements(ILogObserver)
 
     GLADE_FILE = "%s/%s" % (GLADE_BASEDIR, 'list.glade')
     TOPLEVEL_NAME = "list"
@@ -83,7 +87,7 @@ class ListPresentationAgent(GtkBasePresentationAgent):
         model = self['site_list'].get_model()
 
         if model is None:
-            print "No model !"
+            warn("site_list has no model")
             model = gtk.ListStore(str, str, str, str)
             self['site_list'].set_model(model)
 
@@ -169,6 +173,21 @@ class ListPresentationAgent(GtkBasePresentationAgent):
         Signal handler associated with the view action
         """
         self.notify_action_activated(Action(ACTION_RELOAD))
+
+    def event_logged(self, text):
+        """
+        LogObserver trigger mmethod local implementation
+        """
+        # Appends items to the site_list
+        model = self['log_list'].get_model()
+
+        if model is None:
+            warn("log_list has no model")
+            model = gtk.ListStore(str)
+            self['log_list'].set_model(model)
+
+        model.append((text,))
+        self["statusbar"].push(0, text)
 
     def destroy(self):
         """

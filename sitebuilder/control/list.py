@@ -16,13 +16,14 @@ from sitebuilder.command.scheduler import enqueue_command
 from sitebuilder.command.host import LookupHostByName
 from sitebuilder.command.site import GetSiteByName, AddSite, UpdateSite
 from sitebuilder.command.site import DeleteSite
+from sitebuilder.observer.log import LogSubject
 from sitebuilder.exception import SiteError, FieldFormatError
 from zope.interface import implements, alsoProvides
 import gtk
 import re
 
 
-class ListControlAgent(object):
+class ListControlAgent(LogSubject):
     """
     List main component control agent
     """
@@ -32,6 +33,7 @@ class ListControlAgent(object):
         """
         Initializes control agent.
         """
+        LogSubject.__init__(self)
         self._hosts = []
         self._filter_name = '*'
         self._filter_name_re = re.compile(r"^[\w\d\*_-]*$")
@@ -39,6 +41,8 @@ class ListControlAgent(object):
         self._filter_domain_re = re.compile(r"^[\w\d\*\._-]*$")
         self._presentation_agent = ListPresentationAgent(self)
         self._presentation_agent.register_action_observer(self)
+        self.register_log_observer(self._presentation_agent)
+        self._logs = []
         self.reload_sites()
 
     def get_attribute_value(self, name):
@@ -210,6 +214,8 @@ class ListControlAgent(object):
         """
         A command has been executted that needs sites list to be refreshed
         """
+        self.notify_event_logged(command.mesg)
+
         if command.status == COMMAND_SUCCESS:
             self.reload_sites()
         else:
@@ -274,6 +280,7 @@ class ListControlAgent(object):
         # Destroyes presentation
         self._presentation_agent.register_action_observer(self)
         self._presentation_agent.destroy()
+        self.clear_log_observers()
 
 
 if __name__ == '__main__':

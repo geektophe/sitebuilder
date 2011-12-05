@@ -11,19 +11,18 @@ from sitebuilder.interfaces.command import ICommandObserver, COMMAND_SUCCESS
 from sitebuilder.interfaces.site import ISiteNew
 from sitebuilder.utils.parameters import ACTION_ADD, ACTION_VIEW, ACTION_SUBMIT
 from sitebuilder.utils.parameters import ACTION_EDIT, ACTION_DELETE
-from sitebuilder.utils.parameters import ACTION_RELOAD
+from sitebuilder.utils.parameters import ACTION_RELOAD, ACTION_CLEARLOGS
 from sitebuilder.command.scheduler import enqueue_command
 from sitebuilder.command.host import LookupHostByName
 from sitebuilder.command.site import GetSiteByName, AddSite, UpdateSite
 from sitebuilder.command.site import DeleteSite
-from sitebuilder.observer.log import LogSubject
 from sitebuilder.exception import SiteError, FieldFormatError
 from zope.interface import implements, alsoProvides
 import gtk
 import re
 
 
-class ListControlAgent(LogSubject):
+class ListControlAgent(object):
     """
     List main component control agent
     """
@@ -33,16 +32,14 @@ class ListControlAgent(LogSubject):
         """
         Initializes control agent.
         """
-        LogSubject.__init__(self)
         self._hosts = []
         self._filter_name = '*'
         self._filter_name_re = re.compile(r"^[\w\d\*_-]*$")
         self._filter_domain = '*'
         self._filter_domain_re = re.compile(r"^[\w\d\*\._-]*$")
+        self._commands = []
         self._presentation_agent = ListPresentationAgent(self)
         self._presentation_agent.register_action_observer(self)
-        self.register_log_observer(self._presentation_agent)
-        self._logs = []
         self.reload_sites()
 
     def get_attribute_value(self, name):
@@ -55,6 +52,8 @@ class ListControlAgent(LogSubject):
             return self._filter_name
         elif name == "filter_domain":
             return self._filter_domain
+        elif name == "commands":
+            return self._commands
         else:
             raise AttributeError("%s object has no attribute '%s'" % \
                                  (self.__class__.__name__, name))
@@ -79,6 +78,8 @@ class ListControlAgent(LogSubject):
                 raise FieldFormatError("Invalid name filter. Should match /^[\w\d\*\._-]*$/")
             self._filter_domain = value
             self.reload_sites()
+        elif name == "commands":
+            raise AttributeError("commands is a read-only attribute")
         else:
             raise AttributeError("%s object has no attribute '%s'" % \
                                  (self.__class__.__name__, name))
@@ -92,6 +93,10 @@ class ListControlAgent(LogSubject):
             self.add_site()
             return
         if action.name == ACTION_RELOAD:
+            self.reload_sites()
+            return
+        if action.name == ACTION_CLEARLOGS:
+            del (self._commands[:])
             self.reload_sites()
             return
 
@@ -190,6 +195,7 @@ class ListControlAgent(LogSubject):
                 command = UpdateSite(site)
 
             command.register_command_callback(self.cb_reload_sites)
+            self._commands.append(command)
             enqueue_command(command)
 
     def reload_sites(self):
@@ -214,8 +220,6 @@ class ListControlAgent(LogSubject):
         """
         A command has been executted that needs sites list to be refreshed
         """
-        self.notify_event_logged(command.mesg)
-
         if command.status == COMMAND_SUCCESS:
             self.reload_sites()
         else:

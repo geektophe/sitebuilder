@@ -6,12 +6,11 @@ Site editing interface. Supports Create, View and Update modes.
 from sitebuilder.utils.parameters import GLADE_BASEDIR
 from sitebuilder.utils.parameters import ACTION_ADD, ACTION_VIEW
 from sitebuilder.utils.parameters import ACTION_EDIT, ACTION_DELETE
-from sitebuilder.utils.parameters import ACTION_RELOAD
+from sitebuilder.utils.parameters import ACTION_RELOAD, ACTION_CLEARLOGS
 from sitebuilder.presentation.gtk.base import GtkBasePresentationAgent
 from sitebuilder.abstraction.site.defaults import SiteDefaultsManager
 from sitebuilder.observer.action import Action
-from sitebuilder.interfaces.log import ILogObserver
-from zope.interface import implements
+from gobject import TYPE_PYOBJECT
 from warnings import warn
 import gtk
 
@@ -21,8 +20,6 @@ class ListPresentationAgent(GtkBasePresentationAgent):
 
     The interface design is loaded from a glade file.
     """
-    implements(ILogObserver)
-
     GLADE_FILE = "%s/%s" % (GLADE_BASEDIR, 'list.glade')
     TOPLEVEL_NAME = "list"
 
@@ -60,7 +57,7 @@ class ListPresentationAgent(GtkBasePresentationAgent):
         cfname.set_sort_column_id(0)
         log_list.append_column(cfname)
 
-        log_model = gtk.ListStore(str)
+        log_model = gtk.ListStore(str, TYPE_PYOBJECT)
         log_list.set_model(log_model)
 
         domains = SiteDefaultsManager.get_domains()
@@ -78,21 +75,21 @@ class ListPresentationAgent(GtkBasePresentationAgent):
         self['edit'].connect('activate', self.on_edit_activate)
         self['delete'].connect('activate', self.on_delete_activate)
         self['reload'].connect('activate', self.on_reload_activate)
+        self['clearlogs'].connect('activate', self.on_clearlogs_activate)
 
     def load_widgets_data(self):
         """
         Loads site items data into widgets
         """
         # Appends items to the site_list
-        model = self['site_list'].get_model()
+        sites_model = self['site_list'].get_model()
 
-        if model is None:
+        if sites_model is None:
             warn("site_list has no model")
-            model = gtk.ListStore(str, str, str, str)
-            self['site_list'].set_model(model)
+            sites_model = gtk.ListStore(str, str, str, str)
+            self['site_list'].set_model(sites_model)
 
-        # FIXME: problem on reloding sites
-        model.clear()
+        sites_model.clear()
         hosts = self.get_control_agent().get_attribute_value('hosts')
 
         for dnshost in hosts:
@@ -100,7 +97,25 @@ class ListPresentationAgent(GtkBasePresentationAgent):
             domain = dnshost.domain
             platform = dnshost.platform
             description = dnshost.description
-            model.append((name, domain, platform, description))
+            sites_model.append((name, domain, platform, description))
+
+        # Appends items to the site_list
+        logs_model = self['log_list'].get_model()
+
+        if logs_model is None:
+            warn("log_list has no model")
+            logs_model = gtk.ListStore(str, TYPE_PYOBJECT)
+            self['log_list'].set_model(logs_model)
+
+        logs_model.clear()
+        commands = self.get_control_agent().get_attribute_value('commands')
+
+        text = ""
+        for command in commands:
+            text = command.mesg
+            logs_model.append((text, command))
+
+        self["statusbar"].push(0, text)
 
     def get_selected_items(self):
         """
@@ -173,6 +188,12 @@ class ListPresentationAgent(GtkBasePresentationAgent):
         Signal handler associated with the view action
         """
         self.notify_action_activated(Action(ACTION_RELOAD))
+
+    def on_clearlogs_activate(self, widget):
+        """
+        Signal handler associated with the view action
+        """
+        self.notify_action_activated(Action(ACTION_CLEARLOGS))
 
     def event_logged(self, text):
         """

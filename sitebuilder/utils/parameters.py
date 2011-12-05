@@ -9,13 +9,14 @@ from os.path import abspath, dirname
 GLADE_BASEDIR = dirname(abspath( __file__ )) + "/../resources/glade"
 
 # GUI actions related constants
-ACTION_SUBMIT = u'submit'
-ACTION_CANCEL = u'cancel'
-ACTION_ADD    = u'add'
-ACTION_VIEW   = u'view'
-ACTION_EDIT   = u'edit'
-ACTION_DELETE = u'delete'
-ACTION_RELOAD = u'reload'
+ACTION_SUBMIT    = u'submit'
+ACTION_CANCEL    = u'cancel'
+ACTION_ADD       = u'add'
+ACTION_VIEW      = u'view'
+ACTION_EDIT      = u'edit'
+ACTION_DELETE    = u'delete'
+ACTION_RELOAD    = u'reload'
+ACTION_CLEARLOGS = u'clearlogs'
 
 # The following variables are module closed. They should NEVER be directly set
 CONTEXT_NORMAL = u'normal'

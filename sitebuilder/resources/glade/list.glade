@@ -294,7 +294,6 @@
                                 <property name="receives_default">True</property>
                                 <property name="tooltip_text" translatable="yes">Get information on the selected sites</property>
                                 <property name="related_action">view</property>
-                                <property name="image">gtk-info</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -326,7 +325,6 @@
                                 <property name="receives_default">True</property>
                                 <property name="tooltip_text" translatable="yes">Delete the selected sites</property>
                                 <property name="related_action">delete</property>
-                                <property name="image">gtk-delete</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -366,9 +364,60 @@
                     <property name="visible">True</property>
                     <property name="left_padding">12</property>
                     <child>
-                      <object class="GtkTreeView" id="log_list">
+                      <object class="GtkVBox" id="vbox1">
                         <property name="visible">True</property>
-                        <property name="can_focus">True</property>
+                        <child>
+                          <object class="GtkTreeView" id="log_list">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                          </object>
+                          <packing>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkHButtonBox" id="hbuttonbox1">
+                            <property name="visible">True</property>
+                            <property name="layout_style">center</property>
+                            <child>
+                              <object class="GtkButton" id="viewlog_btn">
+                                <property name="label" translatable="yes">View</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">True</property>
+                                <property name="tooltip_text" translatable="yes">View selected log entry</property>
+                                <property name="related_action">viewlog</property>
+                                <property name="image">gtk-info</property>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkButton" id="clearlogs_btn">
+                                <property name="label" translatable="yes">Clear</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">True</property>
+                                <property name="tooltip_text" translatable="yes">Clear al logs</property>
+                                <property name="related_action">clearlogs</property>
+                                <property name="image">gtk-delete</property>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
                       </object>
                     </child>
                   </object>
@@ -430,4 +479,6 @@
     <property name="visible">True</property>
     <property name="stock">gtk-refresh</property>
   </object>
+  <object class="GtkAction" id="clearlogs"/>
+  <object class="GtkAction" id="viewlog"/>
 </interface>

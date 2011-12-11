@@ -1,0 +1,6 @@
+#!/bin/bash
+SIGNAL=${1}
+
+ps ax|awk '$5~"python" && $6~/sitebuilder/ {print $1}' | while read KPID; do
+	kill ${SIGNAL} ${KPID}
+done

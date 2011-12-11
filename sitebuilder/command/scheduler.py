@@ -50,7 +50,14 @@ def stop():
     """
     Stops scheduler and notifier instances
     """
+    global scheduler
+    global notifier
+
     thread_stop.set()
+    scheduler.join()
+    notifier.join()
+    scheduler = None
+    notifier = None
 
 
 def enqueue_command(command):

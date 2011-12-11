@@ -17,6 +17,7 @@ from sitebuilder.utils.parameters import ACTION_SUBMIT, ACTION_CANCEL
 from zope.interface import implements
 import gtk
 
+
 class DetailMainControlAgent(BaseControlAgent, ActionSubject):
     """
     Site details main interface's control agent

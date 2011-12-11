@@ -17,6 +17,7 @@ ACTION_EDIT      = u'edit'
 ACTION_DELETE    = u'delete'
 ACTION_RELOAD    = u'reload'
 ACTION_CLEARLOGS = u'clearlogs'
+ACTION_SHOWLOGS  = u'showlogs'
 
 # The following variables are module closed. They should NEVER be directly set
 CONTEXT_NORMAL = u'normal'

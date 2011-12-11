@@ -7,20 +7,37 @@ from sitebuilder.utils.parameters import GLADE_BASEDIR
 from sitebuilder.utils.parameters import ACTION_ADD, ACTION_VIEW
 from sitebuilder.utils.parameters import ACTION_EDIT, ACTION_DELETE
 from sitebuilder.utils.parameters import ACTION_RELOAD, ACTION_CLEARLOGS
+from sitebuilder.utils.parameters import ACTION_SHOWLOGS
 from sitebuilder.presentation.gtk.base import GtkBasePresentationAgent
-from sitebuilder.abstraction.site.defaults import SiteDefaultsManager
 from sitebuilder.observer.action import Action
+from sitebuilder.abstraction.site.defaults import SiteDefaultsManager
 from gobject import TYPE_PYOBJECT
 from warnings import warn
 import gtk
 
-class ListPresentationAgent(GtkBasePresentationAgent):
+class ListMainPresentationAgent(GtkBasePresentationAgent):
     """
     ListPresentationAgent site add/edit/view interface.
 
     The interface design is loaded from a glade file.
     """
     GLADE_FILE = "%s/%s" % (GLADE_BASEDIR, 'list.glade')
+    TOPLEVEL_NAME = "list"
+
+    def load_widgets_data(self):
+        """
+        Loads site items data into widgets
+        """
+        pass
+
+
+class ListSitesPresentationAgent(GtkBasePresentationAgent):
+    """
+    ListPresentationAgent site add/edit/view interface.
+
+    The interface design is loaded from a glade file.
+    """
+    GLADE_FILE = "%s/%s" % (GLADE_BASEDIR, 'list_sites.glade')
     TOPLEVEL_NAME = "list"
 
     def __init__(self, control_agent):
@@ -51,17 +68,8 @@ class ListPresentationAgent(GtkBasePresentationAgent):
         hosts_model = gtk.ListStore(str, str, str, str)
         site_list.set_model(hosts_model)
 
-        log_list = self['log_list']
-
-        cfname = gtk.TreeViewColumn("Event", text_renderer, text=0)
-        cfname.set_sort_column_id(0)
-        log_list.append_column(cfname)
-
-        log_model = gtk.ListStore(str, TYPE_PYOBJECT)
-        log_list.set_model(log_model)
-
         domains = SiteDefaultsManager.get_domains()
-        domains['*'] = '*'
+        domains['*'] =  '*'
         self.set_combobox_items(self['filter_domain'], domains)
         self['filter_domain'].set_active(0)
 
@@ -75,7 +83,6 @@ class ListPresentationAgent(GtkBasePresentationAgent):
         self['edit'].connect('activate', self.on_edit_activate)
         self['delete'].connect('activate', self.on_delete_activate)
         self['reload'].connect('activate', self.on_reload_activate)
-        self['clearlogs'].connect('activate', self.on_clearlogs_activate)
 
     def load_widgets_data(self):
         """
@@ -98,24 +105,6 @@ class ListPresentationAgent(GtkBasePresentationAgent):
             platform = dnshost.platform
             description = dnshost.description
             sites_model.append((name, domain, platform, description))
-
-        # Appends items to the site_list
-        logs_model = self['log_list'].get_model()
-
-        if logs_model is None:
-            warn("log_list has no model")
-            logs_model = gtk.ListStore(str, TYPE_PYOBJECT)
-            self['log_list'].set_model(logs_model)
-
-        logs_model.clear()
-        commands = self.get_control_agent().get_attribute_value('commands')
-
-        text = ""
-        for command in commands:
-            text = command.mesg
-            logs_model.append((text, command))
-
-        self["statusbar"].push(0, text)
 
     def get_selected_items(self):
         """
@@ -189,29 +178,98 @@ class ListPresentationAgent(GtkBasePresentationAgent):
         """
         self.notify_action_activated(Action(ACTION_RELOAD))
 
-    def on_clearlogs_activate(self, widget):
-        """
-        Signal handler associated with the view action
-        """
-        self.notify_action_activated(Action(ACTION_CLEARLOGS))
-
-    def event_logged(self, text):
-        """
-        LogObserver trigger mmethod local implementation
-        """
-        # Appends items to the site_list
-        model = self['log_list'].get_model()
-
-        if model is None:
-            warn("log_list has no model")
-            model = gtk.ListStore(str)
-            self['log_list'].set_model(model)
-
-        model.append((text,))
-        self["statusbar"].push(0, text)
-
     def destroy(self):
         """
         Cleanly destroyes components
         """
         GtkBasePresentationAgent.destroy(self)
+
+
+class ListLogsPresentationAgent(GtkBasePresentationAgent):
+    """
+    ListPresentationAgent site add/edit/view interface.
+
+    The interface design is loaded from a glade file.
+    """
+    GLADE_FILE = "%s/%s" % (GLADE_BASEDIR, 'list_logs.glade')
+    TOPLEVEL_NAME = "logs"
+
+    def __init__(self, control_agent):
+        """
+        Class initialization.
+        """
+        GtkBasePresentationAgent.__init__(self, control_agent)
+        text_renderer = gtk.CellRendererText()
+        logs_list = self['logs_list']
+
+        cfname = gtk.TreeViewColumn("Event", text_renderer, text=0)
+        cfname.set_sort_column_id(0)
+        logs_list.append_column(cfname)
+
+        logs_model = gtk.ListStore(str, TYPE_PYOBJECT)
+        logs_list.set_model(logs_model)
+
+        self.load_widgets_data()
+        self['logs_list'].connect('row-activated', self.on_logs_list_row_activated)
+        self['clearlogs'].connect('activate', self.on_clearlogs_activate)
+        self['showlogs'].connect('activate', self.on_showlogs_activate)
+
+    def load_widgets_data(self):
+        """
+        Loads logs items data into widgets
+        """
+        # Appends items to the site_list
+        logs_model = self['logs_list'].get_model()
+
+        if logs_model is None:
+            warn("logs_list has no model")
+            logs_model = gtk.ListStore(str, TYPE_PYOBJECT)
+            self['logs_list'].set_model(logs_model)
+
+        logs_model.clear()
+        commands = self.get_control_agent().get_attribute_value('commands')
+
+        text = ""
+        for command in commands:
+            text = command.mesg
+            logs_model.append((text, command))
+
+        #self["statusbar"].push(0, text)
+
+    def get_selected_items(self):
+        """
+        Returns the selected site identifier.
+
+        As the treeview component used to display site list
+        behaves exactly as a combobox item (thay share the same internal
+        model), we may use the GtkBasePresentationAgent get_combobox_selection method
+        to read it.
+        """
+        model, rows = self['logs_list'].get_selection().get_selected_rows()
+        selection = []
+
+        for row in rows:
+            index = row[0]
+            command = model[index][1]
+            selection.append(command)
+
+        return selection
+
+    def on_logs_list_row_activated(self, widget, path, column):
+        """
+        Signal handler associated with the site_list tree view
+        """
+        self['showlogs'].activate()
+
+    def on_clearlogs_activate(self, widget):
+        """
+        Signal handler associated with the clearlogs action
+        """
+        self.notify_action_activated(Action(ACTION_CLEARLOGS))
+
+    def on_showlogs_activate(self, widget):
+        """
+        Signal handler associated with the showlogs action
+        """
+        self.notify_action_activated(Action(ACTION_SHOWLOGS,
+            {'logs': self.get_selected_items()}))

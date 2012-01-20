@@ -16,6 +16,7 @@ class GetSiteByName(BaseCommand, CommandSubject):
     Looks for a host using its name and domain
     """
     implements(ICommand, ICommandSubject)
+    description = "Site lookup by name"
     name = ""
     domain = ""
     name_re = re.compile(r"^[\w\d_-]+$")
@@ -54,6 +55,7 @@ class AddSite(BaseCommand, CommandSubject):
     Adds a new site into the backend
     """
     implements(ICommand, ICommandSubject, ICommandLogged)
+    description = "Add site"
 
     site = None
 
@@ -93,6 +95,7 @@ class UpdateSite(BaseCommand, CommandSubject):
     Edits a new site into the backend applying the values from site object
     """
     implements(ICommand, ICommandSubject, ICommandLogged)
+    description = "Update site"
 
     site = None
 
@@ -136,6 +139,7 @@ class DeleteSite(BaseCommand, CommandSubject):
     Deletes a site using its name and domain
     """
     implements(ICommand, ICommandSubject, ICommandLogged)
+    description = "Delete site"
     name = ""
     domain = ""
     name_re = re.compile(r"^[\w\d_-]+$")

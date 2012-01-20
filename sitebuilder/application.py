@@ -4,10 +4,10 @@ This module contains application wide functions and settings
 """
 
 from signal import signal, SIGTERM
-from sitebuilder.command.scheduler import start as sched_start
-from sitebuilder.command.scheduler import stop as sched_stop
-from sitebuilder.command.log import start as log_start
-from sitebuilder.command.log import stop as log_stop
+from command.scheduler import start as sched_start
+from command.scheduler import stop as sched_stop
+from command.log import start as log_start
+from command.log import stop as log_stop
 import sys
 import gobject
 

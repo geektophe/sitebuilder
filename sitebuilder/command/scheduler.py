@@ -13,6 +13,7 @@ from sitebuilder.interfaces.command import COMMAND_RUNNING
 from sitebuilder.interfaces.command import COMMAND_SUCCESS
 from sitebuilder.interfaces.command import COMMAND_ERROR
 from sitebuilder.command.log import enqueue_command as log_enqueue_command
+from traceback import format_exc
 from Queue import Queue, Empty
 from threading import Thread, Event
 from warnings import warn
@@ -132,6 +133,7 @@ class CommandExecScheduler(Thread):
             except Exception, e:
                 command.status = COMMAND_ERROR
                 command.exception = e
+                command.traceback = format_exc(e)
 
             command.release()
 

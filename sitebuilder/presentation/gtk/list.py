@@ -8,6 +8,7 @@ from sitebuilder.utils.parameters import ACTION_ADD, ACTION_VIEW
 from sitebuilder.utils.parameters import ACTION_EDIT, ACTION_DELETE
 from sitebuilder.utils.parameters import ACTION_RELOAD, ACTION_CLEARLOGS
 from sitebuilder.utils.parameters import ACTION_SHOWLOGS
+from sitebuilder.interfaces.command import COMMAND_SUCCESS
 from sitebuilder.presentation.gtk.base import GtkBasePresentationAgent
 from sitebuilder.observer.action import Action
 from sitebuilder.abstraction.site.defaults import SiteDefaultsManager
@@ -199,14 +200,26 @@ class ListLogsPresentationAgent(GtkBasePresentationAgent):
         Class initialization.
         """
         GtkBasePresentationAgent.__init__(self, control_agent)
+        img_renderer = gtk.CellRendererPixbuf()
         text_renderer = gtk.CellRendererText()
         logs_list = self['logs_list']
 
-        cfname = gtk.TreeViewColumn("Event", text_renderer, text=0)
-        cfname.set_sort_column_id(0)
-        logs_list.append_column(cfname)
+        #cdesc = gtk.TreeViewColumn("Command")
+        #cdesc.pack_start(img_renderer, False)
+        #cdesc.pack_start(text_renderer)
+        #cdesc.set_sort_column_id(0)
+        #logs_list.append_column(cdesc)
 
-        logs_model = gtk.ListStore(str, TYPE_PYOBJECT)
+        cicon = gtk.TreeViewColumn("", img_renderer, stock_id=0)
+        logs_list.append_column(cicon)
+
+        cdesc = gtk.TreeViewColumn("Command", text_renderer, text=1)
+        logs_list.append_column(cdesc)
+
+        cres = gtk.TreeViewColumn("Result", text_renderer, text=2)
+        logs_list.append_column(cres)
+
+        logs_model = gtk.ListStore(str, str, str, TYPE_PYOBJECT)
         logs_list.set_model(logs_model)
 
         self.load_widgets_data()
@@ -223,7 +236,7 @@ class ListLogsPresentationAgent(GtkBasePresentationAgent):
 
         if logs_model is None:
             warn("logs_list has no model")
-            logs_model = gtk.ListStore(str, TYPE_PYOBJECT)
+            logs_model = gtk.ListStore(str, str, str, TYPE_PYOBJECT)
             self['logs_list'].set_model(logs_model)
 
         logs_model.clear()
@@ -231,8 +244,14 @@ class ListLogsPresentationAgent(GtkBasePresentationAgent):
 
         text = ""
         for command in commands:
-            text = command.mesg
-            logs_model.append((text, command))
+            if command.status == COMMAND_SUCCESS:
+                img = gtk.STOCK_OK
+                text = command.mesg
+            else:
+                img = gtk.STOCK_CANCEL
+                text = command.exception
+
+            logs_model.append((img, command.description, text, command))
 
         #self["statusbar"].push(0, text)
 
@@ -250,7 +269,7 @@ class ListLogsPresentationAgent(GtkBasePresentationAgent):
 
         for row in rows:
             index = row[0]
-            command = model[index][1]
+            command = model[index][3]
             selection.append(command)
 
         return selection

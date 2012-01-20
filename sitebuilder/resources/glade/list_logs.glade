@@ -88,4 +88,12 @@
     <property name="visible">True</property>
     <property name="stock">gtk-delete</property>
   </object>
+  <object class="GtkImage" id="gtk-error">
+    <property name="visible">True</property>
+    <property name="stock">gtk-dialog-error</property>
+  </object>
+  <object class="GtkImage" id="gtk-success">
+    <property name="visible">True</property>
+    <property name="stock">gtk-ok</property>
+  </object>
 </interface>

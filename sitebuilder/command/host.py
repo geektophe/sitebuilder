@@ -15,6 +15,7 @@ class LookupHostByName(BaseCommand, CommandSubject):
     Looks for a host using its name and domain
     """
     implements(ICommand, ICommandSubject)
+    description = "Host lookup by name"
     name = ""
     domain = ""
     name_re = re.compile(r"^[\w\d\*_-]+$")

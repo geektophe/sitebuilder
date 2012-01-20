@@ -4,7 +4,7 @@ Command components related interfaces definition
 """
 
 from zope.interface import Interface, Attribute
-from zope.schema import Int
+from zope.schema import Int, TextLine
 
 # Command status constants
 COMMAND_PENDING = 0
@@ -17,6 +17,9 @@ class ICommand(Interface):
     """
     Command objects are used to perform various operations on storage backends
     """
+
+    # String giving succinct command description
+    description = TextLine(title=u"Short commande description", required=True, default=u"")
 
     # Command status
     status = Int(title=u"Command status", required=True, default=False)
@@ -32,6 +35,9 @@ class ICommand(Interface):
 
     # Error message is error occured
     exception = Attribute(u"Exception object risen if error occured")
+
+    # Error message is error occured
+    traceback = Attribute(u"Exception traceback")
 
     def execute(driver):
         """

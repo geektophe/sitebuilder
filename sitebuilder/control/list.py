@@ -10,11 +10,13 @@ from sitebuilder.control.detail import DetailMainControlAgent
 from sitebuilder.abstraction.site.factory import site_factory
 from sitebuilder.interfaces.presentation  import IPresentationAgent
 from sitebuilder.interfaces.action  import IActionObserver, IActionSubject
-from sitebuilder.interfaces.command import ICommandObserver, COMMAND_SUCCESS
+from sitebuilder.interfaces.command import ICommandObserver
+from sitebuilder.interfaces.command import COMMAND_SUCCESS
 from sitebuilder.interfaces.site import ISiteNew
 from sitebuilder.utils.parameters import ACTION_ADD, ACTION_VIEW, ACTION_SUBMIT
 from sitebuilder.utils.parameters import ACTION_EDIT, ACTION_DELETE
 from sitebuilder.utils.parameters import ACTION_RELOAD, ACTION_CLEARLOGS
+from sitebuilder.utils.parameters import ACTION_SHOWLOGS
 from sitebuilder.command.scheduler import enqueue_command
 from sitebuilder.command.host import LookupHostByName
 from sitebuilder.command.site import GetSiteByName, AddSite, UpdateSite
@@ -217,8 +219,6 @@ class ListControlAgent(object):
         if command.status == COMMAND_SUCCESS:
             self._hosts = command.result
             self.get_presentation_agent().load_widgets_data()
-        else:
-            raise command.exception
 
     def cb_reload_sites(self, command):
         """
@@ -226,8 +226,6 @@ class ListControlAgent(object):
         """
         if command.status == COMMAND_SUCCESS:
             self.reload_sites()
-        else:
-            raise command.exception
 
     def cb_show_detail_dialog_rw(self, command):
         """
@@ -236,8 +234,6 @@ class ListControlAgent(object):
         if command.status == COMMAND_SUCCESS:
             site = command.result
             self.show_detail_dialog(site, False)
-        else:
-            raise command.exception
 
     def cb_show_detail_dialog_ro(self, command):
         """
@@ -246,8 +242,6 @@ class ListControlAgent(object):
         if command.status == COMMAND_SUCCESS:
             site = command.result
             self.show_detail_dialog(site, True)
-        else:
-            raise command.exception
 
     def cb_show_delete_dialog(self, command):
         """
@@ -479,8 +473,7 @@ class ListMainControlAgent(object):
 
         if command.status == COMMAND_SUCCESS:
             sca.set_attribute_value('hosts', command.result)
-        else:
-            raise command.exception
+        # TODO: manage error reporting for non logged commands
 
     def cb_reload_sites(self, command):
         """
@@ -488,8 +481,7 @@ class ListMainControlAgent(object):
         """
         if command.status == COMMAND_SUCCESS:
             self.reload_sites()
-        else:
-            raise command.exception
+        # TODO: manage error reporting for non logged commands
 
     def cb_show_detail_dialog_rw(self, command):
         """
@@ -498,8 +490,7 @@ class ListMainControlAgent(object):
         if command.status == COMMAND_SUCCESS:
             site = command.result
             self.show_detail_dialog(site, False)
-        else:
-            raise command.exception
+        # TODO: manage error reporting for non logged commands
 
     def cb_show_detail_dialog_ro(self, command):
         """
@@ -508,8 +499,7 @@ class ListMainControlAgent(object):
         if command.status == COMMAND_SUCCESS:
             site = command.result
             self.show_detail_dialog(site, True)
-        else:
-            raise command.exception
+        # TODO: manage error reporting for non logged commands
 
     def cb_show_delete_dialog(self, command):
         """
@@ -676,9 +666,38 @@ class ListLogsControlAgent(object):
         if action.name == ACTION_CLEARLOGS:
             del (self._commands[:])
             self._presentation_agent.load_widgets_data()
-            return
+        elif action.name == ACTION_SHOWLOGS:
+            # Checks that ids parameter is correctly set in event parameters
+            parms = action.parameters
+
+            if not parms.has_key('logs'):
+                raise AttributeError('logs parameter is not set in action parameters')
+
+            for command in parms['logs']:
+                self.show_command_result(command)
         else:
             raise NotImplementedError("Unhandled action %s triggered" % action)
+
+    def show_command_result(self, command):
+        """
+        Show details on a command
+        """
+        if command.status == COMMAND_SUCCESS:
+            text = "%s\n\nCommand status:\n\nCommand was successfully executed" % \
+                    command.mesg
+        else:
+            text = "%s\n\nCommand status:\n\nAn error occured: %s\n\n" + \
+                   "Stack trace:\n\n%s" % \
+                   (str(command.exception), command.traceback)
+
+        dialog = gtk.MessageDialog(
+            self.get_presentation_agent().get_toplevel(),
+            gtk.DIALOG_MODAL|gtk.DIALOG_DESTROY_WITH_PARENT,
+            gtk.MESSAGE_INFO, gtk.BUTTONS_OK,
+            text)
+
+        dialog.run()
+        dialog.destroy()
 
     def get_presentation_agent(self):
         """

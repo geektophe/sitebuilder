@@ -20,7 +20,7 @@ class IActionObserver(Interface):
     Observers methods are called on action activaee event.
     """
 
-    def action_activated(self, action):
+    def action_activated(action):
         """
         Observer method run on action avtivated event
         """

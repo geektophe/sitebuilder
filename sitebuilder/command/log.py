@@ -3,7 +3,8 @@
 Log manager classes
 """
 
-from sitebuilder.command.interface import ICommand, ICommandObserver
+from sitebuilder.observer.command import ICommandObserver
+from sitebuilder.command.interface import ICommand
 from sitebuilder.command.interface import COMMAND_SUCCESS, COMMAND_ERROR
 from zope.interface import implements
 from Queue import Queue, Empty

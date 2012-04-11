@@ -3,8 +3,8 @@
 Site builder GUI is an interface used as frontend to Site builder scheduler
 """
 
-from application import init, uninit
-from control.list import ListMainControlAgent
+from sitebuilder.application import init, uninit
+from sitebuilder.control.list import ListMainControlAgent
 import gtk
 
 

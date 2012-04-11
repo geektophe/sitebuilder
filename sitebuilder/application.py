@@ -3,11 +3,9 @@
 This module contains application wide functions and settings
 """
 
-from signal import signal, SIGTERM
-from command.scheduler import start as sched_start
-from command.scheduler import stop as sched_stop
-from command.log import start as log_start
-from command.log import stop as log_stop
+#from signal import signal, SIGTERM
+import sitebuilder.command.scheduler
+import sitebuilder.command.log
 import sys
 import gobject
 
@@ -27,13 +25,13 @@ def init():
     # Registers signal handlers
     #signal(SIGTERM, sig_stop)
     gobject.threads_init()
-    sched_start()
-    log_start()
+    sitebuilder.command.scheduler.start()
+    sitebuilder.command.log.start()
 
 
 def uninit():
     """
     Leaves application
     """
-    sched_stop()
-    log_stop()
+    sitebuilder.command.scheduler.stop()
+    sitebuilder.command.log.stop()

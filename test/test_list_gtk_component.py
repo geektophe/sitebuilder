@@ -5,16 +5,15 @@ Test classes for view.gtk.detail views classes
 
 import unittest
 from gtktest import refresh_gui
-from sitebuilder.utils.parameters import set_application_context
-from sitebuilder.control.list import ListSitesControlAgent
+#from sitebuilder.utils.parameters import set_application_context
+#from sitebuilder.control.list import ListSitesControlAgent
 from sitebuilder.control.list import ListLogsControlAgent
-from sitebuilder.abstraction.site.manager import SiteConfigurationManager
+#from sitebuilder.abstraction.site.manager import SiteConfigurationManager
 from sitebuilder.command.base import BaseCommand
 from sitebuilder.observer.command import ICommandSubject, CommandSubject
 from sitebuilder.command.interface import COMMAND_SUCCESS
 from sitebuilder.application import init, uninit
 from zope.interface import implements
-from time import sleep
 
 
 class TestCommand(BaseCommand, CommandSubject):
@@ -22,6 +21,8 @@ class TestCommand(BaseCommand, CommandSubject):
     Test action that does nothing
     """
     implements(ICommandSubject)
+
+    description = "Dummy test command"
 
     def __init__(self):
         """
@@ -187,7 +188,7 @@ class TestCommand(BaseCommand, CommandSubject):
 #        self.assertFalse(read_only)
 
 
-class TestGtkListLogsPresentationAgent(unittest.TestCase):
+class TestGtkListLogsAgent(unittest.TestCase):
     """Unit test base class to be subclassed by real test cases"""
 
     def test_list_logs_content(self):
@@ -197,6 +198,7 @@ class TestGtkListLogsPresentationAgent(unittest.TestCase):
         control_agent = ListLogsControlAgent()
         presentation_agent = control_agent.get_presentation_agent()
         model = presentation_agent['logs_list'].get_model()
+        refresh_gui()
         self.assertEquals(len(model), 0)
 
     def test_list_logs_command_execution(self):
@@ -210,9 +212,10 @@ class TestGtkListLogsPresentationAgent(unittest.TestCase):
         command = TestCommand()
         command.register_command_observer(control_agent)
         command.notify_command_executed()
+        refresh_gui()
         self.assertEquals(len(model), 1)
         modrow = model[0]
-        self.assertTrue(modrow[1] is command)
+        self.assertTrue(modrow[3] is command)
 
     def test_list_logs_clear(self):
         """
@@ -226,6 +229,7 @@ class TestGtkListLogsPresentationAgent(unittest.TestCase):
         command.register_command_observer(control_agent)
         command.notify_command_executed()
         presentation_agent['clearlogs'].activate()
+        refresh_gui()
         self.assertEquals(len(model), 0)
 
 

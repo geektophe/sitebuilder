@@ -6,11 +6,10 @@ Site configuration objects related classes
 from sitebuilder.utils.attribute import TriggerFieldProperty
 from sitebuilder.utils.attribute import UnicodeTriggerFieldProperty
 from sitebuilder.abstraction.interface import ISite, IWebsite, IDNSHost
-from sitebuilder.abstraction.interfae import IDatabase, IRCSRepository
+from sitebuilder.abstraction.interface import IDatabase, IRCSRepository
 from sitebuilder.observer.attribute import IAttributeObserver, AttributeSubject
 from zope.interface import implements
 from zope.schema.fieldproperty import FieldProperty
-from zope.schema import getValidationErrors
 
 
 class DNSHost(AttributeSubject):
@@ -293,5 +292,7 @@ class Site(AttributeSubject):
 
 
 if __name__ == "__main__":
+    from zope.schema import getValidationErrors
+    from sitebuilder.abstraction.site.defaults import SiteDefaultsManager
     import doctest
     doctest.testmod()

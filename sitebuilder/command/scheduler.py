@@ -7,11 +7,11 @@ Command scheduler class
 from sitebuilder.utils.parameters import get_application_context
 from sitebuilder.utils.parameters import CONTEXT_NORMAL, CONTEXT_TEST
 from sitebuilder.utils.driver.test import TestBackendDriver
-from sitebuilder.interfaces.command import ICommand
-from sitebuilder.interfaces.command import ICommandSubject, ICommandLogged
-from sitebuilder.interfaces.command import COMMAND_RUNNING
-from sitebuilder.interfaces.command import COMMAND_SUCCESS
-from sitebuilder.interfaces.command import COMMAND_ERROR
+from sitebuilder.command.interface import ICommand
+from sitebuilder.command.interface import ICommandSubject, ICommandLogged
+from sitebuilder.command.interface import COMMAND_RUNNING
+from sitebuilder.command.interface import COMMAND_SUCCESS
+from sitebuilder.command.interface import COMMAND_ERROR
 from sitebuilder.command.log import enqueue_command as log_enqueue_command
 from traceback import format_exc
 from Queue import Queue, Empty

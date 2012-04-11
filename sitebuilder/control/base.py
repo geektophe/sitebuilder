@@ -3,7 +3,7 @@
 Base control Agent class to be subclassed
 """
 
-from sitebuilder.interfaces.presentation import IPresentationAgent
+from sitebuilder.presentation.interface import IPresentationAgent
 from sitebuilder.exception import FieldFormatError
 from zope.schema import ValidationError
 from zope.interface import providedBy
@@ -22,8 +22,9 @@ class BaseControlAgent(object):
         widgets should be sensitive. The user is then not allowed to change any
         value.
         """
-
         self._read_only = read_only
+        self._presentation_agent = None
+        self._site = None
 
     def get_read_only_flag(self):
         """
@@ -97,7 +98,7 @@ class BaseControlAgent(object):
 
                 if field is not None:
                     # Use the field description attribute to give the user a
-                    # relevant error message    
+                    # relevant error message
                     try:
                         raise FieldFormatError(field.description)
                     except AttributeError:

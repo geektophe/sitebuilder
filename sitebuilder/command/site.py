@@ -3,11 +3,10 @@
 DNSHost objects related commands
 """
 
-from sitebuilder.interfaces.command import ICommand
-from sitebuilder.interfaces.command import ICommandLogged, ICommandSubject
-from sitebuilder.interfaces.site import ISite
+from sitebuilder.command.interface import ICommand, ICommandLogged
+from sitebuilder.observer.command import ICommandSubject, CommandSubject
+from sitebuilder.abstraction.interface import ISite
 from sitebuilder.command.base import BaseCommand
-from sitebuilder.observer.command import CommandSubject
 from zope.interface import implements
 import re
 

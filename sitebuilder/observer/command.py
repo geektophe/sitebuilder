@@ -84,7 +84,7 @@ class CommandSubject(object):
     Subject base class to handle Command events
 
     >>> from zope.schema.fieldproperty import FieldProperty
-    >>> from sitebuilder.interfaces.command import ICommand
+    >>> from sitebuilder.command.interface import ICommand
     >>> class TestCommand(CommandSubject):
     ...     implements(ICommand, ICommandObserver)
     ...     status = FieldProperty(ICommand['status'])

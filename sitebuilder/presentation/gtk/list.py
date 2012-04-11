@@ -8,7 +8,7 @@ from sitebuilder.utils.parameters import ACTION_ADD, ACTION_VIEW
 from sitebuilder.utils.parameters import ACTION_EDIT, ACTION_DELETE
 from sitebuilder.utils.parameters import ACTION_RELOAD, ACTION_CLEARLOGS
 from sitebuilder.utils.parameters import ACTION_SHOWLOGS
-from sitebuilder.interfaces.command import COMMAND_SUCCESS
+from sitebuilder.command.interface import COMMAND_SUCCESS
 from sitebuilder.presentation.gtk.base import GtkBasePresentationAgent
 from sitebuilder.observer.action import Action
 from sitebuilder.abstraction.site.defaults import SiteDefaultsManager

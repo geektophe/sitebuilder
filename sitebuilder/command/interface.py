@@ -57,3 +57,10 @@ class ICommand(Interface):
         """
         Releases a locked command
         """
+
+
+class ICommandLogged(Interface):
+    """
+    Marker interface a command should implement for its result to be logged
+    in log subsystem
+    """

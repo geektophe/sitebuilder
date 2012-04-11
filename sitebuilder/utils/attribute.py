@@ -11,7 +11,7 @@ attributes. It has the necessary methods to manipulate attributes.
 """
 
 from sitebuilder.observer.attribute import AttributeSubject
-from sitebuilder.interfaces.attribute import IAttributeSubject, IAttributeObserver
+from sitebuilder.observer.attribute import IAttributeSubject, IAttributeObserver
 from zope.interface import Interface, implements
 from zope.schema import TextLine
 from zope.schema.fieldproperty import FieldProperty

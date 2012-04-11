@@ -5,10 +5,9 @@ Site configuration objects related classes
 
 from sitebuilder.utils.attribute import TriggerFieldProperty
 from sitebuilder.utils.attribute import UnicodeTriggerFieldProperty
-from sitebuilder.interfaces.site import ISite, IWebsite, IDNSHost, IDatabase
-from sitebuilder.interfaces.site import IRCSRepository
-from sitebuilder.observer.attribute import AttributeSubject
-from sitebuilder.interfaces.attribute import IAttributeObserver
+from sitebuilder.abstraction.interface import ISite, IWebsite, IDNSHost
+from sitebuilder.abstraction.interfae import IDatabase, IRCSRepository
+from sitebuilder.observer.attribute import IAttributeObserver, AttributeSubject
 from zope.interface import implements
 from zope.schema.fieldproperty import FieldProperty
 from zope.schema import getValidationErrors

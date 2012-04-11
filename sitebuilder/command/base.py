@@ -4,7 +4,7 @@ Base command that command implementations may subclass
 """
 
 from zope.schema.fieldproperty import FieldProperty
-from sitebuilder.interfaces.command import ICommand, COMMAND_PENDING
+from sitebuilder.command.interface import ICommand, COMMAND_PENDING
 from threading import Event
 
 
@@ -20,7 +20,7 @@ class BaseCommand(object):
     return_code = FieldProperty(ICommand['return_code'])
     mesg = None
     result = None
-    exception=None
+    excption = None
 
     def __init__(self):
         self.state = COMMAND_PENDING

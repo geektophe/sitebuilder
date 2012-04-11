@@ -10,8 +10,8 @@ from sitebuilder.control.list import ListSitesControlAgent
 from sitebuilder.control.list import ListLogsControlAgent
 from sitebuilder.abstraction.site.manager import SiteConfigurationManager
 from sitebuilder.command.base import BaseCommand
-from sitebuilder.observer.command import CommandSubject
-from sitebuilder.interfaces.command import ICommandSubject, COMMAND_SUCCESS
+from sitebuilder.observer.command import ICommandSubject, CommandSubject
+from sitebuilder.command.interface import COMMAND_SUCCESS
 from sitebuilder.application import init, uninit
 from zope.interface import implements
 from time import sleep

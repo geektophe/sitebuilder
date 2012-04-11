@@ -3,9 +3,9 @@
 DNSHost objects related commands
 """
 
-from sitebuilder.interfaces.command import ICommand, ICommandSubject
+from sitebuilder.command.interface import ICommand
+from sitebuilder.observer.command import ICommandSubject, CommandSubject
 from sitebuilder.command.base import BaseCommand
-from sitebuilder.observer.command import CommandSubject
 from zope.interface import implements
 from threading import Event
 import re

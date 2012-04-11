@@ -9,9 +9,8 @@ from sitebuilder.presentation.gtk.detail import DetailDNSHostPresentationAgent
 from sitebuilder.presentation.gtk.detail import DetailSitePresentationAgent
 from sitebuilder.presentation.gtk.detail import DetailRepositoryPresentationAgent
 from sitebuilder.abstraction.site.manager import SiteConfigurationManager
-from sitebuilder.interfaces.action  import IActionObserver
-from sitebuilder.interfaces.action  import IActionSubject
-from sitebuilder.observer.action  import Action, ActionSubject
+from sitebuilder.observer.action import IActionObserver, IActionSubject
+from sitebuilder.observer.action import Action, ActionSubject
 from sitebuilder.control.base import BaseControlAgent
 from sitebuilder.utils.parameters import ACTION_SUBMIT, ACTION_CANCEL
 from zope.interface import implements

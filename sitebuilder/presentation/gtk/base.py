@@ -6,11 +6,10 @@ Base view to be subclassed
 import pygtk
 import gtk
 import os
-from sitebuilder.interfaces.validity import IValidityObserver
-from sitebuilder.observer.validity import ValiditySubject
+from sitebuilder.observer.validity import IValidityObserver, ValiditySubject
 from sitebuilder.observer.validity import ValidityChangedEvent
-from sitebuilder.interfaces.attribute import IAttributeObserver
-from sitebuilder.interfaces.presentation import IPresentationAgent
+from sitebuilder.observer.attribute import IAttributeObserver
+from sitebuilder.presentation.interface import IPresentationAgent
 from sitebuilder.observer.action import ActionSubject
 from sitebuilder.exception import FieldFormatError
 from zope.interface import implements

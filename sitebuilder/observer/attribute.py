@@ -11,7 +11,7 @@ class IAttributeObserver(Interface):
     Observers methods are called on attribute activaee event.
     """
 
-    def attribute_changed(self, attribute):
+    def attribute_changed(attribute):
         """
         Observer method run on attribute changed event
         """

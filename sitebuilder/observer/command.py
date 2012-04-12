@@ -73,7 +73,7 @@ class ICommandSubject(Interface):
         Removes all callback references from callback list
         """
 
-    def notify_command_executed():
+    def notify_command_executed(command):
         """
         Notifies all observers that the command has been executed
         """

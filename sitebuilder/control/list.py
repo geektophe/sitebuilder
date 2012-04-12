@@ -429,9 +429,9 @@ class ListLogsControlAgent(object):
             text = "%s\n\nCommand status:\n\nCommand was successfully executed" % \
                     command.mesg
         else:
-            text = "%s\n\nCommand status:\n\nAn error occured: %s\n\n" + \
-                   "Stack trace:\n\n%s" % \
-                   (str(command.exception), command.traceback)
+            text = ("%s\n\nCommand status:\n\nAn error occured: %s\n\n" + \
+                   "Stack trace:\n\n%s") % \
+                   (command.mesg, str(command.exception), command.traceback)
 
         dialog = gtk.MessageDialog(
             self.get_presentation_agent().get_toplevel(),

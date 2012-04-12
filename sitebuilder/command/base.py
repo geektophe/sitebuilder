@@ -20,7 +20,7 @@ class BaseCommand(object):
     return_code = FieldProperty(ICommand['return_code'])
     mesg = None
     result = None
-    excption = None
+    exception = None
 
     def __init__(self):
         self.state = COMMAND_PENDING

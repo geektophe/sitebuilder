@@ -286,11 +286,11 @@ class DetailRepositoryPresentationAgent(GtkBasePresentationAgent):
         self['type'].connect('changed', self.on_type_changed)
 
         # Loads comboboxes items
-        self.set_combobox_items(self['type'],
-                SiteDefaultsManager.get_repository_types())
+        #self.set_combobox_items(self['type'],
+        #        SiteDefaultsManager.get_repository_types())
 
         # Loads widgets data from control agent
-        self.load_widgets_data()
+        #self.load_widgets_data()
 
     def load_widgets_data(self):
         """
@@ -321,19 +321,21 @@ class DetailRepositoryPresentationAgent(GtkBasePresentationAgent):
         Signal handler associated with the enabled checkbox
         """
         enabled = self['enabled'].get_active()
-        self.get_control_agent().set_attribute_value('enabled', enabled)
+        self.notify_widget_changed('enabled', enabled)
 
     def on_name_changed(self, widget):
         """
         Signal handler associated with the name text input
         """
-        self.set_entry_attribute(widget, 'name', False)
+        name = self['name'].get_text()
+        self.notify_widget_changed('name', name)
 
     def on_type_changed(self, widget):
         """
         Signal handler associated with the type combobox
         """
-        self.set_combobox_attribute(widget, 'type')
+        repotype = self.get_combobox_selection(self['type'])
+        self.notify_widget_changed('type', repotype)
 
 
 class DetailDNSHostPresentationAgent(GtkBasePresentationAgent):

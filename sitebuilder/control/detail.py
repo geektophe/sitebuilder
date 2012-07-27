@@ -277,23 +277,30 @@ class DetailDatabaseControlAgent(DetailBaseControlAgent):
         pa.set_enabled('password', sensitive)
 
         # Loads type combobox selected option
-        type = self.get_value('type')
-        pa.set_value('type', type)
+        dbtype = self.get_value('type')
+        pa.set_value('type', dbtype)
         pa.set_enabled('type', sensitive)
 
+        site.register_attribute_observer(self)
 
-class DetailRepositoryControlAgent(BaseControlAgent):
+
+class DetailRepositoryControlAgent(DetailBaseControlAgent):
     """
     Repository sub component control agent
     """
 
     def __init__(self, site, read_only=False):
-        BaseControlAgent.__init__(self)
+        DetailBaseControlAgent.__init__(self)
+        site.register_attribute_observer(self)
         self.set_site(site)
         self.set_read_only_flag(read_only)
-        presentation_agent = DetailRepositoryPresentationAgent(self)
-        site.register_attribute_observer(presentation_agent)
-        self.set_presentation_agent(presentation_agent)
+        pa = DetailRepositoryPresentationAgent(self)
+        pa.register_widget_observer(self)
+        # Loads comboboxes items
+        pa.set_items('type', SiteDefaultsManager.get_repository_types())
+        self.set_presentation_agent(pa)
+        # Initializes widget values
+        self.load_widgets_data()
 
     def destroy(self):
         """
@@ -304,8 +311,37 @@ class DetailRepositoryControlAgent(BaseControlAgent):
             self.get_presentation_agent())
         BaseControlAgent.destroy(self)
 
+    def load_widgets_data(self):
+        """
+        Updates presentation agent widgets based on configuraton settings
+        """
+        pa = self.get_presentation_agent()
+        site = self.get_site()
+        site.remove_attribute_observer(self)
 
-class DetailDNSHostControlAgent(BaseControlAgent):
+        enabled = self.get_value('enabled')
+        done = self.get_value('done')
+        read_only = self.get_read_only_flag()
+        sensitive = enabled and not done and not read_only
+
+        # Loads enabled checkbox state
+        pa.set_value('enabled', enabled)
+        pa.set_enabled('enabled', not done and not read_only)
+
+        # Loads name entry
+        name = self.get_value('name')
+        pa.set_value('name', name)
+        pa.set_enabled('name', sensitive)
+
+        # Loads type combobox selected option
+        repotype = self.get_value('type')
+        pa.set_value('type', repotype)
+        pa.set_enabled('type', sensitive)
+
+        site.register_attribute_observer(self)
+
+
+class DetailDNSHostControlAgent(DetailBaseControlAgent):
     """
     DNSHost sub component control agent
     """

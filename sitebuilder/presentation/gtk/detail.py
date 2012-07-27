@@ -361,13 +361,13 @@ class DetailDNSHostPresentationAgent(GtkBasePresentationAgent):
         self['platform'].connect('changed', self.on_platform_changed)
 
         # Loads comboboxes items
-        self.set_combobox_items(self['domain'],
-                SiteDefaultsManager.get_domains())
-        self.set_combobox_items(self['platform'],
-                SiteDefaultsManager.get_platforms())
+        #self.set_combobox_items(self['domain'],
+        #        SiteDefaultsManager.get_domains())
+        #self.set_combobox_items(self['platform'],
+        #        SiteDefaultsManager.get_platforms())
 
         # Loads widgets data from control agent
-        self.load_widgets_data()
+        #self.load_widgets_data()
 
     def load_widgets_data(self):
         """
@@ -401,22 +401,26 @@ class DetailDNSHostPresentationAgent(GtkBasePresentationAgent):
         """
         Signal handler associated with the name text input
         """
-        self.set_entry_attribute(widget, 'name', False)
+        name = self['name'].get_text()
+        self.notify_widget_changed('name', name)
 
     def on_description_changed(self, widget):
         """
         Signal handler associated with the description text input
         """
-        self.set_entry_attribute(widget, 'description')
+        description = self['description'].get_text()
+        self.notify_widget_changed('description', description)
 
     def on_domain_changed(self, widget):
         """
         Signal handler associated with the domain combobox
         """
-        self.set_combobox_attribute(widget, 'domain')
+        domain = self.get_combobox_selection(self['domain'])
+        self.notify_widget_changed('domain', domain)
 
     def on_platform_changed(self, widget):
         """
         Signal handler associated with the platform combobox
         """
-        self.set_combobox_attribute(widget, 'platform')
+        platform = self.get_combobox_selection(self['platform'])
+        self.notify_widget_changed('platform', platform)

@@ -347,12 +347,18 @@ class DetailDNSHostControlAgent(DetailBaseControlAgent):
     """
 
     def __init__(self, site, read_only=False):
-        BaseControlAgent.__init__(self)
+        DetailBaseControlAgent.__init__(self)
+        site.register_attribute_observer(self)
         self.set_site(site)
         self.set_read_only_flag(read_only)
-        presentation_agent = DetailDNSHostPresentationAgent(self)
-        site.register_attribute_observer(presentation_agent)
-        self.set_presentation_agent(presentation_agent)
+        pa = DetailDNSHostPresentationAgent(self)
+        pa.register_widget_observer(self)
+        # Loads comboboxes items
+        pa.set_items('domain', SiteDefaultsManager.get_domains())
+        pa.set_items('platform', SiteDefaultsManager.get_platforms())
+        self.set_presentation_agent(pa)
+        # Initializes widget values
+        self.load_widgets_data()
 
     def destroy(self):
         """
@@ -362,6 +368,41 @@ class DetailDNSHostControlAgent(DetailBaseControlAgent):
         self.get_site().remove_attribute_observer(
             self.get_presentation_agent())
         BaseControlAgent.destroy(self)
+
+    def load_widgets_data(self):
+        """
+        Updates presentation agent widgets based on configuraton settings
+        """
+        pa = self.get_presentation_agent()
+        site = self.get_site()
+        site.remove_attribute_observer(self)
+
+        done = self.get_value('done')
+        read_only = self.get_read_only_flag()
+        sensitive = not done and not read_only
+
+        # Loads name entry
+        name = self.get_value('name')
+        pa.set_value('name', name)
+        pa.set_enabled('name', sensitive)
+
+        # Loads description entry
+        description = self.get_value('description')
+        pa.set_value('description', description)
+        pa.set_enabled('description', sensitive)
+
+        # Loads domain combobox selected option
+        domain = self.get_value('domain')
+        pa.set_value('domain', domain)
+        pa.set_enabled('domain', sensitive)
+
+        # Loads platform combobox selected option
+        platform = self.get_value('platform')
+        pa.set_value('platform', platform)
+        pa.set_enabled('platform', sensitive)
+
+        site.register_attribute_observer(self)
+
 
 if __name__ == '__main__':
     config = SiteConfigurationManager.get_blank_site()

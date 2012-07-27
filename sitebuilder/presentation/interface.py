@@ -31,11 +31,6 @@ class IPresentationAgent(Interface):
         Shows window
         """
 
-    def load_widgets_data():
-        """
-        Updates presentation agent widgets based on configuraton settings
-        """
-
     def destroy():
         """
         Cleanly destroyes component

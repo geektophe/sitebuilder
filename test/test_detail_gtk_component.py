@@ -12,6 +12,24 @@ from sitebuilder.control.detail import DetailSiteControlAgent
 from sitebuilder.control.detail import DetailDatabaseControlAgent
 from sitebuilder.control.detail import DetailRepositoryControlAgent
 from sitebuilder.control.detail import DetailDNSHostControlAgent
+from sitebuilder.observer.validity import IValidityObserver
+from zope.interface import implements
+
+
+class ValidityObserver(object):
+
+    implements(IValidityObserver)
+
+    notified = False
+    flag = True
+
+    def validity_changed(self, source, flag):
+        self.notified = True
+        self.flag = flag
+
+    def reset(self):
+        self.notified = False
+        self.flag = True
 
 
 class BaseTestGtkPresentationAgent(unittest.TestCase):
@@ -414,15 +432,24 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
         refresh_gui()
 
         for widget in ('name', 'username'):
+            observer = ValidityObserver()
+            control_agent.register_validity_observer(observer)
+
             presentation_agent[widget].set_text('abc')
             refresh_gui()
-            self.assertTrue(presentation_agent.get_validity_flag(),
+            self.assertTrue(observer.notified,
+                            'validity observer has not been notified')
+            self.assertTrue(observer.flag,
                             'database validity should be true')
 
+            observer.reset()
             presentation_agent[widget].set_text('ab c')
             refresh_gui()
-            self.assertFalse(presentation_agent.get_validity_flag(),
+            self.assertTrue(observer.notified,
+                            'validity observer has not been notified')
+            self.assertFalse(observer.flag,
                             'database validity should be false')
+            control_agent.remove_validity_observer(observer)
 
 
 class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
@@ -604,15 +631,23 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
         repo.enabled = True
         refresh_gui()
 
+        observer = ValidityObserver()
+        control_agent.register_validity_observer(observer)
+
         presentation_agent['name'].set_text('abc')
         refresh_gui()
-        self.assertTrue(presentation_agent.get_validity_flag(),
-                        'site validity should be true')
+        self.assertTrue(observer.notified,
+                        'validity observer has not been notified')
+        self.assertTrue(observer.flag,
+                        'reopsitory validity should be true')
 
         presentation_agent['name'].set_text('ab c')
         refresh_gui()
-        self.assertFalse(presentation_agent.get_validity_flag(),
-                        'site validity should be false')
+        self.assertTrue(observer.notified,
+                        'validity observer has not been notified')
+        self.assertFalse(observer.flag,
+                        'repository validity should be false')
+        control_agent.remove_validity_observer(observer)
 
 
 class TestDetailDNSHostGtkPresentationAgent(BaseTestGtkPresentationAgent):
@@ -772,15 +807,23 @@ class TestDetailDNSHostGtkPresentationAgent(BaseTestGtkPresentationAgent):
         control_agent = DetailDNSHostControlAgent(dnshost)
         presentation_agent = control_agent.get_presentation_agent()
 
+        observer = ValidityObserver()
+        control_agent.register_validity_observer(observer)
+
         presentation_agent['name'].set_text('abc')
         refresh_gui()
-        self.assertTrue(presentation_agent.get_validity_flag(),
-                        'site validity should be true')
+        self.assertTrue(observer.notified,
+                        'validity observer has not been notified')
+        self.assertTrue(observer.flag,
+                        'dns validity should be true')
 
-        presentation_agent['name'].set_text('@bc')
+        presentation_agent['name'].set_text('@b c')
         refresh_gui()
-        self.assertFalse(presentation_agent.get_validity_flag(),
+        self.assertTrue(observer.notified,
+                        'validity observer has not been notified')
+        self.assertFalse(observer.flag,
                         'dnshost validity should be false')
+        control_agent.remove_validity_observer(observer)
 
 
 if __name__ == "__main__":

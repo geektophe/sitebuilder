@@ -30,28 +30,6 @@ class DetailMainPresentationAgent(GtkBasePresentationAgent):
         self.set_submit_state(False)
         self._validity_matrix = {}
 
-    def validity_changed(self, event):
-        """
-        ValidityChangedObserver trigger mmethod local implementation
-
-        Builds a matrix of the presentation agents that reported a validity
-        changed event based on their instance id, then walks through the matrix
-        to set proper state of OK button.
-        """
-        self._validity_matrix[event.source_id] = event.state
-
-        flag = True
-        for value in self._validity_matrix.values():
-            flag = flag and value
-
-        self.set_submit_state(flag)
-
-    def set_submit_state(self, flag):
-        """
-        Enables or disabled OK button depending on flag state
-        """
-        self['submit'].set_sensitive(flag)
-
     def on_submit_activate(self, widget):
         """
         Signal handler associated with the submit action

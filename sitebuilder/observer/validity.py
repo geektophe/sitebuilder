@@ -8,20 +8,12 @@ from zope.schema.fieldproperty import FieldProperty
 from zope.schema import Bool, Int
 
 
-class IValidityChangedEvent(Interface):
-    """
-    Event class used to notify a validity state changed event.
-    """
-    state  = Bool(title=u"Validity state")
-    source_id  = Int(title=u"Event source id")
-
-
 class IValidityObserver(Interface):
     """
     Observers methods are called on validity validity event.
     """
 
-    def validity_changed(state):
+    def validity_changed(source, flag):
         """
         Observer method run on validity changed event
         """
@@ -47,28 +39,10 @@ class IValiditySubject(Interface):
         Deletes all observers object from observers list
         """
 
-    def notify_validity_changed(state):
+    def notify_validity_changed(flag):
         """
         Notifies all observers that a data has changed
         """
-
-
-class ValidityChangedEvent(object):
-    """
-    Event class used to notify a validity state changed event.
-    """
-    implements(IValidityChangedEvent)
-
-    state = FieldProperty(IValidityChangedEvent['state'])
-    source_id = FieldProperty(IValidityChangedEvent['source_id'])
-
-    def __init__(self, state, source_id=None):
-        """
-        The event takes the attribute object that has been changed as
-        parameter.
-        """
-        self.state = state
-        self.source_id = source_id
 
 
 class ValiditySubject(object):
@@ -78,13 +52,13 @@ class ValiditySubject(object):
     >>> class TestObserver(object):
     ...     implements(IValidityObserver)
     ...     notified = False
-    ...     def validity_changed(self, validity):
+    ...     def validity_changed(self, source, flag):
     ...         self.notified = True
     ...
     >>> subject = ValiditySubject()
     >>> observer = TestObserver()
     >>> subject.register_validity_observer(observer)
-    >>> subject.notify_validity_changed(ValidityChangedEvent(True, 1))
+    >>> subject.notify_validity_changed(True)
     >>> observer.notified
     True
 
@@ -95,14 +69,6 @@ class ValiditySubject(object):
     Traceback (most recent call last):
         ...
     AttributeError: Observer should implement IValidityObserver
-
-    Notified object should implement IValidityObserver. If not so, an
-    exception should be risen
-
-    >>> subject.notify_validity_changed('fake')
-    Traceback (most recent call last):
-        ...
-    AttributeError: event parameter should implement IValidityChandEvent
     """
 
     implements(IValiditySubject)
@@ -137,15 +103,12 @@ class ValiditySubject(object):
         """
         del self._validity_observers[:]
 
-    def notify_validity_changed(self, event=None):
+    def notify_validity_changed(self, flag):
         """
         Notifies all observers that that an validity has been changed
         """
-        if event is not None and not IValidityChangedEvent.providedBy(event):
-            raise AttributeError("event parameter should implement IValidityChandEvent")
-
         for observer in self._validity_observers:
-            observer.validity_changed(event)
+            observer.validity_changed(self, flag)
 
 if __name__ == "__main__":
     import doctest

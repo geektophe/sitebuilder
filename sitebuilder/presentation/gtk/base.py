@@ -6,25 +6,20 @@ Base view to be subclassed
 import pygtk
 import gtk
 import os
-from sitebuilder.observer.validity import IValidityObserver, ValiditySubject
-from sitebuilder.observer.validity import ValidityChangedEvent
-from sitebuilder.observer.attribute import IAttributeObserver
 from sitebuilder.presentation.interface import IPresentationAgent
 from sitebuilder.observer.action import ActionSubject
 from sitebuilder.observer.widget import WidgetSubject
-from sitebuilder.exception import FieldFormatError
 from zope.interface import implements
-from zope.schema import ValidationError
 
 pygtk.require("2.0")
 
-class GtkBasePresentationAgent(ValiditySubject, ActionSubject, WidgetSubject):
+class GtkBasePresentationAgent(ActionSubject, WidgetSubject):
     """
     Main site add/edit/view interface.
 
     The interface design is loaded from a glade file.
     """
-    implements(IValidityObserver, IAttributeObserver, IPresentationAgent)
+    implements(IPresentationAgent)
 
     GLADE_FILE = ""
     TOPLEVEL_NAME = ""
@@ -36,7 +31,6 @@ class GtkBasePresentationAgent(ValiditySubject, ActionSubject, WidgetSubject):
         if not os.path.isfile(self.GLADE_FILE):
             raise RuntimeError("No glade file found.")
 
-        ValiditySubject.__init__(self)
         WidgetSubject.__init__(self)
         ActionSubject.__init__(self)
         self._control_agent = control_agent
@@ -197,15 +191,6 @@ class GtkBasePresentationAgent(ValiditySubject, ActionSubject, WidgetSubject):
             widget.set_tooltip_text(str(e))
             self.set_validity_flag(attr_name, False)
 
-    def validity_changed(self, state):
-        """
-        ValidityChangedObserver trigger mmethod local implementation
-
-        Default behaviour is to forwards ValidityChangedEvent to other
-        components such as upper level presentation agents.
-        """
-        self.notify_validity_changed(state)
-
     def set_validity_flag(self, attr_name, flag):
         """
         When some widgets that require a validity check are set (typically,
@@ -250,13 +235,6 @@ class GtkBasePresentationAgent(ValiditySubject, ActionSubject, WidgetSubject):
         self.clear_validity_observers()
         self.clear_action_observers()
         self.get_toplevel().destroy()
-
-    def load_widgets_data(self):
-        """
-        Updates presentation agent widgets based on configuraton settings
-        """
-        raise NotImplementedError("This method has currently no " + \
-                                  "implmentation and has to be overridden")
 
     def enable(self, name):
         """

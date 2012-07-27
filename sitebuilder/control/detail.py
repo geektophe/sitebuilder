@@ -14,7 +14,6 @@ from sitebuilder.observer.attribute import IAttributeObserver
 from sitebuilder.observer.action import IActionObserver, IActionSubject
 from sitebuilder.observer.action import Action, ActionSubject
 from sitebuilder.observer.validity import ValiditySubject, IValidityObserver
-from sitebuilder.observer.validity import ValidityChangedEvent
 from sitebuilder.observer.widget import IWidgetObserver
 from sitebuilder.control.base import BaseControlAgent
 from sitebuilder.exception import FieldFormatError
@@ -28,7 +27,7 @@ class DetailMainControlAgent(BaseControlAgent, ActionSubject):
     """
     Site details main interface's control agent
     """
-    implements(IActionObserver, IActionSubject)
+    implements(IActionObserver, IValidityObserver)
 
     def __init__(self, site, read_only):
         """
@@ -71,6 +70,8 @@ class DetailMainControlAgent(BaseControlAgent, ActionSubject):
         self._presentation_agent.attach_slave('database',
                 'hbox_databases', slave.get_presentation_agent())
 
+        self._validity_matrix = {}
+
     def action_activated(self, action=None):
         """
         ActionPerformedObserver trigger mmethod local implementation
@@ -84,6 +85,21 @@ class DetailMainControlAgent(BaseControlAgent, ActionSubject):
             self.cancel()
         else:
             raise NotImplementedError("Unhandled action %d triggered" % action)
+
+    def validity_changed(self, source, flag):
+        """
+        Observer method run on validity changed event
+        """
+        self._validity_matrix[id(source)] = flag
+
+        res = True
+        for value in self._validity_matrix.values():
+            if value is False:
+                res = False
+                break
+
+        pa = self.get_presentation_agent()
+        pa.set_enabled('submit', res)
 
     def submit(self):
         """
@@ -137,11 +153,11 @@ class DetailBaseControlAgent(BaseControlAgent, ValiditySubject):
             setattr(self.get_site(), name, value)
         except (ValidationError, FieldFormatError), e:
             pa.set_error(name, True, str(e))
-            self.notify_validity_changed(ValidityChangedEvent(False, id(self)))
+            self.notify_validity_changed(False)
         else:
             pa.set_error(name, False)
             self.load_widgets_data()
-            self.notify_validity_changed(ValidityChangedEvent(True, id(self)))
+            self.notify_validity_changed(True)
 
     def attribute_changed(self, attribute=None):
         """

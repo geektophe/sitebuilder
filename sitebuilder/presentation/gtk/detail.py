@@ -88,45 +88,6 @@ class DetailSitePresentationAgent(GtkBasePresentationAgent):
         self['template'].connect('changed', self.on_template_changed)
         self['access'].connect('changed', self.on_access_changed)
 
-        # Loads comboboxes items
-        #self.set_combobox_items(self['template'],
-        #        SiteDefaultsManager.get_site_templates())
-        #self.set_combobox_items(self['access'],
-        #        SiteDefaultsManager.get_site_accesses())
-
-        # Loads widgets data from control agent
-        #self.load_widgets_data()
-
-    def load_widgets_data(self):
-        """
-        Updates presentation agent widgets based on configuraton settings
-        """
-        enabled = self.get_control_agent().get_attribute_value('enabled')
-        done = self.get_control_agent().get_attribute_value('done')
-        read_only = self.get_control_agent().get_read_only_flag()
-        sensitive = enabled and not done and not read_only
-
-        # Loads enabled checkbox state
-        self['enabled'].set_active(enabled)
-        self['enabled'].set_sensitive(not done and not read_only)
-
-        # Loads maintenance checkbox state
-        maintenance = self.get_control_agent().get_attribute_value('maintenance')
-        self['maintenance'].set_active(maintenance)
-        # Maintenance should be changeable even if site is in done state
-        self['maintenance'].set_sensitive(enabled and not read_only)
-
-        # Loads template combobox selected option
-        self.set_combobox_selection(self['template'],
-                self.get_control_agent().get_attribute_value('template'))
-        self['template'].set_sensitive(sensitive)
-
-        # Loads access combobox selected option
-        self.set_combobox_selection(self['access'],
-                self.get_control_agent().get_attribute_value('access'))
-        # Access should be changeable even if site is in done state
-        self['access'].set_sensitive(enabled and not read_only)
-
     def on_enabled_toggled(self, widget):
         """
         Signal handler associated with the enabled checkbox
@@ -181,47 +142,6 @@ class DetailDatabasePresentationAgent(GtkBasePresentationAgent):
         self['username'].connect('changed', self.on_username_changed)
         self['password'].connect('changed', self.on_password_changed)
         self['type'].connect('changed', self.on_type_changed)
-
-        # Loads comboboxes items
-        #self.set_combobox_items(self['type'],
-        #        SiteDefaultsManager.get_database_types())
-
-        # Loads widgets data from control agent
-        #self.load_widgets_data()
-
-    def load_widgets_data(self):
-        """
-        Updates presentation agent widgets based on configuraton settings
-        """
-        enabled = self.get_control_agent().get_attribute_value('enabled')
-        done = self.get_control_agent().get_attribute_value('done')
-        read_only = self.get_control_agent().get_read_only_flag()
-        sensitive = enabled and not done and not read_only
-
-        name = self.get_control_agent().get_attribute_value('name')
-        username = self.get_control_agent().get_attribute_value('username')
-        password = self.get_control_agent().get_attribute_value('password')
-
-        # Loads enabled checkbox state
-        self['enabled'].set_active(enabled)
-        self['enabled'].set_sensitive(not done and not read_only)
-
-        # Loads name entry
-        self['name'].set_text(name)
-        self['name'].set_sensitive(sensitive)
-
-        # Loads username entry
-        self['username'].set_text(username)
-        self['username'].set_sensitive(sensitive)
-
-        # Loads password entry
-        self['password'].set_text(password)
-        self['password'].set_sensitive(sensitive)
-
-        # Loads type combobox selected option
-        self.set_combobox_selection(self['type'],
-                self.get_control_agent().get_attribute_value('type'))
-        self['type'].set_sensitive(sensitive)
 
     def on_enabled_toggled(self, widget):
         """
@@ -285,37 +205,6 @@ class DetailRepositoryPresentationAgent(GtkBasePresentationAgent):
         self['name'].connect('changed', self.on_name_changed)
         self['type'].connect('changed', self.on_type_changed)
 
-        # Loads comboboxes items
-        #self.set_combobox_items(self['type'],
-        #        SiteDefaultsManager.get_repository_types())
-
-        # Loads widgets data from control agent
-        #self.load_widgets_data()
-
-    def load_widgets_data(self):
-        """
-        Updates presentation agent widgets based on configuraton settings
-        """
-        enabled = self.get_control_agent().get_attribute_value('enabled')
-        done = self.get_control_agent().get_attribute_value('done')
-        read_only = self.get_control_agent().get_read_only_flag()
-        sensitive = enabled and not done and not read_only
-
-        name = self.get_control_agent().get_attribute_value('name')
-
-        # Loads enabled checkbox state
-        self['enabled'].set_active(enabled)
-        self['enabled'].set_sensitive(not done and not read_only)
-
-        # Loads name entry
-        self['name'].set_text(name)
-        self['name'].set_sensitive(sensitive)
-
-        # Loads type combobox selected option
-        self.set_combobox_selection(self['type'],
-                self.get_control_agent().get_attribute_value('type'))
-        self['type'].set_sensitive(sensitive)
-
     def on_enabled_toggled(self, widget):
         """
         Signal handler associated with the enabled checkbox
@@ -359,43 +248,6 @@ class DetailDNSHostPresentationAgent(GtkBasePresentationAgent):
         self['name'].connect('changed', self.on_name_changed)
         self['domain'].connect('changed', self.on_domain_changed)
         self['platform'].connect('changed', self.on_platform_changed)
-
-        # Loads comboboxes items
-        #self.set_combobox_items(self['domain'],
-        #        SiteDefaultsManager.get_domains())
-        #self.set_combobox_items(self['platform'],
-        #        SiteDefaultsManager.get_platforms())
-
-        # Loads widgets data from control agent
-        #self.load_widgets_data()
-
-    def load_widgets_data(self):
-        """
-        Updates presentation agent widgets based on configuraton settings
-        """
-        read_only = self.get_control_agent().get_read_only_flag()
-        done = self.get_control_agent().get_attribute_value('done')
-        sensitive = not done and not read_only
-        name = self.get_control_agent().get_attribute_value('name')
-        description = self.get_control_agent().get_attribute_value('description')
-
-        # Loads name entry
-        self['name'].set_text(name)
-        self['name'].set_sensitive(sensitive)
-
-        # Loads description entry
-        self['description'].set_text(description)
-        self['description'].set_sensitive(sensitive)
-
-        # Loads domain combobox selected option
-        self.set_combobox_selection(self['domain'],
-                self.get_control_agent().get_attribute_value('domain'))
-        self['domain'].set_sensitive(sensitive)
-
-        # Loads platform combobox selected option
-        self.set_combobox_selection(self['platform'],
-                self.get_control_agent().get_attribute_value('platform'))
-        self['platform'].set_sensitive(sensitive)
 
     def on_name_changed(self, widget):
         """

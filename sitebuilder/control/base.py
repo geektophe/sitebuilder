@@ -32,6 +32,8 @@ class BaseControlAgent(object):
         """
         return self._read_only
 
+    get_read_only = get_read_only_flag
+
     def set_read_only_flag(self, read_only):
         """
         Returns read only flag
@@ -40,6 +42,8 @@ class BaseControlAgent(object):
             raise TypeError("read only flag should be a boolean value")
 
         self._read_only = read_only
+
+    set_read_only = set_read_only_flag
 
     def set_presentation_agent(self, presentation_agent):
         """
@@ -85,6 +89,8 @@ class BaseControlAgent(object):
         else:
             return u''
 
+    get_value = get_attribute_value
+
     def set_attribute_value(self, name, value):
         """
         Returns a site attribute value
@@ -106,6 +112,8 @@ class BaseControlAgent(object):
 
             # No field was found under name. The original exception is risen
             raise e
+
+    set_value = set_attribute_value
 
     def destroy(self):
         """

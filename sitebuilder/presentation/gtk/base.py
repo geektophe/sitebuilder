@@ -11,13 +11,14 @@ from sitebuilder.observer.validity import ValidityChangedEvent
 from sitebuilder.observer.attribute import IAttributeObserver
 from sitebuilder.presentation.interface import IPresentationAgent
 from sitebuilder.observer.action import ActionSubject
+from sitebuilder.observer.widget import WidgetSubject
 from sitebuilder.exception import FieldFormatError
 from zope.interface import implements
 from zope.schema import ValidationError
 
 pygtk.require("2.0")
 
-class GtkBasePresentationAgent(ValiditySubject, ActionSubject):
+class GtkBasePresentationAgent(ValiditySubject, ActionSubject, WidgetSubject):
     """
     Main site add/edit/view interface.
 
@@ -36,6 +37,7 @@ class GtkBasePresentationAgent(ValiditySubject, ActionSubject):
             raise RuntimeError("No glade file found.")
 
         ValiditySubject.__init__(self)
+        WidgetSubject.__init__(self)
         ActionSubject.__init__(self)
         self._control_agent = control_agent
         self._builder = gtk.Builder()
@@ -234,13 +236,6 @@ class GtkBasePresentationAgent(ValiditySubject, ActionSubject):
         """
         self.load_widgets_data()
 
-    def load_widgets_data(self):
-        """
-        Updates presentation agent widgets based on configuraton settings
-        """
-        raise NotImplementedError("This method has currently no " + \
-                                  "implmentation and has to be overridden")
-
     def destroy(self):
         """
         Cleanly destroyes components
@@ -255,3 +250,89 @@ class GtkBasePresentationAgent(ValiditySubject, ActionSubject):
         self.clear_validity_observers()
         self.clear_action_observers()
         self.get_toplevel().destroy()
+
+    def load_widgets_data(self):
+        """
+        Updates presentation agent widgets based on configuraton settings
+        """
+        raise NotImplementedError("This method has currently no " + \
+                                  "implmentation and has to be overridden")
+
+    def enable(self, name):
+        """
+        Enables a control (set it resopnsive to user actions)
+        """
+        self[name].set_sensitive(True)
+
+    def disable(self, name):
+        """
+        Disables a control (set it unresopnsive to user actions)
+        """
+        self[name].set_sensitive(False)
+
+    def set_enabled(self, name, state):
+        """
+        Enables or disables a control based on state value
+        """
+        self[name].set_sensitive(state)
+
+    def set_items(self, name, items):
+        """
+        Sets a finite value selection control (ex. list or combo box)
+        selectable items.
+        """
+        widget = self[name]
+
+        if isinstance(widget, gtk.ComboBox):
+            self.set_combobox_items(widget, items)
+        else:
+            raise NotImplementedError('Unhandled control type for %s: %s' % \
+                (name, widget.__class__.__name__))
+
+    def get_value(self, name):
+        """
+        Reads a control value or state.
+        """
+        widget = self[name]
+
+        if isinstance(widget, gtk.Entry):
+            return widget.get_text()
+        elif isinstance(widget, gtk.ToggleButton):
+            return widget.get_active()
+        elif isinstance(widget, gtk.ComboBox):
+            return self.get_combobox_selection(widget)
+        else:
+            raise NotImplementedError('Unhandled control type for %s: %s' % \
+                (name, widget.__class__.__name__))
+
+    def set_value(self, name, value):
+        """
+        Sets a control value or state.
+        """
+        widget = self[name]
+
+        if isinstance(widget, gtk.Entry):
+            widget.set_text(value)
+        elif isinstance(widget, gtk.ToggleButton):
+            widget.set_active(value)
+        elif isinstance(widget, gtk.ComboBox):
+            self.set_combobox_selection(widget, value)
+        else:
+            raise NotImplementedError('Unhandled control type for %s: %s' % \
+                (name, widget.__class__.__name__))
+
+    def set_error(self, name, state, mesg=""):
+        """
+        Sets a crontrol in a state showing than an error occured or that all
+        is correct.
+
+        An optional error message to be displayed may be passed.
+        """
+        widget = self[name]
+
+        if state:
+            widget.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('#FFCCCC'))
+            widget.set_tooltip_text(mesg)
+        else:
+            widget.set_tooltip_text('')
+            widget.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('#90EE90'))

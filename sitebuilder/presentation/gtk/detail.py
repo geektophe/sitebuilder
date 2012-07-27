@@ -46,12 +46,6 @@ class DetailMainPresentationAgent(GtkBasePresentationAgent):
 
         self.set_submit_state(flag)
 
-    def load_widgets_data(self):
-        """
-        Null method. Loading widgets data has no meaning here.
-        """
-        pass
-
     def set_submit_state(self, flag):
         """
         Enables or disabled OK button depending on flag state
@@ -95,13 +89,13 @@ class DetailSitePresentationAgent(GtkBasePresentationAgent):
         self['access'].connect('changed', self.on_access_changed)
 
         # Loads comboboxes items
-        self.set_combobox_items(self['template'],
-                SiteDefaultsManager.get_site_templates())
-        self.set_combobox_items(self['access'],
-                SiteDefaultsManager.get_site_accesses())
+        #self.set_combobox_items(self['template'],
+        #        SiteDefaultsManager.get_site_templates())
+        #self.set_combobox_items(self['access'],
+        #        SiteDefaultsManager.get_site_accesses())
 
         # Loads widgets data from control agent
-        self.load_widgets_data()
+        #self.load_widgets_data()
 
     def load_widgets_data(self):
         """
@@ -138,26 +132,32 @@ class DetailSitePresentationAgent(GtkBasePresentationAgent):
         Signal handler associated with the enabled checkbox
         """
         enabled = self['enabled'].get_active()
-        self.get_control_agent().set_attribute_value('enabled', enabled)
+        #self.get_control_agent().set_attribute_value('enabled', enabled)
+        self.notify_widget_changed('enabled', enabled)
 
     def on_maintenance_toggled(self, widget):
         """
         Signal handler associated with the maintenance checkbox
         """
         maintenance = self['maintenance'].get_active()
-        self.get_control_agent().set_attribute_value('maintenance', maintenance)
+        #self.get_control_agent().set_attribute_value('maintenance', maintenance)
+        self.notify_widget_changed('maintenance', maintenance)
 
     def on_template_changed(self, widget):
         """
         Signal handler associated with the template combobox
         """
-        self.set_combobox_attribute(widget, 'template')
+        #self.set_combobox_attribute(widget, 'template')
+        template = self.get_combobox_selection(self['template'])
+        self.notify_widget_changed('template', template)
 
     def on_access_changed(self, widget):
         """
         Signal handler associated with the access combobox
         """
-        self.set_combobox_attribute(widget, 'access')
+        #self.set_combobox_attribute(widget, 'access')
+        access = self.get_combobox_selection(self['access'])
+        self.notify_widget_changed('access', access)
 
 
 class DetailDatabasePresentationAgent(GtkBasePresentationAgent):
@@ -183,11 +183,11 @@ class DetailDatabasePresentationAgent(GtkBasePresentationAgent):
         self['type'].connect('changed', self.on_type_changed)
 
         # Loads comboboxes items
-        self.set_combobox_items(self['type'],
-                SiteDefaultsManager.get_database_types())
+        #self.set_combobox_items(self['type'],
+        #        SiteDefaultsManager.get_database_types())
 
         # Loads widgets data from control agent
-        self.load_widgets_data()
+        #self.load_widgets_data()
 
     def load_widgets_data(self):
         """
@@ -228,31 +228,40 @@ class DetailDatabasePresentationAgent(GtkBasePresentationAgent):
         Signal handler associated with the enabled checkbox
         """
         enabled = self['enabled'].get_active()
-        self.get_control_agent().set_attribute_value('enabled', enabled)
+        #self.get_control_agent().set_attribute_value('enabled', enabled)
+        self.notify_widget_changed('enabled', enabled)
 
     def on_name_changed(self, widget):
         """
         Signal handler associated with the name text input
         """
-        self.set_entry_attribute(widget, 'name', False)
+        #self.set_entry_attribute(widget, 'name', False)
+        name = self['name'].get_text()
+        self.notify_widget_changed('name', name)
 
     def on_username_changed(self, widget):
         """
         Signal handler associated with the username text input
         """
-        self.set_entry_attribute(widget, 'username', False)
+        #self.set_entry_attribute(widget, 'username', False)
+        username = self['username'].get_text()
+        self.notify_widget_changed('username', username)
 
     def on_password_changed(self, widget):
         """
         Signal handler associated with the password text input
         """
-        self.set_entry_attribute(widget, 'password')
+        #self.set_entry_attribute(widget, 'password')
+        password = self['password'].get_text()
+        self.notify_widget_changed('password', password)
 
     def on_type_changed(self, widget):
         """
         Signal handler associated with the type combobox
         """
-        self.set_combobox_attribute(widget, 'type')
+        #self.set_combobox_attribute(widget, 'type')
+        dbtype = self.get_combobox_selection(self['type'])
+        self.notify_widget_changed('type', dbtype)
 
 
 class DetailRepositoryPresentationAgent(GtkBasePresentationAgent):

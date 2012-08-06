@@ -69,13 +69,6 @@ class ListSitesPresentationAgent(GtkBasePresentationAgent):
         hosts_model = gtk.ListStore(str, str, str, str)
         site_list.set_model(hosts_model)
 
-        domains = SiteDefaultsManager.get_domains()
-        domains['*'] =  '*'
-        self.set_combobox_items(self['filter_domain'], domains)
-        self['filter_domain'].set_active(0)
-
-        self.load_widgets_data()
-
         self['site_list'].connect('row-activated', self.on_site_list_row_activated)
         self['filter_name'].connect('changed', self.on_filter_name_changed)
         self['filter_domain'].connect('changed', self.on_filter_domain_changed)
@@ -85,7 +78,7 @@ class ListSitesPresentationAgent(GtkBasePresentationAgent):
         self['delete'].connect('activate', self.on_delete_activate)
         self['reload'].connect('activate', self.on_reload_activate)
 
-    def load_widgets_data(self):
+    def set_value(self, name, hosts):
         """
         Loads site items data into widgets
         """
@@ -98,7 +91,6 @@ class ListSitesPresentationAgent(GtkBasePresentationAgent):
             self['site_list'].set_model(sites_model)
 
         sites_model.clear()
-        hosts = self.get_control_agent().get_attribute_value('hosts')
 
         for dnshost in hosts:
             name = dnshost.name
@@ -107,7 +99,7 @@ class ListSitesPresentationAgent(GtkBasePresentationAgent):
             description = dnshost.description
             sites_model.append((name, domain, platform, description))
 
-    def get_selected_items(self):
+    def get_value(self, name):
         """
         Returns the selected site identifier.
 
@@ -137,14 +129,15 @@ class ListSitesPresentationAgent(GtkBasePresentationAgent):
         """
         Signal handler associated with the name text input
         """
-        self.set_entry_attribute(widget, 'filter_name', True)
+        name = self['filter_name'].get_text()
+        self.notify_widget_changed('filter_name', name)
 
     def on_filter_domain_changed(self, widget):
         """
         Signal handler associated with the template combobox
         """
         domain_name = self.get_combobox_selection(self['filter_domain'])
-        self.get_control_agent().set_attribute_value('filter_domain', domain_name )
+        self.notify_widget_changed('filter_domain', domain_name )
 
     def on_view_activate(self, widget):
         """

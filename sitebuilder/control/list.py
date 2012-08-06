@@ -6,6 +6,7 @@ Main list interface control agent
 from sitebuilder.presentation.gtk.list import ListMainPresentationAgent
 from sitebuilder.presentation.gtk.list import ListSitesPresentationAgent
 from sitebuilder.presentation.gtk.list import ListLogsPresentationAgent
+from sitebuilder.control.base import BaseControlAgent
 from sitebuilder.control.detail import DetailMainControlAgent
 from sitebuilder.abstraction.site.factory import site_factory
 from sitebuilder.presentation.interface import IPresentationAgent
@@ -277,26 +278,33 @@ class ListMainControlAgent(object):
             print "deleted site id %s" % conf_name
 
 
-class ListSitesControlAgent(ActionSubject):
+class ListSitesControlAgent(BaseControlAgent, ActionSubject):
     """
     List main component control agent
     """
-    implements(IActionObserver, IActionSubject)
+    implements(IActionObserver)
 
     def __init__(self):
         """
         Initializes control agent.
         """
+        BaseControlAgent.__init__(self)
         ActionSubject.__init__(self)
         self._hosts = []
         self._filter_name = '*'
         self._filter_name_re = re.compile(r"^[\w\d\*_-]*$")
         self._filter_domain = '*'
         self._filter_domain_re = re.compile(r"^[\w\d\*\._-]*$")
-        self._presentation_agent = ListSitesPresentationAgent(self)
-        self._presentation_agent.register_action_observer(self)
+        pa  = ListSitesPresentationAgent(self)
+        pa.register_action_observer(self)
 
-    def get_attribute_value(self, name):
+        domains = SiteDefaultsManager.get_domains()
+        domains['*'] =  '*'
+        pa.set_items(self['filter_domain'], domains)
+        pa['filter_domain'].set_active(0)
+        self.set_presentation_agent(pa)
+
+    def get_value(self, name):
         """
         Returns a site attribute value
         """
@@ -310,7 +318,7 @@ class ListSitesControlAgent(ActionSubject):
             raise AttributeError("%s object has no attribute '%s'" % \
                                  (self.__class__.__name__, name))
 
-    def set_attribute_value(self, name, value):
+    def set_value(self, name, value):
         """
         Returns a site attribute value
         """
@@ -332,7 +340,7 @@ class ListSitesControlAgent(ActionSubject):
             self.reload_sites()
         elif name == "hosts":
             self._hosts = value
-            self._presentation_agent.load_widgets_data()
+            self.load_widgets_data()
         else:
             raise AttributeError("%s object has no attribute '%s'" % \
                                  (self.__class__.__name__, name))

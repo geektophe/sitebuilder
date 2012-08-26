@@ -98,19 +98,19 @@ class GtkBasePresentationAgent(ActionSubject, WidgetSubject):
         """
         self.get_toplevel().show()
 
-    def set_combobox_items(self, combobox, items):
+    def set_combobox_items(self, widget, items):
         """
         Sets an interface combobox items. Each item is composed of a mnemonic
         name and a label, but only the label is displayed in the combobox.
         """
         # The model is configured for rows composed of name and a label
         model = gtk.ListStore(str, str)
-        combobox.set_model(model)
+        widget.set_model(model)
         # A text rederer is used to display rows
         renderer = gtk.CellRendererText()
-        combobox.pack_start(renderer, True)
+        widget.pack_start(renderer, True)
         # Only the row's label is displayed (second element of the tupple: 1)
-        combobox.add_attribute(renderer, 'text', 1)
+        widget.add_attribute(renderer, 'text', 1)
 
         # Appends items to the combobox
         names = items.keys()
@@ -119,23 +119,42 @@ class GtkBasePresentationAgent(ActionSubject, WidgetSubject):
         for name in names:
             model.append((name, items[name]))
 
-    def get_combobox_selection(self, combobox):
+    def set_list_items(self, widget, items):
         """
-        Retrieves the value of the combobox selected item.
+        Sets an interface combobox items. Each item is composed of a mnemonic
+        name and a label, but only the label is displayed in the combobox.
+
+        Items should be a list of tuples corresponding to tho number of items
+        in the list moldel.
         """
-        model = combobox.get_model()
-        index = combobox.get_active()
+        model = widget.get_model()
+
+        model.clear()
+
+        for item in items:
+            name = dnshost.name
+            domain = dnshost.domain
+            platform = dnshost.platform
+            description = dnshost.description
+            sites_model.append(item)
+
+    def get_list_selection(self, widget):
+        """
+        Retrieves the value of the list selected item.
+        """
+        model = widget.get_model()
+        index = widget.get_active()
 
         if index < 0:
             return None
 
         return model[index][0]
 
-    def set_combobox_selection(self, combobox, value):
+    def set_list_selection(self, widget, value):
         """
-        Selects the combobox row which name column equals value.
+        Selects the list row which name column equals value.
         """
-        model = combobox.get_model()
+        model = widget.get_model()
         index = 0
 
         for row in model:
@@ -144,52 +163,9 @@ class GtkBasePresentationAgent(ActionSubject, WidgetSubject):
             index += 1
 
         if index < len(model):
-            combobox.set_active(index)
+            widget.set_active(index)
         else:
-            combobox.set_active(-1)
-
-    def set_combobox_attribute(self, widget, attr_name):
-        """
-        Retrieves an entry widget text, and tries to set it in the model.
-
-        If an AttributeError is risen while setting the attribute (indicating
-        an incorrect value), the widget backgroud is set red and a tooltip
-        indicates the error.
-        """
-        value = self.get_combobox_selection(widget)
-
-        try:
-            self.get_control_agent().set_attribute_value(attr_name, value)
-            widget.set_tooltip_text('')
-            widget.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('#90EE90'))
-            self.set_validity_flag(attr_name, True)
-        except (ValidationError, FieldFormatError), e:
-            widget.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('#FFCCCC'))
-            widget.set_tooltip_text(str(e))
-            self.set_validity_flag(attr_name, False)
-
-    def set_entry_attribute(self, widget, attr_name, empty_allowed=True):
-        """
-        Retrieves an entry widget text, and tries to set it in the model.
-
-        If an AttributeError is risen while setting the attribute (indicating
-        an incorrect value), the widget backgroud is set red and a tooltip
-        indicates the error.
-        """
-        value = widget.get_text()
-
-        try:
-            if not empty_allowed and not value:
-                raise FieldFormatError('Required value')
-
-            self.get_control_agent().set_attribute_value(attr_name, value)
-            widget.set_tooltip_text('')
-            widget.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('#90EE90'))
-            self.set_validity_flag(attr_name, True)
-        except (ValidationError, FieldFormatError), e:
-            widget.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('#FFCCCC'))
-            widget.set_tooltip_text(str(e))
-            self.set_validity_flag(attr_name, False)
+            widget.set_active(-1)
 
     def set_validity_flag(self, attr_name, flag):
         """
@@ -261,7 +237,9 @@ class GtkBasePresentationAgent(ActionSubject, WidgetSubject):
         """
         widget = self[name]
 
-        if isinstance(widget, gtk.ComboBox):
+        if isinstance(widget, gtk.List):
+            self.set_list_items(widget, items)
+        elif isinstance(widget, gtk.ComboBox):
             self.set_combobox_items(widget, items)
         else:
             raise NotImplementedError('Unhandled control type for %s: %s' % \
@@ -277,8 +255,8 @@ class GtkBasePresentationAgent(ActionSubject, WidgetSubject):
             return widget.get_text()
         elif isinstance(widget, gtk.ToggleButton):
             return widget.get_active()
-        elif isinstance(widget, gtk.ComboBox):
-            return self.get_combobox_selection(widget)
+        elif isinstance(widget, gtk.List) or isinstance(widget, gtk.ComboBox):
+            return self.get_list_selection(widget)
         else:
             raise NotImplementedError('Unhandled control type for %s: %s' % \
                 (name, widget.__class__.__name__))
@@ -293,8 +271,8 @@ class GtkBasePresentationAgent(ActionSubject, WidgetSubject):
             widget.set_text(value)
         elif isinstance(widget, gtk.ToggleButton):
             widget.set_active(value)
-        elif isinstance(widget, gtk.ComboBox):
-            self.set_combobox_selection(widget, value)
+        elif isinstance(widget, gtk.List) or isinstance(widget, gtk.ComboBox):
+            self.set_list_selection(widget, value)
         else:
             raise NotImplementedError('Unhandled control type for %s: %s' % \
                 (name, widget.__class__.__name__))

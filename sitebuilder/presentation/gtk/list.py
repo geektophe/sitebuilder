@@ -11,7 +11,6 @@ from sitebuilder.utils.parameters import ACTION_SHOWLOGS
 from sitebuilder.command.interface import COMMAND_SUCCESS
 from sitebuilder.presentation.gtk.base import GtkBasePresentationAgent
 from sitebuilder.observer.action import Action
-from sitebuilder.abstraction.site.defaults import SiteDefaultsManager
 from gobject import TYPE_PYOBJECT
 from warnings import warn
 import gtk
@@ -144,7 +143,7 @@ class ListSitesPresentationAgent(GtkBasePresentationAgent):
         Signal handler associated with the view action
         """
         self.notify_action_activated(
-            Action(ACTION_VIEW, {'sites': self.get_selected_items()}))
+            Action(ACTION_VIEW, {'sites': self.get_value('site_list')}))
 
     def on_add_activate(self, widget):
         """
@@ -157,14 +156,14 @@ class ListSitesPresentationAgent(GtkBasePresentationAgent):
         Signal handler associated with the view action
         """
         self.notify_action_activated(
-            Action(ACTION_EDIT, {'sites': self.get_selected_items()}))
+            Action(ACTION_EDIT, {'sites': self.get_value('site_list')}))
 
     def on_delete_activate(self, widget):
         """
         Signal handler associated with the view action
         """
         self.notify_action_activated(
-            Action(ACTION_DELETE, {'sites': self.get_selected_items()}))
+            Action(ACTION_DELETE, {'sites': self.get_value('site_list')}))
 
     def on_reload_activate(self, widget):
         """
@@ -215,27 +214,18 @@ class ListLogsPresentationAgent(GtkBasePresentationAgent):
         logs_model = gtk.ListStore(str, str, str, TYPE_PYOBJECT)
         logs_list.set_model(logs_model)
 
-        self.load_widgets_data()
         self['logs_list'].connect('row-activated', self.on_logs_list_row_activated)
         self['clearlogs'].connect('activate', self.on_clearlogs_activate)
         self['showlogs'].connect('activate', self.on_showlogs_activate)
 
-    def load_widgets_data(self):
+    def set_items(self, name, commands):
         """
         Loads logs items data into widgets
         """
         # Appends items to the site_list
-        logs_model = self['logs_list'].get_model()
+        model = self['logs_list'].get_model()
+        model.clear()
 
-        if logs_model is None:
-            warn("logs_list has no model")
-            logs_model = gtk.ListStore(str, str, str, TYPE_PYOBJECT)
-            self['logs_list'].set_model(logs_model)
-
-        logs_model.clear()
-        commands = self.get_control_agent().get_attribute_value('commands')
-
-        text = ""
         for command in commands:
             if command.status == COMMAND_SUCCESS:
                 img = gtk.STOCK_OK
@@ -244,11 +234,9 @@ class ListLogsPresentationAgent(GtkBasePresentationAgent):
                 img = gtk.STOCK_CANCEL
                 text = command.exception
 
-            logs_model.append((img, command.description, text, command))
+            model.append((img, command.description, text, command))
 
-        #self["statusbar"].push(0, text)
-
-    def get_selected_items(self):
+    def get_selected_commands(self):
         """
         Returns the selected site identifier.
 
@@ -258,14 +246,14 @@ class ListLogsPresentationAgent(GtkBasePresentationAgent):
         to read it.
         """
         model, rows = self['logs_list'].get_selection().get_selected_rows()
-        selection = []
+        commands = []
 
         for row in rows:
             index = row[0]
             command = model[index][3]
-            selection.append(command)
+            commands.append(command)
 
-        return selection
+        return commands
 
     def on_logs_list_row_activated(self, widget, path, column):
         """
@@ -284,4 +272,4 @@ class ListLogsPresentationAgent(GtkBasePresentationAgent):
         Signal handler associated with the showlogs action
         """
         self.notify_action_activated(Action(ACTION_SHOWLOGS,
-            {'logs': self.get_selected_items()}))
+            {'logs': self.get_selected_commands()}))

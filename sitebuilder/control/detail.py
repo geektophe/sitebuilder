@@ -148,9 +148,11 @@ class DetailBaseControlAgent(BaseControlAgent, ValiditySubject):
         value it was set to.
         """
         pa = self.get_presentation_agent()
+        site = self.get_site()
+        site.remove_attribute_observer(self)
 
         try:
-            setattr(self.get_site(), name, value)
+            setattr(site, name, value)
         except (ValidationError, FieldFormatError), e:
             pa.set_error(name, True, str(e))
             self.notify_validity_changed(False)
@@ -158,6 +160,8 @@ class DetailBaseControlAgent(BaseControlAgent, ValiditySubject):
             pa.set_error(name, False)
             self.load_widgets_data()
             self.notify_validity_changed(True)
+
+        site.register_attribute_observer(self)
 
     def attribute_changed(self, attribute=None):
         """
@@ -179,11 +183,11 @@ class DetailSiteControlAgent(DetailBaseControlAgent):
         self.set_site(site)
         self.set_read_only_flag(read_only)
         pa = DetailSitePresentationAgent(self)
-        pa.register_widget_observer(self)
+        self.set_presentation_agent(pa)
         # Loads comboboxes items
         pa.set_items('template', SiteDefaultsManager.get_site_templates())
         pa.set_items('access', SiteDefaultsManager.get_site_accesses())
-        self.set_presentation_agent(pa)
+        pa.register_widget_observer(self)
         # Initializes widget values
         self.load_widgets_data()
 
@@ -244,10 +248,10 @@ class DetailDatabaseControlAgent(DetailBaseControlAgent):
         self.set_site(site)
         self.set_read_only_flag(read_only)
         pa = DetailDatabasePresentationAgent(self)
-        pa.register_widget_observer(self)
+        self.set_presentation_agent(pa)
         # Loads comboboxes items
         pa.set_items('type', SiteDefaultsManager.get_database_types())
-        self.set_presentation_agent(pa)
+        pa.register_widget_observer(self)
         # Initializes widget values
         self.load_widgets_data()
 
@@ -311,10 +315,10 @@ class DetailRepositoryControlAgent(DetailBaseControlAgent):
         self.set_site(site)
         self.set_read_only_flag(read_only)
         pa = DetailRepositoryPresentationAgent(self)
-        pa.register_widget_observer(self)
+        self.set_presentation_agent(pa)
         # Loads comboboxes items
         pa.set_items('type', SiteDefaultsManager.get_repository_types())
-        self.set_presentation_agent(pa)
+        pa.register_widget_observer(self)
         # Initializes widget values
         self.load_widgets_data()
 
@@ -368,11 +372,11 @@ class DetailDNSHostControlAgent(DetailBaseControlAgent):
         self.set_site(site)
         self.set_read_only_flag(read_only)
         pa = DetailDNSHostPresentationAgent(self)
-        pa.register_widget_observer(self)
+        self.set_presentation_agent(pa)
         # Loads comboboxes items
         pa.set_items('domain', SiteDefaultsManager.get_domains())
         pa.set_items('platform', SiteDefaultsManager.get_platforms())
-        self.set_presentation_agent(pa)
+        pa.register_widget_observer(self)
         # Initializes widget values
         self.load_widgets_data()
 

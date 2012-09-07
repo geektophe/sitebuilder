@@ -83,7 +83,7 @@ class GtkBasePresentationAgent(ActionSubject, WidgetSubject):
         container.pack_start(widget)
         # When a slave is attached, the master should be informed of its
         # validity changes
-        slave.register_validity_observer(self)
+        #slave.register_validity_observer(self)
         self._slaves[name] = slave
 
     def get_objects(self):
@@ -119,6 +119,9 @@ class GtkBasePresentationAgent(ActionSubject, WidgetSubject):
         for name in names:
             model.append((name, items[name]))
 
+        if names:
+            widget.set_active(0)
+
     def set_list_items(self, widget, items):
         """
         Sets an interface combobox items. Each item is composed of a mnemonic
@@ -128,17 +131,12 @@ class GtkBasePresentationAgent(ActionSubject, WidgetSubject):
         in the list moldel.
         """
         model = widget.get_model()
-
         model.clear()
 
         for item in items:
-            name = dnshost.name
-            domain = dnshost.domain
-            platform = dnshost.platform
-            description = dnshost.description
-            sites_model.append(item)
+            model.append(item)
 
-    def get_list_selection(self, widget):
+    def get_combobox_selection(self, widget):
         """
         Retrieves the value of the list selected item.
         """
@@ -149,6 +147,13 @@ class GtkBasePresentationAgent(ActionSubject, WidgetSubject):
             return None
 
         return model[index][0]
+
+    def get_list_selection(self, widget):
+        """
+        Retrieves the value of the list selected item.
+        """
+        model, rows = widget.get_selection().get_selected_rows()
+        return rows
 
     def set_list_selection(self, widget, value):
         """
@@ -203,12 +208,11 @@ class GtkBasePresentationAgent(ActionSubject, WidgetSubject):
         """
         # Destroyes slaves if it has some
         for name, slave in self._slaves.items():
-            slave.remove_validity_observer(self)
             slave.destroy()
             del self._slaves[name]
 
         # Clears observers lists
-        self.clear_validity_observers()
+        self.clear_widget_observers()
         self.clear_action_observers()
         self.get_toplevel().destroy()
 
@@ -237,7 +241,7 @@ class GtkBasePresentationAgent(ActionSubject, WidgetSubject):
         """
         widget = self[name]
 
-        if isinstance(widget, gtk.List):
+        if isinstance(widget, gtk.List) or isinstance(widget, gtk.TreeView):
             self.set_list_items(widget, items)
         elif isinstance(widget, gtk.ComboBox):
             self.set_combobox_items(widget, items)
@@ -255,7 +259,9 @@ class GtkBasePresentationAgent(ActionSubject, WidgetSubject):
             return widget.get_text()
         elif isinstance(widget, gtk.ToggleButton):
             return widget.get_active()
-        elif isinstance(widget, gtk.List) or isinstance(widget, gtk.ComboBox):
+        elif isinstance(widget, gtk.ComboBox):
+            return self.get_combobox_selection(widget)
+        elif isinstance(widget, gtk.List) or isinstance(widget, gtk.TreeView):
             return self.get_list_selection(widget)
         else:
             raise NotImplementedError('Unhandled control type for %s: %s' % \

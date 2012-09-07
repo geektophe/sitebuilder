@@ -24,6 +24,7 @@ from sitebuilder.command.site import GetSiteByName, AddSite, UpdateSite
 from sitebuilder.command.site import DeleteSite
 from sitebuilder.observer.action import Action, ActionSubject
 from sitebuilder.exception import SiteError, FieldFormatError
+from sitebuilder.abstraction.site.defaults import SiteDefaultsManager
 from zope.interface import implements, alsoProvides
 import gtk
 import re
@@ -92,18 +93,6 @@ class ListMainControlAgent(object):
             self.submit_sites(parms['sites'])
         else:
             raise NotImplementedError("Unhandled action %s triggered" % action)
-
-    def get_attribute_value(self, name):
-        """
-        No attributes to get. Voids method.
-        """
-        pass
-
-    def set_attribute_value(self, name, value):
-        """
-        No attributes to set. Voids method.
-        """
-        pass
 
     def get_presentation_agent(self):
         """
@@ -202,8 +191,8 @@ class ListMainControlAgent(object):
         Reloads site list by submitting a lookup query
         """
         sca = self._sites_control_agent
-        filter_name = sca.get_attribute_value('filter_name')
-        filter_domain = sca.get_attribute_value('filter_domain')
+        filter_name = sca.get_value('filter_name')
+        filter_domain = sca.get_value('filter_domain')
 
         command = LookupHostByName(filter_name, filter_domain)
         command.register_command_callback(self.cb_set_sites)
@@ -216,7 +205,7 @@ class ListMainControlAgent(object):
         sca = self._sites_control_agent
 
         if command.status == COMMAND_SUCCESS:
-            sca.set_attribute_value('hosts', command.result)
+            sca.set_value('hosts', command.result)
         # TODO: manage error reporting for non logged commands
 
     def cb_reload_sites(self, command):
@@ -296,12 +285,11 @@ class ListSitesControlAgent(BaseControlAgent, ActionSubject):
         self._filter_domain = '*'
         self._filter_domain_re = re.compile(r"^[\w\d\*\._-]*$")
         pa  = ListSitesPresentationAgent(self)
-        pa.register_action_observer(self)
 
         domains = SiteDefaultsManager.get_domains()
         domains['*'] =  '*'
-        pa.set_items(self['filter_domain'], domains)
-        pa['filter_domain'].set_active(0)
+        pa.set_items('filter_domain', domains)
+        pa.register_action_observer(self)
         self.set_presentation_agent(pa)
 
     def get_value(self, name):
@@ -330,7 +318,6 @@ class ListSitesControlAgent(BaseControlAgent, ActionSubject):
                 value = '*'
             elif len(value) and value[-1] != '*':
                 value = '%s*' % value
-
             self._filter_name = value
             self.reload_sites()
         elif name == "filter_domain":
@@ -344,6 +331,21 @@ class ListSitesControlAgent(BaseControlAgent, ActionSubject):
         else:
             raise AttributeError("%s object has no attribute '%s'" % \
                                  (self.__class__.__name__, name))
+
+    def load_widgets_data(self):
+        """
+        Roloads hosts list widget
+        """
+        sites = []
+
+        for dnshost in self._hosts:
+            name = dnshost.name
+            domain = dnshost.domain
+            platform = dnshost.platform
+            description = dnshost.description
+            sites.append((name, domain, platform, description))
+
+        self.get_presentation_agent().set_items('site_list', sites)
 
     def reload_sites(self):
         """
@@ -387,27 +389,25 @@ class ListLogsControlAgent(object):
         self._commands = []
         self._presentation_agent = ListLogsPresentationAgent(self)
         self._presentation_agent.register_action_observer(self)
-        self._presentation_agent.load_widgets_data()
+        self.load_widgets_data()
 
-    def get_attribute_value(self, name):
+    def load_widgets_data(self):
+        """
+        Loads logs items data into widgets
+        """
+        self._presentation_agent.set_items('logs_list', self._commands)
+
+    def get_value(self, name):
         """
         Returns a site attribute value
         """
-        if name == "commands":
-            return self._commands
-        else:
-            raise AttributeError("%s object has no attribute '%s'" % \
-                                 (self.__class__.__name__, name))
+        pass
 
-    def set_attribute_value(self, name, value):
+    def set_value(self, name, value):
         """
         Returns a site attribute value
         """
-        if name == "commands":
-            raise AttributeError("commands is a read-only attribute")
-        else:
-            raise AttributeError("%s object has no attribute '%s'" % \
-                                 (self.__class__.__name__, name))
+        pass
 
     def action_activated(self, action=None):
         """
@@ -461,7 +461,7 @@ class ListLogsControlAgent(object):
         CommandObserver trigger mmethod local implementation
         """
         self._commands.append(command)
-        self._presentation_agent.load_widgets_data()
+        self.load_widgets_data()
 
     def destroy(self):
         """

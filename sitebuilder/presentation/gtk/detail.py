@@ -27,7 +27,7 @@ class DetailMainPresentationAgent(GtkBasePresentationAgent):
         self['submit'].connect('activate', self.on_submit_activate)
         self['cancel'].connect('activate', self.on_cancel_activate)
         self.get_toplevel().connect('destroy', self.on_cancel_activate)
-        self.set_submit_state(False)
+        #self.set_submit_state(False)
         self._validity_matrix = {}
 
     def on_submit_activate(self, widget):

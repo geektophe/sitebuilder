@@ -11,6 +11,7 @@ from sitebuilder.control.detail import DetailMainControlAgent
 from sitebuilder.abstraction.site.factory import site_factory
 from sitebuilder.presentation.interface import IPresentationAgent
 from sitebuilder.observer.action import IActionObserver, IActionSubject
+from sitebuilder.observer.widget import IWidgetObserver
 from sitebuilder.observer.command import ICommandObserver
 from sitebuilder.command.interface import COMMAND_SUCCESS
 from sitebuilder.abstraction.interface import ISiteNew
@@ -25,7 +26,7 @@ from sitebuilder.command.site import DeleteSite
 from sitebuilder.observer.action import Action, ActionSubject
 from sitebuilder.exception import SiteError, FieldFormatError
 from sitebuilder.abstraction.site.defaults import SiteDefaultsManager
-from zope.interface import implements, alsoProvides
+from zope.interface import implements
 import gtk
 import re
 
@@ -271,7 +272,7 @@ class ListSitesControlAgent(BaseControlAgent, ActionSubject):
     """
     List main component control agent
     """
-    implements(IActionObserver)
+    implements(IActionObserver, IWidgetObserver)
 
     def __init__(self):
         """
@@ -290,6 +291,7 @@ class ListSitesControlAgent(BaseControlAgent, ActionSubject):
         domains['*'] =  '*'
         pa.set_items('filter_domain', domains)
         pa.register_action_observer(self)
+        pa.register_widget_observer(self)
         self.set_presentation_agent(pa)
 
     def get_value(self, name):
@@ -365,6 +367,22 @@ class ListSitesControlAgent(BaseControlAgent, ActionSubject):
         Forwards actions to parent control agent
         """
         self.notify_action_activated(action)
+
+    def widget_changed(self, name, value):
+        """
+        Observer method run on widget changed event
+
+        Name is the name of the widget that triggerd the event, value is the
+        value it was set to.
+        """
+        pa = self.get_presentation_agent()
+
+        try:
+            self.set_value(name, value)
+        except (FieldFormatError), e:
+            pa.set_error(name, True, str(e))
+        else:
+            pa.set_error(name, False)
 
     def destroy(self):
         """

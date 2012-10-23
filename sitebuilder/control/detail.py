@@ -166,6 +166,8 @@ class DetailBaseControlAgent(BaseControlAgent, ValiditySubject):
     def attribute_changed(self, attribute=None):
         """
         AttributeChangedObserver trigger mmethod local implementation
+
+        Called when abstraction data has been modified.
         """
         self.load_widgets_data()
 

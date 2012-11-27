@@ -149,6 +149,8 @@ class DetailBaseControlAgent(BaseControlAgent, ValiditySubject):
         """
         pa = self.get_presentation_agent()
         site = self.get_site()
+
+        # Avoids change notification loop, as we're also listening to site
         site.remove_attribute_observer(self)
 
         try:

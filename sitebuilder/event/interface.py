@@ -23,7 +23,7 @@ class IEvent(Interface):
     ditctionnary instance variable.
     """
 
-    source = Attribute(u'The instance that emitted the event', required=True)
+    source = Attribute(u'The instance that emitted the event')
     params = Attribute(u'An optional parameters dictionnary')
 
     def get_source():

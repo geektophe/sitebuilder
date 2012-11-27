@@ -12,7 +12,7 @@ Specialized event classes have to subclass this base class to be published on
 the bus.
 """
 
-from sitebuiler.event.interface import IEvent
+from sitebuilder.event.interface import IEvent
 from zope.interface import implements
 
 

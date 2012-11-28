@@ -52,3 +52,25 @@ class BaseEvent(object):
         Returns parameters dictionnary
         """
         return self.params
+
+
+class UIActiondEvent(BaseEvent):
+    """
+    Event sent when an UI action (action mapped to a button click or a menu
+    item selection, and so on...) has been triggerd.
+
+    Event params keys:
+
+        action  The action identifier
+    """
+
+class UIWidgetEvent(BaseEvent):
+    """
+    Event sent when an UI widget state changed (text box has been set, radio
+    button has been selected, and so on...).
+
+    Event params keys:
+
+        name  The widget name that has been changed
+        value The widget value set
+    """

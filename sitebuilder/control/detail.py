@@ -17,6 +17,7 @@ from sitebuilder.observer.validity import ValiditySubject, IValidityObserver
 from sitebuilder.observer.widget import IWidgetObserver
 from sitebuilder.control.base import BaseControlAgent
 from sitebuilder.exception import FieldFormatError
+from sitebuilder.event.events import UIActiondEvent, UIWidgetEvent
 from zope.schema import ValidationError
 from sitebuilder.utils.parameters import ACTION_SUBMIT, ACTION_CANCEL
 from zope.interface import implements
@@ -38,7 +39,8 @@ class DetailMainControlAgent(BaseControlAgent, ActionSubject):
         self.set_site(site)
         self.set_read_only_flag(read_only)
         presentation_agent = DetailMainPresentationAgent(self)
-        presentation_agent.register_action_observer(self)
+        presentation_agent.get_event_bus().subscribe(
+            UIActiondEvent, self.action_evt_callback)
         # Main detail presentation agent has no reason to listen to changed
         # attribute events. Disabled.
         # site.register_attribute_observer(presentation_agent)
@@ -72,15 +74,24 @@ class DetailMainControlAgent(BaseControlAgent, ActionSubject):
 
         self._validity_matrix = {}
 
-    def action_activated(self, action=None):
+    def action_evt_callback(self, event):
         """
         ActionPerformedObserver trigger mmethod local implementation
         """
-        if action.name == ACTION_SUBMIT:
+        # Reads action name
+        params = event.get_params()
+
+        if params.has_key('action'):
+            action = params['action']
+        else:
+            raise Exception('Submitted event has no parameter named action')
+
+        # Parses action
+        if action == ACTION_SUBMIT:
             # Informs upper component from the submit action
             # Adds site as parameter to event
             self.submit()
-        elif action.name == ACTION_CANCEL:
+        elif action == ACTION_CANCEL:
             # No need to inform upper component
             self.cancel()
         else:

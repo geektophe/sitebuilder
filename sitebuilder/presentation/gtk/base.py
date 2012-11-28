@@ -7,13 +7,12 @@ import pygtk
 import gtk
 import os
 from sitebuilder.presentation.interface import IPresentationAgent
-from sitebuilder.observer.action import ActionSubject
-from sitebuilder.observer.widget import WidgetSubject
+from sitebuilder.event.bus import EventBus
 from zope.interface import implements
 
 pygtk.require("2.0")
 
-class GtkBasePresentationAgent(ActionSubject, WidgetSubject):
+class GtkBasePresentationAgent(object):
     """
     Main site add/edit/view interface.
 
@@ -31,8 +30,7 @@ class GtkBasePresentationAgent(ActionSubject, WidgetSubject):
         if not os.path.isfile(self.GLADE_FILE):
             raise RuntimeError("No glade file found.")
 
-        WidgetSubject.__init__(self)
-        ActionSubject.__init__(self)
+        self._event_bus = EventBus()
         self._control_agent = control_agent
         self._builder = gtk.Builder()
         self._builder.add_from_file(self.GLADE_FILE)
@@ -50,6 +48,12 @@ class GtkBasePresentationAgent(ActionSubject, WidgetSubject):
             return self._slaves[name]
 
         return None
+
+    def get_event_bus(self):
+        """
+        Returns component's event bus.
+        """
+        return self._event_bus
 
     def get_control_agent(self):
         """
@@ -81,9 +85,6 @@ class GtkBasePresentationAgent(ActionSubject, WidgetSubject):
         widget = slave_toplevel.get_child()
         slave_toplevel.remove(widget)
         container.pack_start(widget)
-        # When a slave is attached, the master should be informed of its
-        # validity changes
-        #slave.register_validity_observer(self)
         self._slaves[name] = slave
 
     def get_objects(self):
@@ -171,36 +172,6 @@ class GtkBasePresentationAgent(ActionSubject, WidgetSubject):
             widget.set_active(index)
         else:
             widget.set_active(-1)
-
-    def set_validity_flag(self, attr_name, flag):
-        """
-        When some widgets that require a validity check are set (typically,
-        widgets that ask user to enter text, such as entries), the validity
-        flag associated to it is saved.
-
-        It may be used to forbid composite form submition if a sub component
-        has an incorrect value set.
-        """
-        self._attr_validity[attr_name] = flag
-        self.notify_validity_changed(ValidityChangedEvent(flag, id(self)))
-
-    def get_validity_flag(self):
-        """
-        Allows to know if the widgets composing a component are in a valid
-        state.
-        """
-        flag = True
-
-        for attr_validity in self._attr_validity.values():
-            flag = flag and attr_validity
-
-        return flag
-
-    def attribute_changed(self, attribute=None):
-        """
-        AttributeChangedObserver trigger mmethod local implementation
-        """
-        self.load_widgets_data()
 
     def destroy(self):
         """

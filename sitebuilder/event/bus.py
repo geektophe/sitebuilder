@@ -256,6 +256,7 @@ class EventBus(object):
         for follower in self.followers:
             follower.dispatch(event)
 
+
 if __name__ == '__main__':
     import doctest
     doctest.testmod()

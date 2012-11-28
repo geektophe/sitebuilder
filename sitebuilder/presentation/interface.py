@@ -11,9 +11,14 @@ class IPresentationAgent(Interface):
     Presentation agent interface definition
     """
 
+    def get_event_bus():
+        """
+        Returns component's event bus.
+        """
+
     def get_control_agent():
         """
-        Returns control agent instance
+        Returns control agent instance.
         """
 
     def get_toplevel():
@@ -23,32 +28,32 @@ class IPresentationAgent(Interface):
 
     def attach_slave(name, container_name, slave):
         """
-        Attach a sub (slave) presentation agent view
+        Attach a sub (slave) presentation agent view.
         """
 
     def show():
         """
-        Shows window
+        Shows window.
         """
 
     def destroy():
         """
-        Cleanly destroyes component
+        Cleanly destroyes component.
         """
 
     def enable(name):
         """
-        Enables a control (set it resopnsive to user actions)
+        Enables a control (set it resopnsive to user actions).
         """
 
     def disable(name):
         """
-        Disables a control (set it inresopnsive to user actions)
+        Disables a control (set it inresopnsive to user actions).
         """
 
     def set_enabled(name, state):
         """
-        Enables or disables a control based on state value
+        Enables or disables a control based on state value.
         """
 
     def get_value(name):

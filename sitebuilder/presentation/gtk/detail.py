@@ -33,14 +33,14 @@ class DetailMainPresentationAgent(GtkBasePresentationAgent):
         Signal handler associated with the submit action
         """
         self.get_event_bus().publish(
-            UIActiondEvent(self, {'action': ACTION_SUBMIT}) )
+            UIActiondEvent(self, action=ACTION_SUBMIT) )
 
     def on_cancel_activate(self, widget):
         """
         Signal handler associated with the canhcel action
         """
         self.get_event_bus().publish(
-            UIActiondEvent(self, {'action': ACTION_CANCEL}) )
+            UIActiondEvent(self, action=ACTION_CANCEL) )
 
 
 class DetailSitePresentationAgent(GtkBasePresentationAgent):
@@ -71,7 +71,7 @@ class DetailSitePresentationAgent(GtkBasePresentationAgent):
         """
         enabled = self['enabled'].get_active()
         self.get_event_bus().publish(
-            UIWidgetEvent(self, {'name': 'enabled', 'value': enabled}) )
+            UIWidgetEvent(self, name='enabled', value=enabled) )
 
     def on_maintenance_toggled(self, widget):
         """
@@ -79,7 +79,7 @@ class DetailSitePresentationAgent(GtkBasePresentationAgent):
         """
         maintenance = self['maintenance'].get_active()
         self.get_event_bus().publish(
-            UIWidgetEvent(self, {'name': 'maintenance', 'value': maintenance}) )
+            UIWidgetEvent(self, name='maintenance', value=maintenance) )
 
     def on_template_changed(self, widget):
         """
@@ -87,7 +87,7 @@ class DetailSitePresentationAgent(GtkBasePresentationAgent):
         """
         template = self.get_combobox_selection(self['template'])
         self.get_event_bus().publish(
-            UIWidgetEvent(self, {'name': 'template', 'value': template}) )
+            UIWidgetEvent(self, name='template', value=template) )
 
     def on_access_changed(self, widget):
         """
@@ -95,7 +95,7 @@ class DetailSitePresentationAgent(GtkBasePresentationAgent):
         """
         access = self.get_combobox_selection(self['access'])
         self.get_event_bus().publish(
-            UIWidgetEvent(self, {'name': 'access', 'value': access}) )
+            UIWidgetEvent(self, name='access', value=access}) )
 
 
 class DetailDatabasePresentationAgent(GtkBasePresentationAgent):
@@ -126,7 +126,7 @@ class DetailDatabasePresentationAgent(GtkBasePresentationAgent):
         """
         enabled = self['enabled'].get_active()
         self.get_event_bus().publish(
-            UIWidgetEvent(self, {'name': 'enabled', 'value': enabled}) )
+            UIWidgetEvent(self, name='enabled', value=enabled) )
 
     def on_name_changed(self, widget):
         """
@@ -134,7 +134,7 @@ class DetailDatabasePresentationAgent(GtkBasePresentationAgent):
         """
         name = self['name'].get_text()
         self.get_event_bus().publish(
-            UIWidgetEvent(self, {'name': 'name', 'value': name}) )
+            UIWidgetEvent(self, name='name', value=name) )
 
     def on_username_changed(self, widget):
         """
@@ -142,7 +142,7 @@ class DetailDatabasePresentationAgent(GtkBasePresentationAgent):
         """
         username = self['username'].get_text()
         self.get_event_bus().publish(
-            UIWidgetEvent(self, {'name': 'username', 'value': username}) )
+            UIWidgetEvent(self, name='username', value=username) )
 
     def on_password_changed(self, widget):
         """
@@ -150,7 +150,7 @@ class DetailDatabasePresentationAgent(GtkBasePresentationAgent):
         """
         password = self['password'].get_text()
         self.get_event_bus().publish(
-            UIWidgetEvent(self, {'name': 'password', 'value': password}) )
+            UIWidgetEvent(self, name='password', value=password) )
 
     def on_type_changed(self, widget):
         """
@@ -158,7 +158,7 @@ class DetailDatabasePresentationAgent(GtkBasePresentationAgent):
         """
         dbtype = self.get_combobox_selection(self['type'])
         self.get_event_bus().publish(
-            UIWidgetEvent(self, {'name': 'dbtype', 'value': dbtype}) )
+            UIWidgetEvent(self, name='dbtype', value=dbtype) )
 
 
 class DetailRepositoryPresentationAgent(GtkBasePresentationAgent):
@@ -188,7 +188,7 @@ class DetailRepositoryPresentationAgent(GtkBasePresentationAgent):
         """
         enabled = self['enabled'].get_active()
         self.get_event_bus().publish(
-            UIWidgetEvent(self, {'name': 'enabled', 'value': enabled}) )
+            UIWidgetEvent(self, name='enabled', value=enabled) )
 
     def on_name_changed(self, widget):
         """
@@ -196,7 +196,7 @@ class DetailRepositoryPresentationAgent(GtkBasePresentationAgent):
         """
         name = self['name'].get_text()
         self.get_event_bus().publish(
-            UIWidgetEvent(self, {'name': 'name', 'value': name}) )
+            UIWidgetEvent(self, name='name', value=name) )
 
     def on_type_changed(self, widget):
         """
@@ -204,7 +204,7 @@ class DetailRepositoryPresentationAgent(GtkBasePresentationAgent):
         """
         repotype = self.get_combobox_selection(self['type'])
         self.get_event_bus().publish(
-            UIWidgetEvent(self, {'name': 'type', 'value': repotype}) )
+            UIWidgetEvent(self, name='type', value=repotype) )
 
 
 class DetailDNSHostPresentationAgent(GtkBasePresentationAgent):
@@ -235,7 +235,7 @@ class DetailDNSHostPresentationAgent(GtkBasePresentationAgent):
         """
         name = self['name'].get_text()
         self.get_event_bus().publish(
-            UIWidgetEvent(self, {'name': 'name', 'value': name}) )
+            UIWidgetEvent(self, name='name', value=name) )
 
     def on_description_changed(self, widget):
         """
@@ -243,7 +243,7 @@ class DetailDNSHostPresentationAgent(GtkBasePresentationAgent):
         """
         description = self['description'].get_text()
         self.get_event_bus().publish(
-            UIWidgetEvent(self, {'name': 'description', 'value': description}) )
+            UIWidgetEvent(self, name='description', value=description) )
 
     def on_domain_changed(self, widget):
         """
@@ -251,7 +251,7 @@ class DetailDNSHostPresentationAgent(GtkBasePresentationAgent):
         """
         domain = self.get_combobox_selection(self['domain'])
         self.get_event_bus().publish(
-            UIWidgetEvent(self, {'name': 'domain', 'value': domain}) )
+            UIWidgetEvent(self, name='domain', value=domain) )
 
     def on_platform_changed(self, widget):
         """
@@ -259,4 +259,4 @@ class DetailDNSHostPresentationAgent(GtkBasePresentationAgent):
         """
         platform = self.get_combobox_selection(self['platform'])
         self.get_event_bus().publish(
-            UIWidgetEvent(self, {'name': 'platform', 'value': platform}) )
+            UIWidgetEvent(self, name='platform', value=platform) )

@@ -79,29 +79,22 @@ class DetailMainControlAgent(BaseControlAgent, ActionSubject):
         ActionPerformedObserver trigger mmethod local implementation
         """
         # Reads action name
-        params = event.get_params()
-
-        if params.has_key('action'):
-            action = params['action']
-        else:
-            raise Exception('Submitted event has no parameter named action')
-
         # Parses action
-        if action == ACTION_SUBMIT:
+        if event.action == ACTION_SUBMIT:
             # Informs upper component from the submit action
             # Adds site as parameter to event
             self.submit()
-        elif action == ACTION_CANCEL:
+        elif event.action == ACTION_CANCEL:
             # No need to inform upper component
             self.cancel()
         else:
             raise NotImplementedError("Unhandled action %d triggered" % action)
 
-    def validity_changed(self, source, flag):
+    def validity_evt_callback(self, event):
         """
         Observer method run on validity changed event
         """
-        self._validity_matrix[id(source)] = flag
+        self._validity_matrix[id(event.source)] = flag
 
         res = True
         for value in self._validity_matrix.values():

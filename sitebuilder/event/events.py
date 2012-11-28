@@ -21,37 +21,34 @@ class BaseEvent(object):
     Base event class.
 
     An event is represented by its type (class), its source (mandatory
-    parameter), and may be specified optional parameters in its parameters
-    ditctionnary instance variable.
+    parameter), and may be specified optional parameters in the contructor
+    that are mapped into instance variables.
+
+    For enstance :
+
+    >>> event = BaseEvent(__name__, parm1=1, parm2=2)
+    >>> event.source == __name__
+    True
+    >>> event.parm1
+    1
+    >>> event.parm2
+    2
     """
 
     implements(IEvent)
 
-    def __init__(self, source, params=None):
+    def __init__(self, source, **kwargs):
         """
         Object initialization.
 
         @param source       The instance that generated the event.
-        @param params       A ditctionnar containing optional parameters.
+        @param kwargs       A ditctionnary containing optional parameters to be
+                            mapped as instance variables.
         """
         self.source = source
 
-        if params is None:
-            self.params = params
-        else:
-            self.params = {}
-
-    def get_source(self):
-        """
-        Returns event source
-        """
-        return self.source
-
-    def get_params(self):
-        """
-        Returns parameters dictionnary
-        """
-        return self.params
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
 
 class UIActiondEvent(BaseEvent):
@@ -59,10 +56,11 @@ class UIActiondEvent(BaseEvent):
     Event sent when an UI action (action mapped to a button click or a menu
     item selection, and so on...) has been triggerd.
 
-    Event params keys:
+    Event attributes:
 
         action  The action identifier
     """
+    action = None
 
 class UIWidgetEvent(BaseEvent):
     """
@@ -74,3 +72,10 @@ class UIWidgetEvent(BaseEvent):
         name  The widget name that has been changed
         value The widget value set
     """
+    name = None
+    value = None
+
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()

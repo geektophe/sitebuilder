@@ -12,24 +12,22 @@ from sitebuilder.control.detail import DetailSiteControlAgent
 from sitebuilder.control.detail import DetailDatabaseControlAgent
 from sitebuilder.control.detail import DetailRepositoryControlAgent
 from sitebuilder.control.detail import DetailDNSHostControlAgent
-from sitebuilder.observer.validity import IValidityObserver
+from sitebuilder.event.events import DataValidityEvent
 from zope.interface import implements
 
 
 class ValidityObserver(object):
 
-    implements(IValidityObserver)
-
     notified = False
     flag = True
 
-    def validity_changed(self, source, flag):
+    def validity_changed(self, event):
         self.notified = True
-        self.flag = flag
+        self.flag = event.state
 
     def reset(self):
         self.notified = False
-        self.flag = True
+        self.state = True
 
 
 class BaseTestGtkPresentationAgent(unittest.TestCase):
@@ -154,8 +152,7 @@ class TestDetailSiteGtkPresentationAgent(BaseTestGtkPresentationAgent):
         access = SiteDefaultsManager.get_site_accesses().keys()[0]
 
         for name, value in {'template': template, 'access': access}.items():
-            presentation_agent.set_combobox_selection(presentation_agent[name],
-                                                      value)
+            presentation_agent.set_value(name, value)
             refresh_gui()
             self.assertEquals(getattr(website, name), value,
                              'site %s attribute is wrong' % name)
@@ -335,8 +332,7 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
         dbtype = SiteDefaultsManager.get_database_types().keys()[0]
 
         for name, value in {'type': dbtype}.items():
-            presentation_agent.set_combobox_selection(presentation_agent[name],
-                                                      value)
+            presentation_agent.set_value(name, value)
             refresh_gui()
             self.assertEquals(getattr(database, name), value,
                              'site %s attribute is wrong' % name)
@@ -433,7 +429,8 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
 
         for widget in ('name', 'username'):
             observer = ValidityObserver()
-            control_agent.register_validity_observer(observer)
+            control_agent.get_event_bus().subscribe(
+                DataValidityEvent, observer.validity_changed)
 
             presentation_agent[widget].set_text('abc')
             refresh_gui()
@@ -449,7 +446,8 @@ class TestDetailDatabaseGtkPresentationAgent(BaseTestGtkPresentationAgent):
                             'validity observer has not been notified')
             self.assertFalse(observer.flag,
                             'database validity should be false')
-            control_agent.remove_validity_observer(observer)
+            control_agent.get_event_bus().unsubscribe(
+                DataValidityEvent, observer.validity_changed)
 
 
 class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
@@ -541,8 +539,7 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
         repotype = SiteDefaultsManager.get_repository_types().keys()[0]
 
         for name, value in {'type': repotype}.items():
-            presentation_agent.set_combobox_selection(presentation_agent[name],
-                                                      value)
+            presentation_agent.set_value(name, value)
             refresh_gui()
             self.assertEquals(getattr(repo, name), value,
                              'repo %s attribute is wrong' % name)
@@ -632,7 +629,9 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
         refresh_gui()
 
         observer = ValidityObserver()
-        control_agent.register_validity_observer(observer)
+
+        control_agent.get_event_bus().subscribe(
+            DataValidityEvent, observer.validity_changed)
 
         presentation_agent['name'].set_text('abc')
         refresh_gui()
@@ -647,7 +646,9 @@ class TestDetailRepositoryGtkPresentationAgent(BaseTestGtkPresentationAgent):
                         'validity observer has not been notified')
         self.assertFalse(observer.flag,
                         'repository validity should be false')
-        control_agent.remove_validity_observer(observer)
+
+        control_agent.get_event_bus().unsubscribe(
+            DataValidityEvent, observer.validity_changed)
 
 
 class TestDetailDNSHostGtkPresentationAgent(BaseTestGtkPresentationAgent):
@@ -719,8 +720,7 @@ class TestDetailDNSHostGtkPresentationAgent(BaseTestGtkPresentationAgent):
         platform = SiteDefaultsManager.get_platforms().keys()[0]
 
         for name, value in {'domain': domain, 'platform': platform}.items():
-            presentation_agent.set_combobox_selection(presentation_agent[name],
-                                                      value)
+            presentation_agent.set_value(name, value)
             refresh_gui()
             self.assertEquals(getattr(dnshost, name), value,
                              'dnshost %s attribute is wrong' % name)
@@ -808,7 +808,8 @@ class TestDetailDNSHostGtkPresentationAgent(BaseTestGtkPresentationAgent):
         presentation_agent = control_agent.get_presentation_agent()
 
         observer = ValidityObserver()
-        control_agent.register_validity_observer(observer)
+        control_agent.get_event_bus().subscribe(
+            DataValidityEvent, observer.validity_changed)
 
         presentation_agent['name'].set_text('abc')
         refresh_gui()
@@ -823,7 +824,8 @@ class TestDetailDNSHostGtkPresentationAgent(BaseTestGtkPresentationAgent):
                         'validity observer has not been notified')
         self.assertFalse(observer.flag,
                         'dnshost validity should be false')
-        control_agent.remove_validity_observer(observer)
+        control_agent.get_event_bus().unsubscribe(
+            DataValidityEvent, observer.validity_changed)
 
 
 if __name__ == "__main__":

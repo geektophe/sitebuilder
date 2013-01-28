@@ -5,7 +5,7 @@ Site editing interface. Supports Create, View and Update modes.
 
 from sitebuilder.utils.parameters import GLADE_BASEDIR
 from sitebuilder.presentation.gtk.base import GtkBasePresentationAgent
-from sitebuilder.event.events import UIActiondEvent, UIWidgetEvent
+from sitebuilder.event.events import UIActionEvent, UIWidgetEvent
 from sitebuilder.utils.parameters import ACTION_SUBMIT, ACTION_CANCEL
 
 class DetailMainPresentationAgent(GtkBasePresentationAgent):
@@ -33,14 +33,14 @@ class DetailMainPresentationAgent(GtkBasePresentationAgent):
         Signal handler associated with the submit action
         """
         self.get_event_bus().publish(
-            UIActiondEvent(self, action=ACTION_SUBMIT) )
+            UIActionEvent(self, action=ACTION_SUBMIT) )
 
     def on_cancel_activate(self, widget):
         """
         Signal handler associated with the canhcel action
         """
         self.get_event_bus().publish(
-            UIActiondEvent(self, action=ACTION_CANCEL) )
+            UIActionEvent(self, action=ACTION_CANCEL) )
 
 
 class DetailSitePresentationAgent(GtkBasePresentationAgent):
@@ -95,7 +95,7 @@ class DetailSitePresentationAgent(GtkBasePresentationAgent):
         """
         access = self.get_combobox_selection(self['access'])
         self.get_event_bus().publish(
-            UIWidgetEvent(self, name='access', value=access}) )
+            UIWidgetEvent(self, name='access', value=access) )
 
 
 class DetailDatabasePresentationAgent(GtkBasePresentationAgent):
@@ -156,9 +156,9 @@ class DetailDatabasePresentationAgent(GtkBasePresentationAgent):
         """
         Signal handler associated with the type combobox
         """
-        dbtype = self.get_combobox_selection(self['type'])
+        dbtype = self.get_value('type')
         self.get_event_bus().publish(
-            UIWidgetEvent(self, name='dbtype', value=dbtype) )
+            UIWidgetEvent(self, name='type', value=dbtype) )
 
 
 class DetailRepositoryPresentationAgent(GtkBasePresentationAgent):
@@ -202,7 +202,7 @@ class DetailRepositoryPresentationAgent(GtkBasePresentationAgent):
         """
         Signal handler associated with the type combobox
         """
-        repotype = self.get_combobox_selection(self['type'])
+        repotype = self.get_value('type')
         self.get_event_bus().publish(
             UIWidgetEvent(self, name='type', value=repotype) )
 

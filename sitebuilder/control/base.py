@@ -5,6 +5,7 @@ Base control Agent class to be subclassed
 
 from sitebuilder.presentation.interface import IPresentationAgent
 from sitebuilder.exception import FieldFormatError
+from sitebuilder.event.bus import EventBus
 from zope.schema import ValidationError
 from zope.interface import providedBy
 
@@ -25,6 +26,13 @@ class BaseControlAgent(object):
         self._read_only = read_only
         self._presentation_agent = None
         self._site = None
+        self._event_bus = EventBus()
+
+    def get_event_bus(self):
+        """
+        Returns component's event bus.
+        """
+        return self._event_bus
 
     def get_read_only_flag(self):
         """

@@ -16,22 +16,21 @@ from zope.interface import Interface, Attribute
 
 class IEvent(Interface):
     """
-    Base event class.
+    Represents data, user or system events.
 
-    An event is represented by its type (class), its source (mandatory
-    parameter), and may be specified optional parameters in its parameters
-    ditctionnary instance variable.
+    Events have a source (the object that published the event), and may present
+    an arbutrary number oh additional attributes.
     """
 
     source = Attribute(u'The instance that emitted the event')
-    params = Attribute(u'An optional parameters dictionnary')
 
-    def get_source():
-        """
-        Returns event source
-        """
 
-    def get_params():
+class IEventBroker(Interface):
+    """
+    A class that publishes events through an event bus.
+    """
+
+    def get_event_bus():
         """
-        Returns parameters dictionnary
+        Returns an event bus on which IEvents are published.
         """

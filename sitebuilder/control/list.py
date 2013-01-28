@@ -10,7 +10,6 @@ from sitebuilder.control.base import BaseControlAgent
 from sitebuilder.control.detail import DetailMainControlAgent
 from sitebuilder.abstraction.site.factory import site_factory
 from sitebuilder.presentation.interface import IPresentationAgent
-from sitebuilder.observer.action import IActionObserver, IActionSubject
 from sitebuilder.observer.widget import IWidgetObserver
 from sitebuilder.observer.command import ICommandObserver
 from sitebuilder.command.interface import COMMAND_SUCCESS
@@ -35,7 +34,6 @@ class ListMainControlAgent(object):
     """
     Site details main interface's control agent
     """
-    implements(IActionObserver)
 
     def __init__(self):
         """
@@ -55,6 +53,10 @@ class ListMainControlAgent(object):
         self._presentation_agent.attach_slave('sites', 'vbox_general',
                 slave.get_presentation_agent())
         slave.register_action_observer(self)
+        # Listens for list sites controller action events
+        # TODO: finish refactorization
+        slave.get_event_bus().subscribe(
+            UIActiondEvent, self.action_evt_callback)
 
         # Creates logs list component
         slave = ListLogsControlAgent()
@@ -65,15 +67,15 @@ class ListMainControlAgent(object):
         # Initial sites search (may be disabled id database is really big)
         self.reload_sites()
 
-    def action_activated(self, action=None):
+    def action_evt_callback(self, event):
         """
         ActionActivatedObserver trigger mmethod local implementation
         """
         # Handles add action that do nat need any parameter
-        if action.name == ACTION_ADD:
+        if event.action == ACTION_ADD:
             self.add_site()
             return
-        if action.name == ACTION_RELOAD:
+        if event.action == ACTION_RELOAD:
             self.reload_sites()
             return
 
@@ -84,13 +86,13 @@ class ListMainControlAgent(object):
             raise AttributeError('sites parameter is not set in action parameters')
 
         # Handles view action
-        if action.name == ACTION_VIEW:
+        if event.action == ACTION_VIEW:
             self.view_selected_sites(parms['sites'])
-        elif action.name == ACTION_EDIT:
+        elif event.action == ACTION_EDIT:
             self.edit_selected_sites(parms['sites'])
-        elif action.name == ACTION_DELETE:
+        elif event.action == ACTION_DELETE:
             self.delete_selected_sites(parms['sites'])
-        elif action.name == ACTION_SUBMIT:
+        elif event.action == ACTION_SUBMIT:
             self.submit_sites(parms['sites'])
         else:
             raise NotImplementedError("Unhandled action %s triggered" % action)
@@ -268,18 +270,16 @@ class ListMainControlAgent(object):
             print "deleted site id %s" % conf_name
 
 
-class ListSitesControlAgent(BaseControlAgent, ActionSubject):
+class ListSitesControlAgent(BaseControlAgent):
     """
     List main component control agent
     """
-    implements(IActionObserver, IWidgetObserver)
 
     def __init__(self):
         """
         Initializes control agent.
         """
         BaseControlAgent.__init__(self)
-        ActionSubject.__init__(self)
         self._hosts = []
         self._filter_name = '*'
         self._filter_name_re = re.compile(r"^[\w\d\*_-]*$")

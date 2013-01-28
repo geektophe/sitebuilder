@@ -240,9 +240,9 @@ class EventBus(object):
         self.unsubscribe_all()
         self.disconnect_all()
 
-    def dispatch(self, event):
+    def publish(self, event):
         """
-        Dispatches an event to subscribers.
+        Publishes an event to subscribers.
         """
         if not IEvent.providedBy(event):
             raise BusError('Invalid dispatching, event should provide IEvent')
@@ -252,9 +252,9 @@ class EventBus(object):
             for subscriber in self.subscribers[type(event)]:
                 subscriber(event)
 
-        # Dispatches event to connected buses
+        # Publishes event on connected buses
         for follower in self.followers:
-            follower.dispatch(event)
+            follower.publish(event)
 
 
 if __name__ == '__main__':

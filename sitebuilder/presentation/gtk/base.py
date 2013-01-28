@@ -182,9 +182,8 @@ class GtkBasePresentationAgent(object):
             slave.destroy()
             del self._slaves[name]
 
-        # Clears observers lists
-        self.clear_widget_observers()
-        self.clear_action_observers()
+        # Clears event bus observers
+        self.get_event_bus().unsubscribe_all()
         self.get_toplevel().destroy()
 
     def enable(self, name):

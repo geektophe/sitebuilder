@@ -15,6 +15,7 @@ from gobject import TYPE_PYOBJECT
 from warnings import warn
 import gtk
 
+
 class ListMainPresentationAgent(GtkBasePresentationAgent):
     """
     ListPresentationAgent site add/edit/view interface.

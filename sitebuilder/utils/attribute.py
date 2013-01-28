@@ -10,11 +10,9 @@ It also contains the AttributeSet class that represents a collection of
 attributes. It has the necessary methods to manipulate attributes.
 """
 
-from sitebuilder.observer.attribute import AttributeSubject
-from sitebuilder.observer.attribute import IAttributeSubject, IAttributeObserver
-from zope.interface import Interface, implements
-from zope.schema import TextLine
 from zope.schema.fieldproperty import FieldProperty
+from sitebuilder.event.events import DataChangeEvent
+from sitebuilder.event.interface import IEventBroker
 
 
 class TriggerFieldProperty(FieldProperty):
@@ -27,12 +25,22 @@ class TriggerFieldProperty(FieldProperty):
     should have a 'notify_attribute_changed' method. The simplest is to
     subclass AttributeSubject.
 
+    >>> from zope.interface import implements
+    >>> from sitebuilder.event.bus import EventBus
+    >>> from zope.interface import Interface
+    >>> from zope.schema import TextLine
+
     >>> class ITestSubject(Interface):
     ...     attr = TextLine(title=u'attr', default=u'initvalue')
     ...
-    >>> class TestSubject(AttributeSubject):
+    >>> class TestSubject(object):
+    ...     implements(IEventBroker)
     ...     attr = TriggerFieldProperty(ITestSubject['attr'])
-    ...
+    ...	    def __init__(self):
+    ...         self._event_bus = EventBus()
+    ...     def get_event_bus(self):
+    ...         return self._event_bus
+
     >>> obj = TestSubject()
     >>> obj.attr
     u'initvalue'
@@ -45,17 +53,22 @@ class TriggerFieldProperty(FieldProperty):
     be sent to observers.
 
     >>> class TestObserver(object):
-    ...     implements(IAttributeObserver)
     ...     notified = False
-    ...     def attribute_changed(self, event=None):
+    ...     def attribute_changed(self, event):
     ...         self.notified = True
     ...
     >>> observer = TestObserver()
-    >>> obj.register_attribute_observer(observer)
+    >>> obj.get_event_bus().subscribe(DataChangeEvent, observer.attribute_changed)
     >>> obj.attr = u'val2'
     >>> observer.notified
     True
     """
+    def __init__(self, field, name=None):
+        """
+        Fied initialization
+        """
+        FieldProperty.__init__(self, field, name)
+        self.name = field.__name__
 
     def __set__(self, instance, value):
         """
@@ -63,8 +76,9 @@ class TriggerFieldProperty(FieldProperty):
         """
         FieldProperty.__set__(self, instance, value)
 
-        if IAttributeSubject.providedBy(instance):
-            instance.notify_attribute_changed(instance)
+        if IEventBroker.providedBy(instance):
+            instance.get_event_bus().publish(
+                DataChangeEvent(instance, attribute=self.name, value=value))
 
 
 class UnicodeTriggerFieldProperty(TriggerFieldProperty):
@@ -72,11 +86,19 @@ class UnicodeTriggerFieldProperty(TriggerFieldProperty):
     This class works exactly as TriggerFieldProperty, but str values are
     transcoded to unicode.
 
+    >>> from sitebuilder.event.bus import EventBus
+    >>> from zope.interface import Interface
+    >>> from zope.schema import TextLine
+
     >>> class ITestSubject(Interface):
     ...     attr = TextLine(title=u'attr', default=u'initvalue')
     ...
-    >>> class TestSubject(AttributeSubject):
+    >>> class TestSubject(object):
     ...     attr = UnicodeTriggerFieldProperty(ITestSubject['attr'])
+    ...	    def __init__(self):
+    ...         self._event_bus = EventBus()
+    ...     def get_event_bus(self):
+    ...         return self._event_bus
     ...
     >>> obj = TestSubject()
     >>> obj.attr

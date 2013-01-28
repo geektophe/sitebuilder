@@ -7,29 +7,53 @@ from sitebuilder.utils.attribute import TriggerFieldProperty
 from sitebuilder.utils.attribute import UnicodeTriggerFieldProperty
 from sitebuilder.abstraction.interface import ISite, IWebsite, IDNSHost
 from sitebuilder.abstraction.interface import IDatabase, IRCSRepository
-from sitebuilder.observer.attribute import IAttributeObserver, AttributeSubject
-from zope.interface import implements
+from sitebuilder.event.bus import EventBus
+from sitebuilder.event.interface import IEventBroker
 from zope.schema.fieldproperty import FieldProperty
+from zope.interface import implements
 
 
-class DNSHost(AttributeSubject):
+class BaseObject(object):
+    """
+    Base object to be subclassed by abstraction agents.
+
+    It has an event bus that shoud publish a DataChangedEvent event.
+    """
+
+    implements(IEventBroker)
+
+    def __init__(self):
+        """
+        Object initialization
+        """
+        self._event_bus = EventBus()
+
+    def get_event_bus(self):
+        """
+        Returns component's event bus.
+        """
+        return self._event_bus
+
+
+class DNSHost(BaseObject):
     """
     DNS configuration description object
 
     >>> host = DNSHost()
     >>> IDNSHost.providedBy(host)
     True
+
     >>> class TestObsrver(object):
-    ...     implements(IAttributeObserver)
     ...     notified = False
-    ...     def attribute_changed(self, attribute=None):
+    ...     def attribute_changed(self, event):
     ...         self.notified = True
     ...
 
     When observer is set, any  attribute set should call observer
 
+    >>> from sitebuilder.event.events import DataChangeEvent
     >>> observer = TestObsrver()
-    >>> host.register_attribute_observer(observer)
+    >>> host.get_event_bus().subscribe(DataChangeEvent, observer.attribute_changed)
     >>> host.name = u'hostname'
     >>> observer.notified
     True
@@ -62,14 +86,8 @@ class DNSHost(AttributeSubject):
     description = UnicodeTriggerFieldProperty(IDNSHost['description'])
     done = TriggerFieldProperty(IDNSHost['done'])
 
-    def __init__(self):
-        """
-        Object initialization
-        """
-        AttributeSubject.__init__(self)
 
-
-class RCSRepository(AttributeSubject):
+class RCSRepository(BaseObject):
     """
     RCS repository configuration description object
 
@@ -77,16 +95,16 @@ class RCSRepository(AttributeSubject):
     >>> IRCSRepository.providedBy(repo)
     True
     >>> class TestObsrver(object):
-    ...     implements(IAttributeObserver)
     ...     notified = False
-    ...     def attribute_changed(self, attribute=None):
+    ...     def attribute_changed(self, event):
     ...         self.notified = True
     ...
 
     When observer is set, any  attribute set should call observer
 
+    >>> from sitebuilder.event.events import DataChangeEvent
     >>> observer = TestObsrver()
-    >>> repo.register_attribute_observer(observer)
+    >>> repo.get_event_bus().subscribe(DataChangeEvent, observer.attribute_changed)
 
     >>> repo.enabled = True
     >>> observer.notified
@@ -114,14 +132,8 @@ class RCSRepository(AttributeSubject):
     type = UnicodeTriggerFieldProperty(IRCSRepository['type'])
     done = TriggerFieldProperty(IRCSRepository[u'done'])
 
-    def __init__(self):
-        """
-        Object initialization
-        """
-        AttributeSubject.__init__(self)
 
-
-class Website(AttributeSubject):
+class Website(BaseObject):
     """
     Site configuration description object
 
@@ -129,7 +141,6 @@ class Website(AttributeSubject):
     >>> IWebsite.providedBy(site)
     True
     >>> class TestObsrver(object):
-    ...     implements(IAttributeObserver)
     ...     notified = False
     ...     def attribute_changed(self, attribute=None):
     ...         self.notified = True
@@ -137,8 +148,9 @@ class Website(AttributeSubject):
 
     When observer is set, any  attribute set should call observer
 
+    >>> from sitebuilder.event.events import DataChangeEvent
     >>> observer = TestObsrver()
-    >>> site.register_attribute_observer(observer)
+    >>> site.get_event_bus().subscribe(DataChangeEvent, observer.attribute_changed)
 
     >>> site.enabled = True
     >>> observer.notified
@@ -172,14 +184,8 @@ class Website(AttributeSubject):
     maintenance = TriggerFieldProperty(IWebsite['maintenance'])
     done = TriggerFieldProperty(IWebsite['done'])
 
-    def __init__(self):
-        """
-        Object initialization
-        """
-        AttributeSubject.__init__(self)
 
-
-class Database(AttributeSubject):
+class Database(BaseObject):
     """
     Database configuration description object
 
@@ -187,7 +193,6 @@ class Database(AttributeSubject):
     >>> IDatabase.providedBy(db)
     True
     >>> class TestObsrver(object):
-    ...     implements(IAttributeObserver)
     ...     notified = False
     ...     def attribute_changed(self, attribute=None):
     ...         self.notified = True
@@ -195,8 +200,9 @@ class Database(AttributeSubject):
 
     When observer is set, any  attribute set should call observer
 
+    >>> from sitebuilder.event.events import DataChangeEvent
     >>> observer = TestObsrver()
-    >>> db.register_attribute_observer(observer)
+    >>> db.get_event_bus().subscribe(DataChangeEvent, observer.attribute_changed)
 
     >>> db.enabled = True
     >>> observer.notified
@@ -236,21 +242,8 @@ class Database(AttributeSubject):
     password = UnicodeTriggerFieldProperty(IDatabase['password'])
     done = TriggerFieldProperty(IDatabase['done'])
 
-    def __init__(self):
-        """
-        Object initialization
-        """
-        AttributeSubject.__init__(self)
-        # Bypass security to set proper default value
-        #self.__dict__['name'] = u''
-        #self.__dict__['username'] = u''
-        #self.__dict__['password'] = u''
-        #self.enabled = False
-        #self.type = SiteDefaultsManager.get_default_database_type()
-        #self.done = False
 
-
-class Site(AttributeSubject):
+class Site(BaseObject):
     """
     Root object describing a whole site configuration.
 
@@ -258,7 +251,7 @@ class Site(AttributeSubject):
     configuartions.
     """
 
-    implements(ISite, IAttributeObserver)
+    implements(ISite)
 
     dnshost = TriggerFieldProperty(ISite['dnshost'])
     website = TriggerFieldProperty(ISite['website'])
@@ -270,25 +263,18 @@ class Site(AttributeSubject):
         """
         Object initialization
         """
-        AttributeSubject.__init__(self)
-
+        BaseObject.__init__(self)
         self.dnshost = DNSHost()
-        self.dnshost.register_attribute_observer(self)
+        self.dnshost.get_event_bus().connect(self.get_event_bus())
 
         self.repository = RCSRepository()
-        self.repository.register_attribute_observer(self)
+        self.repository.get_event_bus().connect(self.get_event_bus())
 
         self.website = Website()
-        self.website.register_attribute_observer(self)
+        self.website.get_event_bus().connect(self.get_event_bus())
 
         self.database = Database()
-        self.database.register_attribute_observer(self)
-
-    def attribute_changed(self, attribute=None):
-        """
-        Notifies all observers that upper attribute has changed
-        """
-        self.notify_attribute_changed(attribute)
+        self.database.get_event_bus().connect(self.get_event_bus())
 
 
 if __name__ == "__main__":

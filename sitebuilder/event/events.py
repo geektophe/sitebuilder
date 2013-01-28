@@ -51,7 +51,7 @@ class BaseEvent(object):
             setattr(self, key, value)
 
 
-class UIActiondEvent(BaseEvent):
+class UIActionEvent(BaseEvent):
     """
     Event sent when an UI action (action mapped to a button click or a menu
     item selection, and so on...) has been triggerd.
@@ -62,15 +62,49 @@ class UIActiondEvent(BaseEvent):
     """
     action = None
 
+
 class UIWidgetEvent(BaseEvent):
     """
     Event sent when an UI widget state changed (text box has been set, radio
     button has been selected, and so on...).
 
-    Event params keys:
+    Event attributes:
+
 
         name  The widget name that has been changed
         value The widget value set
+    """
+    name = None
+    value = None
+
+
+class DataValidityEvent(BaseEvent):
+    """
+    Event sent when a user tried to set an invalid data into a data structure,
+    or when the correct value was set afterwards.
+
+    Event attributes:
+
+
+        attribute   The atribute name that has been changed
+        flag        The flag indicating if the atribute was correctly or
+                    incorrectly set.
+    """
+    attribute = None
+    flag = None
+
+
+class DataChangeEvent(BaseEvent):
+    """
+    Event sent when a user tried to set an invalid data into a data structure,
+    or when the correct value was set afterwards.
+
+    Event attributes:
+
+
+        attribute   The atribute name that has been changed
+        flag        The flag indicating if the atribute was correctly or
+                    incorrectly set.
     """
     name = None
     value = None

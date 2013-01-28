@@ -11,39 +11,33 @@ from sitebuilder.presentation.gtk.detail import DetailSitePresentationAgent
 from sitebuilder.presentation.gtk.detail import DetailRepositoryPresentationAgent
 from sitebuilder.abstraction.site.manager import SiteConfigurationManager
 from sitebuilder.observer.attribute import IAttributeObserver
-from sitebuilder.observer.action import IActionObserver, IActionSubject
-from sitebuilder.observer.action import Action, ActionSubject
-from sitebuilder.observer.validity import ValiditySubject, IValidityObserver
-from sitebuilder.observer.widget import IWidgetObserver
 from sitebuilder.control.base import BaseControlAgent
 from sitebuilder.exception import FieldFormatError
-from sitebuilder.event.events import UIActiondEvent, UIWidgetEvent
+from sitebuilder.event.events import UIActionEvent, UIWidgetEvent
+from sitebuilder.event.events import DataValidityEvent, DataChangeEvent
 from zope.schema import ValidationError
 from sitebuilder.utils.parameters import ACTION_SUBMIT, ACTION_CANCEL
 from zope.interface import implements
 import gtk
 
 
-class DetailMainControlAgent(BaseControlAgent, ActionSubject):
+class DetailMainControlAgent(BaseControlAgent):
     """
     Site details main interface's control agent
     """
-    implements(IActionObserver, IValidityObserver)
 
     def __init__(self, site, read_only):
         """
         ControlAgent initialization
         """
         BaseControlAgent.__init__(self)
-        ActionSubject.__init__(self)
         self.set_site(site)
         self.set_read_only_flag(read_only)
         presentation_agent = DetailMainPresentationAgent(self)
         presentation_agent.get_event_bus().subscribe(
-            UIActiondEvent, self.action_evt_callback)
+            UIActionEvent, self.action_evt_callback)
         # Main detail presentation agent has no reason to listen to changed
         # attribute events. Disabled.
-        # site.register_attribute_observer(presentation_agent)
         self.set_presentation_agent(presentation_agent)
         self._slaves = []
 
@@ -90,7 +84,7 @@ class DetailMainControlAgent(BaseControlAgent, ActionSubject):
         else:
             raise NotImplementedError("Unhandled action %d triggered" % action)
 
-    def validity_evt_callback(self, event):
+    def data_validity_evt_callback(self, event):
         """
         Observer method run on validity changed event
         """
@@ -124,7 +118,10 @@ class DetailMainControlAgent(BaseControlAgent, ActionSubject):
         """
         Cleanly destroyes all components
         """
-        self.get_presentation_agent().remove_action_observer(self)
+        pa = self.get_presentation_agent()
+        pa.get_event_bus().unsubscribe(
+            UIActionEvent, self.action_evt_callback)
+
         # Destroyes slave components
         for slave in self._slaves:
             slave.destroy()
@@ -132,19 +129,16 @@ class DetailMainControlAgent(BaseControlAgent, ActionSubject):
         BaseControlAgent.destroy(self)
 
 
-class DetailBaseControlAgent(BaseControlAgent, ValiditySubject):
+class DetailBaseControlAgent(BaseControlAgent):
     """
     Base control agent class providing methods useful for
     DetailMainControlAgent childs.
     """
 
-    implements(IAttributeObserver, IWidgetObserver)
-
     def __init__(self):
         BaseControlAgent.__init__(self)
-        ValiditySubject.__init__(self)
 
-    def widget_changed(self, name, value):
+    def widget_evt_callback(self, event):
         """
         Observer method run on widget changed event
 
@@ -155,27 +149,34 @@ class DetailBaseControlAgent(BaseControlAgent, ValiditySubject):
         site = self.get_site()
 
         # Avoids change notification loop, as we're also listening to site
-        site.remove_attribute_observer(self)
+        # TODO: implement site event bus
+        site.get_event_bus().unsubscribe(UIWidgetEvent, self.widget_evt_callback)
 
         try:
-            setattr(site, name, value)
+            setattr(site, event.name, event.value)
         except (ValidationError, FieldFormatError), e:
-            pa.set_error(name, True, str(e))
-            self.notify_validity_changed(False)
+            pa.set_error(event.name, True, str(e))
+            self.get_event_bus().publish(
+                DataValidityEvent(self, attribute=event.name, state=False) )
         else:
-            pa.set_error(name, False)
+            pa.set_error(event.name, False)
             self.load_widgets_data()
-            self.notify_validity_changed(True)
+            self.get_event_bus().publish(
+                DataValidityEvent(self, attribute=event.name, state=True) )
 
-        site.register_attribute_observer(self)
+        # TODO: implement site event bus
+        site.get_event_bus().subscribe(UIWidgetEvent, self.widget_evt_callback)
 
-    def attribute_changed(self, attribute=None):
+    def destroy(self):
         """
-        AttributeChangedObserver trigger mmethod local implementation
-
-        Called when abstraction data has been modified.
+        Cleanly destroyes all components
         """
-        self.load_widgets_data()
+        site = self.get_site()
+        # TODO: implement site event bus
+        site.get_event_bus().unsubscribe(
+            DataChangeEvent, self.data_change_evt_callback)
+
+        BaseControlAgent.destroy(self)
 
 
 class DetailSiteControlAgent(DetailBaseControlAgent):
@@ -183,11 +184,10 @@ class DetailSiteControlAgent(DetailBaseControlAgent):
     Site sub component control agent
     """
 
-    implements(IAttributeObserver, IWidgetObserver)
-
     def __init__(self, site, read_only=False):
         DetailBaseControlAgent.__init__(self)
-        site.register_attribute_observer(self)
+        # TODO: implement site event bus
+        site.get_event_bus().subscribe(DataChangeEvent, self.load_widgets_data)
         self.set_site(site)
         self.set_read_only_flag(read_only)
         pa = DetailSitePresentationAgent(self)
@@ -195,26 +195,16 @@ class DetailSiteControlAgent(DetailBaseControlAgent):
         # Loads comboboxes items
         pa.set_items('template', SiteDefaultsManager.get_site_templates())
         pa.set_items('access', SiteDefaultsManager.get_site_accesses())
-        pa.register_widget_observer(self)
+        pa.get_event_bus().subscribe(UIWidgetEvent, self.widget_evt_callback)
         # Initializes widget values
         self.load_widgets_data()
 
-    def destroy(self):
-        """
-        Cleanly destroyes all components
-        """
-        # Unregisters presetations view from site
-        self.get_site().remove_attribute_observer(
-            self.get_presentation_agent())
-        BaseControlAgent.destroy(self)
-
-    def load_widgets_data(self):
+    def load_widgets_data(self, event=None):
         """
         Updates presentation agent widgets based on configuraton settings
         """
         pa = self.get_presentation_agent()
-        site = self.get_site()
-        site.remove_attribute_observer(self)
+        pa.get_event_bus().unsubscribe(UIWidgetEvent, self.load_widgets_data)
 
         enabled = self.get_value('enabled')
         done = self.get_value('done')
@@ -242,7 +232,15 @@ class DetailSiteControlAgent(DetailBaseControlAgent):
         # Access should be changeable even if site is in done state
         pa.set_enabled('access', enabled and not read_only)
 
-        site.register_attribute_observer(self)
+        pa.get_event_bus().subscribe(UIWidgetEvent, self.load_widgets_data)
+
+    def destroy(self):
+        """
+        Cleanly destroyes all components
+        """
+        pa = self.get_presentation_agent()
+        pa.get_event_bus().unsubscribe(UIWidgetEvent, self.load_widgets_data)
+        DetailBaseControlAgent.destroy(self)
 
 
 class DetailDatabaseControlAgent(DetailBaseControlAgent):
@@ -252,33 +250,24 @@ class DetailDatabaseControlAgent(DetailBaseControlAgent):
 
     def __init__(self, site, read_only=False):
         DetailBaseControlAgent.__init__(self)
-        site.register_attribute_observer(self)
+        # TODO: implement site event bus
+        site.get_event_bus().subscribe(DataChangeEvent, self.load_widgets_data)
         self.set_site(site)
         self.set_read_only_flag(read_only)
         pa = DetailDatabasePresentationAgent(self)
         self.set_presentation_agent(pa)
         # Loads comboboxes items
         pa.set_items('type', SiteDefaultsManager.get_database_types())
-        pa.register_widget_observer(self)
+        pa.get_event_bus().subscribe(UIWidgetEvent, self.widget_evt_callback)
         # Initializes widget values
         self.load_widgets_data()
 
-    def destroy(self):
-        """
-        Cleanly destroyes all components
-        """
-        # Unregisters presetations view from site
-        self.get_site().remove_attribute_observer(
-            self.get_presentation_agent())
-        BaseControlAgent.destroy(self)
-
-    def load_widgets_data(self):
+    def load_widgets_data(self, event=None):
         """
         Updates presentation agent widgets based on configuraton settings
         """
         pa = self.get_presentation_agent()
-        site = self.get_site()
-        site.remove_attribute_observer(self)
+        pa.get_event_bus().unsubscribe(UIWidgetEvent, self.widget_evt_callback)
 
         enabled = self.get_value('enabled')
         done = self.get_value('done')
@@ -309,7 +298,15 @@ class DetailDatabaseControlAgent(DetailBaseControlAgent):
         pa.set_value('type', dbtype)
         pa.set_enabled('type', sensitive)
 
-        site.register_attribute_observer(self)
+        pa.get_event_bus().subscribe(UIWidgetEvent, self.widget_evt_callback)
+
+    def destroy(self):
+        """
+        Cleanly destroyes all components
+        """
+        pa = self.get_presentation_agent()
+        pa.get_event_bus().unsubscribe(UIWidgetEvent, self.load_widgets_data)
+        DetailBaseControlAgent.destroy(self)
 
 
 class DetailRepositoryControlAgent(DetailBaseControlAgent):
@@ -319,33 +316,24 @@ class DetailRepositoryControlAgent(DetailBaseControlAgent):
 
     def __init__(self, site, read_only=False):
         DetailBaseControlAgent.__init__(self)
-        site.register_attribute_observer(self)
+        # TODO: implement event bus in site objects
+        site.get_event_bus().subscribe(DataChangeEvent, self.load_widgets_data)
         self.set_site(site)
         self.set_read_only_flag(read_only)
         pa = DetailRepositoryPresentationAgent(self)
         self.set_presentation_agent(pa)
         # Loads comboboxes items
         pa.set_items('type', SiteDefaultsManager.get_repository_types())
-        pa.register_widget_observer(self)
+        pa.get_event_bus().subscribe(UIWidgetEvent, self.widget_evt_callback)
         # Initializes widget values
         self.load_widgets_data()
 
-    def destroy(self):
-        """
-        Cleanly destroyes all components
-        """
-        # Unregisters presetations view from site
-        self.get_site().remove_attribute_observer(
-            self.get_presentation_agent())
-        BaseControlAgent.destroy(self)
-
-    def load_widgets_data(self):
+    def load_widgets_data(self, event=None):
         """
         Updates presentation agent widgets based on configuraton settings
         """
         pa = self.get_presentation_agent()
-        site = self.get_site()
-        site.remove_attribute_observer(self)
+        pa.get_event_bus().unsubscribe(UIWidgetEvent, self.widget_evt_callback)
 
         enabled = self.get_value('enabled')
         done = self.get_value('done')
@@ -366,7 +354,15 @@ class DetailRepositoryControlAgent(DetailBaseControlAgent):
         pa.set_value('type', repotype)
         pa.set_enabled('type', sensitive)
 
-        site.register_attribute_observer(self)
+        pa.get_event_bus().subscribe(UIWidgetEvent, self.widget_evt_callback)
+
+    def destroy(self):
+        """
+        Cleanly destroyes all components
+        """
+        pa = self.get_presentation_agent()
+        pa.get_event_bus().unsubscribe(UIWidgetEvent, self.load_widgets_data)
+        DetailBaseControlAgent.destroy(self)
 
 
 class DetailDNSHostControlAgent(DetailBaseControlAgent):
@@ -376,7 +372,7 @@ class DetailDNSHostControlAgent(DetailBaseControlAgent):
 
     def __init__(self, site, read_only=False):
         DetailBaseControlAgent.__init__(self)
-        site.register_attribute_observer(self)
+        site.get_event_bus().subscribe(DataChangeEvent, self.load_widgets_data)
         self.set_site(site)
         self.set_read_only_flag(read_only)
         pa = DetailDNSHostPresentationAgent(self)
@@ -384,26 +380,16 @@ class DetailDNSHostControlAgent(DetailBaseControlAgent):
         # Loads comboboxes items
         pa.set_items('domain', SiteDefaultsManager.get_domains())
         pa.set_items('platform', SiteDefaultsManager.get_platforms())
-        pa.register_widget_observer(self)
+        pa.get_event_bus().subscribe(UIWidgetEvent, self.widget_evt_callback)
         # Initializes widget values
         self.load_widgets_data()
 
-    def destroy(self):
-        """
-        Cleanly destroyes all components
-        """
-        # Unregisters presetations view from site
-        self.get_site().remove_attribute_observer(
-            self.get_presentation_agent())
-        BaseControlAgent.destroy(self)
-
-    def load_widgets_data(self):
+    def load_widgets_data(self, event=None):
         """
         Updates presentation agent widgets based on configuraton settings
         """
         pa = self.get_presentation_agent()
-        site = self.get_site()
-        site.remove_attribute_observer(self)
+        pa.get_event_bus().unsubscribe(UIWidgetEvent, self.widget_evt_callback)
 
         done = self.get_value('done')
         read_only = self.get_read_only_flag()
@@ -429,7 +415,15 @@ class DetailDNSHostControlAgent(DetailBaseControlAgent):
         pa.set_value('platform', platform)
         pa.set_enabled('platform', sensitive)
 
-        site.register_attribute_observer(self)
+        pa.get_event_bus().subscribe(UIWidgetEvent, self.widget_evt_callback)
+
+    def destroy(self):
+        """
+        Cleanly destroyes all components
+        """
+        pa = self.get_presentation_agent()
+        pa.get_event_bus().unsubscribe(UIWidgetEvent, self.load_widgets_data)
+        DetailBaseControlAgent.destroy(self)
 
 
 if __name__ == '__main__':

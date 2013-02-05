@@ -8,6 +8,7 @@ from sitebuilder.presentation.gtk.base import GtkBasePresentationAgent
 from sitebuilder.event.events import UIActionEvent, UIWidgetEvent
 from sitebuilder.utils.parameters import ACTION_SUBMIT, ACTION_CANCEL
 
+
 class DetailMainPresentationAgent(GtkBasePresentationAgent):
     """
     DetailMainPresentationAgent site add/edit/view interface.
@@ -33,14 +34,14 @@ class DetailMainPresentationAgent(GtkBasePresentationAgent):
         Signal handler associated with the submit action
         """
         self.get_event_bus().publish(
-            UIActionEvent(self, action=ACTION_SUBMIT) )
+            UIActionEvent(self, action=ACTION_SUBMIT))
 
     def on_cancel_activate(self, widget):
         """
         Signal handler associated with the canhcel action
         """
         self.get_event_bus().publish(
-            UIActionEvent(self, action=ACTION_CANCEL) )
+            UIActionEvent(self, action=ACTION_CANCEL))
 
 
 class DetailSitePresentationAgent(GtkBasePresentationAgent):
@@ -71,7 +72,7 @@ class DetailSitePresentationAgent(GtkBasePresentationAgent):
         """
         enabled = self['enabled'].get_active()
         self.get_event_bus().publish(
-            UIWidgetEvent(self, name='enabled', value=enabled) )
+            UIWidgetEvent(self, name='enabled', value=enabled))
 
     def on_maintenance_toggled(self, widget):
         """
@@ -79,7 +80,7 @@ class DetailSitePresentationAgent(GtkBasePresentationAgent):
         """
         maintenance = self['maintenance'].get_active()
         self.get_event_bus().publish(
-            UIWidgetEvent(self, name='maintenance', value=maintenance) )
+            UIWidgetEvent(self, name='maintenance', value=maintenance))
 
     def on_template_changed(self, widget):
         """
@@ -87,7 +88,7 @@ class DetailSitePresentationAgent(GtkBasePresentationAgent):
         """
         template = self.get_combobox_selection(self['template'])
         self.get_event_bus().publish(
-            UIWidgetEvent(self, name='template', value=template) )
+            UIWidgetEvent(self, name='template', value=template))
 
     def on_access_changed(self, widget):
         """
@@ -95,7 +96,7 @@ class DetailSitePresentationAgent(GtkBasePresentationAgent):
         """
         access = self.get_combobox_selection(self['access'])
         self.get_event_bus().publish(
-            UIWidgetEvent(self, name='access', value=access) )
+            UIWidgetEvent(self, name='access', value=access))
 
 
 class DetailDatabasePresentationAgent(GtkBasePresentationAgent):

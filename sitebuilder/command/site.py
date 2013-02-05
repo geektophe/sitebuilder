@@ -3,18 +3,19 @@
 DNSHost objects related commands
 """
 
-from sitebuilder.command.interface import ICommand, ICommandLogged
-from sitebuilder.observer.command import ICommandSubject, CommandSubject
 from sitebuilder.abstraction.interface import ISite
+from sitebuilder.command.interface import ICommand, ICommandLogged
 from sitebuilder.command.base import BaseCommand
 from zope.interface import implements
 import re
 
-class GetSiteByName(BaseCommand, CommandSubject):
+
+class GetSiteByName(BaseCommand):
     """
     Looks for a host using its name and domain
     """
-    implements(ICommand, ICommandSubject)
+    implements(ICommand)
+
     description = "Site lookup by name"
     name = ""
     domain = ""
@@ -30,7 +31,6 @@ class GetSiteByName(BaseCommand, CommandSubject):
             domain  Domain name
         """
         BaseCommand.__init__(self)
-        CommandSubject.__init__(self)
 
         if not self.name_re.match(name):
             raise AttributeError(r"Invalid host name. Should match /^[\w\d_-]+$/")
@@ -49,11 +49,12 @@ class GetSiteByName(BaseCommand, CommandSubject):
         self.result = result
 
 
-class AddSite(BaseCommand, CommandSubject):
+class AddSite(BaseCommand):
     """
     Adds a new site into the backend
     """
-    implements(ICommand, ICommandSubject, ICommandLogged)
+    implements(ICommand, ICommandLogged)
+
     description = "Add site"
 
     site = None
@@ -66,7 +67,6 @@ class AddSite(BaseCommand, CommandSubject):
             site    Site object to add to backend
         """
         BaseCommand.__init__(self)
-        CommandSubject.__init__(self)
 
         if not ISite.providedBy(site):
             raise AttributeError("Invalid site parametee. Should implement ISite")
@@ -89,11 +89,11 @@ class AddSite(BaseCommand, CommandSubject):
         self.mesg = "Site %s.%s successfully added" % (name, domain)
 
 
-class UpdateSite(BaseCommand, CommandSubject):
+class UpdateSite(BaseCommand):
     """
     Edits a new site into the backend applying the values from site object
     """
-    implements(ICommand, ICommandSubject, ICommandLogged)
+    implements(ICommand, ICommandLogged)
     description = "Update site"
 
     site = None
@@ -106,7 +106,6 @@ class UpdateSite(BaseCommand, CommandSubject):
             site    Site object to apply attributes to backend
         """
         BaseCommand.__init__(self)
-        CommandSubject.__init__(self)
 
         if not ISite.providedBy(site):
             raise AttributeError("Invalid site parametee. Should implement ISite")
@@ -133,11 +132,12 @@ class UpdateSite(BaseCommand, CommandSubject):
         self.mesg = "Site %s.%s successfully updated" % (name, domain)
 
 
-class DeleteSite(BaseCommand, CommandSubject):
+class DeleteSite(BaseCommand):
     """
     Deletes a site using its name and domain
     """
-    implements(ICommand, ICommandSubject, ICommandLogged)
+    implements(ICommand, ICommandLogged)
+
     description = "Delete site"
     name = ""
     domain = ""
@@ -153,7 +153,6 @@ class DeleteSite(BaseCommand, CommandSubject):
             domain  Domain name
         """
         BaseCommand.__init__(self)
-        CommandSubject.__init__(self)
 
         if not self.name_re.match(name):
             raise AttributeError(r"Invalid host name. Should match /^[\w\d_-]+$/")

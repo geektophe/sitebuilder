@@ -210,7 +210,7 @@ class TestGtkListLogsAgent(unittest.TestCase):
         presentation_agent = control_agent.get_presentation_agent()
         model = presentation_agent['logs_list'].get_model()
         command = TestCommand()
-        command.register_command_observer(control_agent)
+        command.add_callback(control_agent)
         command.notify_command_executed()
         refresh_gui()
         self.assertEquals(len(model), 1)

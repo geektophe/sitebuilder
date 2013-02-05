@@ -10,15 +10,12 @@ from sitebuilder.presentation.gtk.detail import DetailDNSHostPresentationAgent
 from sitebuilder.presentation.gtk.detail import DetailSitePresentationAgent
 from sitebuilder.presentation.gtk.detail import DetailRepositoryPresentationAgent
 from sitebuilder.abstraction.site.manager import SiteConfigurationManager
-from sitebuilder.observer.attribute import IAttributeObserver
 from sitebuilder.control.base import BaseControlAgent
 from sitebuilder.exception import FieldFormatError
-from sitebuilder.event.events import UIActionEvent, UIWidgetEvent
+from sitebuilder.event.events import UIActionEvent, UIWidgetEvent, AppActionEvent
 from sitebuilder.event.events import DataValidityEvent, DataChangeEvent
 from zope.schema import ValidationError
 from sitebuilder.utils.parameters import ACTION_SUBMIT, ACTION_CANCEL
-from zope.interface import implements
-import gtk
 
 
 class DetailMainControlAgent(BaseControlAgent):
@@ -33,39 +30,38 @@ class DetailMainControlAgent(BaseControlAgent):
         BaseControlAgent.__init__(self)
         self.set_site(site)
         self.set_read_only_flag(read_only)
-        presentation_agent = DetailMainPresentationAgent(self)
-        presentation_agent.get_event_bus().subscribe(
+        pa = DetailMainPresentationAgent(self)
+        pa.get_event_bus().subscribe(
             UIActionEvent, self.action_evt_callback)
         # Main detail presentation agent has no reason to listen to changed
         # attribute events. Disabled.
-        self.set_presentation_agent(presentation_agent)
         self._slaves = []
 
         # Creates general component
         slave = DetailDNSHostControlAgent(site.dnshost, read_only)
         self._slaves.append(slave)
-        presentation_agent = slave.get_presentation_agent()
-        self._presentation_agent.attach_slave('dnshost', 'hbox_general',
-                slave.get_presentation_agent())
+        pa.attach_slave('dnshost', 'hbox_general',
+                        slave.get_presentation_agent())
 
         # Creates repository component
         slave = DetailRepositoryControlAgent(site.repository, read_only)
         self._slaves.append(slave)
-        self._presentation_agent.attach_slave('repository', 'hbox_repository',
-                slave.get_presentation_agent())
+        pa.attach_slave('repository', 'hbox_repository',
+                        slave.get_presentation_agent())
 
         # Creates site component
         slave = DetailSiteControlAgent(site.website, read_only)
         self._slaves.append(slave)
-        self._presentation_agent.attach_slave('website', 'hbox_sites',
-                slave.get_presentation_agent())
+        pa.attach_slave('website', 'hbox_sites',
+                        slave.get_presentation_agent())
 
         # Creates database component
         slave = DetailDatabaseControlAgent(site.database, read_only)
         self._slaves.append(slave)
-        self._presentation_agent.attach_slave('database',
-                'hbox_databases', slave.get_presentation_agent())
+        pa.attach_slave('database', 'hbox_databases',
+                        slave.get_presentation_agent())
 
+        self.set_presentation_agent(pa)
         self._validity_matrix = {}
 
     def action_evt_callback(self, event):
@@ -82,13 +78,14 @@ class DetailMainControlAgent(BaseControlAgent):
             # No need to inform upper component
             self.cancel()
         else:
-            raise NotImplementedError("Unhandled action %d triggered" % action)
+            raise NotImplementedError("Unhandled action %d triggered" %
+                                      event.action)
 
     def data_validity_evt_callback(self, event):
         """
         Observer method run on validity changed event
         """
-        self._validity_matrix[id(event.source)] = flag
+        self._validity_matrix[id(event.source)] = event.flag
 
         res = True
         for value in self._validity_matrix.values():
@@ -103,9 +100,9 @@ class DetailMainControlAgent(BaseControlAgent):
         """
         The interface submit action has been asked.
         """
-        self.notify_action_activated(Action(
-            ACTION_SUBMIT,
-            {'sites': [ self.get_site() ]} ))
+        self.get_event_bus().publish(
+            AppActionEvent(self, action=ACTION_SUBMIT,
+                parameters={'sites': [self.get_site()]}))
         self.destroy()
 
     def cancel(self):
@@ -149,7 +146,6 @@ class DetailBaseControlAgent(BaseControlAgent):
         site = self.get_site()
 
         # Avoids change notification loop, as we're also listening to site
-        # TODO: implement site event bus
         site.get_event_bus().unsubscribe(UIWidgetEvent, self.widget_evt_callback)
 
         try:
@@ -157,25 +153,19 @@ class DetailBaseControlAgent(BaseControlAgent):
         except (ValidationError, FieldFormatError), e:
             pa.set_error(event.name, True, str(e))
             self.get_event_bus().publish(
-                DataValidityEvent(self, attribute=event.name, state=False) )
+                DataValidityEvent(self, attribute=event.name, state=False))
         else:
             pa.set_error(event.name, False)
             self.load_widgets_data()
             self.get_event_bus().publish(
-                DataValidityEvent(self, attribute=event.name, state=True) )
+                DataValidityEvent(self, attribute=event.name, state=True))
 
-        # TODO: implement site event bus
         site.get_event_bus().subscribe(UIWidgetEvent, self.widget_evt_callback)
 
     def destroy(self):
         """
         Cleanly destroyes all components
         """
-        site = self.get_site()
-        # TODO: implement site event bus
-        site.get_event_bus().unsubscribe(
-            DataChangeEvent, self.data_change_evt_callback)
-
         BaseControlAgent.destroy(self)
 
 
@@ -186,7 +176,6 @@ class DetailSiteControlAgent(DetailBaseControlAgent):
 
     def __init__(self, site, read_only=False):
         DetailBaseControlAgent.__init__(self)
-        # TODO: implement site event bus
         site.get_event_bus().subscribe(DataChangeEvent, self.load_widgets_data)
         self.set_site(site)
         self.set_read_only_flag(read_only)
@@ -250,7 +239,6 @@ class DetailDatabaseControlAgent(DetailBaseControlAgent):
 
     def __init__(self, site, read_only=False):
         DetailBaseControlAgent.__init__(self)
-        # TODO: implement site event bus
         site.get_event_bus().subscribe(DataChangeEvent, self.load_widgets_data)
         self.set_site(site)
         self.set_read_only_flag(read_only)
@@ -316,7 +304,6 @@ class DetailRepositoryControlAgent(DetailBaseControlAgent):
 
     def __init__(self, site, read_only=False):
         DetailBaseControlAgent.__init__(self)
-        # TODO: implement event bus in site objects
         site.get_event_bus().subscribe(DataChangeEvent, self.load_widgets_data)
         self.set_site(site)
         self.set_read_only_flag(read_only)
@@ -427,6 +414,7 @@ class DetailDNSHostControlAgent(DetailBaseControlAgent):
 
 
 if __name__ == '__main__':
+    import gtk
     config = SiteConfigurationManager.get_blank_site()
     control = DetailMainControlAgent(config, False)
     presentation = control.get_presentation_agent()

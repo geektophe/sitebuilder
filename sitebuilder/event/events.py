@@ -58,9 +58,11 @@ class UIActionEvent(BaseEvent):
 
     Event attributes:
 
-        action  The action identifier
+        action      The acion name that has been changed
+        parameters  The acton optional parameters (may be any type)
     """
     action = None
+    parameters = None
 
 
 class UIWidgetEvent(BaseEvent):
@@ -108,6 +110,26 @@ class DataChangeEvent(BaseEvent):
     """
     name = None
     value = None
+
+
+class AppActionEvent(BaseEvent):
+    """
+    Event sent by application when internal actions are triggerred.
+
+    Event attributes:
+
+
+        action      The acion name that has been changed
+        parameters  The acton optional parameters (may be any type)
+    """
+    action = None
+    parameters = None
+
+
+class CommandExecEvent(BaseEvent):
+    """
+    Event sent by application when a command has been executed.
+    """
 
 
 if __name__ == '__main__':

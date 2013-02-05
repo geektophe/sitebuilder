@@ -3,6 +3,7 @@
 Site editing interface. Supports Create, View and Update modes.
 """
 
+from sitebuilder.event.events import UIActionEvent, UIWidgetEvent
 from sitebuilder.utils.parameters import GLADE_BASEDIR
 from sitebuilder.utils.parameters import ACTION_ADD, ACTION_VIEW
 from sitebuilder.utils.parameters import ACTION_EDIT, ACTION_DELETE
@@ -130,47 +131,46 @@ class ListSitesPresentationAgent(GtkBasePresentationAgent):
         Signal handler associated with the name text input
         """
         name = self['filter_name'].get_text()
-        self.notify_widget_changed('filter_name', name)
+        self.get_event_bus().publish(
+            UIWidgetEvent(self, name='filter_name', value=name))
 
     def on_filter_domain_changed(self, widget):
         """
         Signal handler associated with the template combobox
         """
         domain_name = self.get_combobox_selection(self['filter_domain'])
-        self.notify_widget_changed('filter_domain', domain_name )
+        self.get_event_bus().publish(
+            UIWidgetEvent(self, name='filter_domain', value=domain_name))
 
     def on_view_activate(self, widget):
         """
         Signal handler associated with the view action
         """
-        self.notify_action_activated(
-            Action(ACTION_VIEW, {'sites': self.get_value('site_list')}))
+        self.get_event_bus().publish(UIActionEvent(self, action=ACTION_VIEW))
 
     def on_add_activate(self, widget):
         """
         Signal handler associated with the view action
         """
-        self.notify_action_activated(Action(ACTION_ADD))
+        self.get_event_bus().publish(UIActionEvent(self, action=ACTION_ADD))
 
     def on_edit_activate(self, widget):
         """
         Signal handler associated with the view action
         """
-        self.notify_action_activated(
-            Action(ACTION_EDIT, {'sites': self.get_value('site_list')}))
+        self.get_event_bus().publish(UIActionEvent(self, action=ACTION_EDIT))
 
     def on_delete_activate(self, widget):
         """
         Signal handler associated with the view action
         """
-        self.notify_action_activated(
-            Action(ACTION_DELETE, {'sites': self.get_value('site_list')}))
+        self.get_event_bus().publish(UIActionEvent(self, action=ACTION_DELETE))
 
     def on_reload_activate(self, widget):
         """
         Signal handler associated with the view action
         """
-        self.notify_action_activated(Action(ACTION_RELOAD))
+        self.get_event_bus().publish(UIActionEvent(self, action=ACTION_RELOAD))
 
     def destroy(self):
         """
@@ -266,11 +266,11 @@ class ListLogsPresentationAgent(GtkBasePresentationAgent):
         """
         Signal handler associated with the clearlogs action
         """
-        self.notify_action_activated(Action(ACTION_CLEARLOGS))
+        self.get_event_bus().publish(UIActionEvent(self, action=ACTION_CLEARLOGS))
 
     def on_showlogs_activate(self, widget):
         """
         Signal handler associated with the showlogs action
         """
-        self.notify_action_activated(Action(ACTION_SHOWLOGS,
-            {'logs': self.get_selected_commands()}))
+        self.get_event_bus().publish(UIActionEvent(self, action=ACTION_SHOWLOGS,
+            parameters={'logs': self.get_selected_commands()}))

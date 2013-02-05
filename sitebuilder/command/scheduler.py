@@ -7,11 +7,11 @@ Command scheduler class
 from sitebuilder.utils.parameters import get_application_context
 from sitebuilder.utils.parameters import CONTEXT_NORMAL, CONTEXT_TEST
 from sitebuilder.utils.driver.test import TestBackendDriver
-from sitebuilder.observer.command import ICommandSubject
 from sitebuilder.command.interface import ICommand, ICommandLogged
 from sitebuilder.command.interface import COMMAND_RUNNING
 from sitebuilder.command.interface import COMMAND_SUCCESS
 from sitebuilder.command.interface import COMMAND_ERROR
+from sitebuilder.event.events import CommandExecEvent
 from sitebuilder.command.log import enqueue_command as log_enqueue_command
 from traceback import format_exc
 from Queue import Queue, Empty
@@ -25,7 +25,6 @@ exec_queue = Queue()
 notify_queue = Queue()
 thread_stop = Event()
 scheduler = None
-notifier = None
 
 
 def start():
@@ -33,16 +32,11 @@ def start():
     Initialises scheduler and notifier instances and start threads
     """
     global scheduler
-    global notifier
 
     if scheduler is None:
         # Command execution scheduler module level instance
         scheduler = CommandExecScheduler()
         scheduler.start()
-
-        # Commend notifications scheduler module level instance
-        notifier = CommandNotificationScheduler()
-        notifier.start()
     else:
         warn("'start' called on an already initialized instance")
 
@@ -56,7 +50,6 @@ def stop():
 
     thread_stop.set()
     scheduler.join()
-    notifier.join()
     scheduler = None
     notifier = None
 
@@ -119,11 +112,11 @@ class CommandExecScheduler(Thread):
             except Empty:
                 continue
 
-            if ICommandSubject.providedBy(command) and \
-               ICommandLogged.providedBy(command):
+            if ICommandLogged.providedBy(command):
                 # Register logger as command observer for it to be notified
                 # when execution has finished
-                command.register_command_callback(log_enqueue_command)
+                command.get_event_bus().subscribe(CommandExecEvent,
+                                                  self.log_command)
 
             command.status = COMMAND_RUNNING
 
@@ -136,46 +129,23 @@ class CommandExecScheduler(Thread):
                 command.traceback = format_exc(e)
 
             command.release()
-
-            if ICommandSubject.providedBy(command):
-                notify_queue.put_nowait(command)
-
             exec_queue.task_done()
+
+            # Notifies followers that the command has been executed
+            gobject.idle_add(
+                lambda: command.get_event_bus().publish(CommandExecEvent(command)))
         # End while
 
-
-class CommandNotificationScheduler(Thread):
-    """
-    Command scheduler enques commands and exectes them. Command queue is
-    managed in a separate thread to avoid.
-    """
-
-    def __init__(self):
+    def log_command(self, event):
         """
-        Schedule initialization
+        Appends a command to the log queue
         """
-        Thread.__init__(self)
-        self.name = "CommandNotificationScheduler"
-        self.daemon = True
+        log_enqueue_command(event.source)
 
-    def run(self):
+    def notify_command_executed(self):
         """
-        Continuously loops on commands and notify them
+        Publishes an event to indacate that the commande has been executed.
         """
-        while not thread_stop.is_set():
-            try:
-                command = notify_queue.get(timeout=0.1)
-            except Empty:
-                continue
-
-            if ICommandSubject.providedBy(command):
-                # Sends back notification method execution in main thread
-                # Very important with PyGTK !
-                gobject.idle_add(command.notify_command_executed)
-
-            notify_queue.task_done()
-        # End while
-
 
 
 if __name__ == "__main__":

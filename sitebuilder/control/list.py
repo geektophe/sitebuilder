@@ -9,11 +9,9 @@ from sitebuilder.presentation.gtk.list import ListLogsPresentationAgent
 from sitebuilder.control.base import BaseControlAgent
 from sitebuilder.control.detail import DetailMainControlAgent
 from sitebuilder.abstraction.site.factory import site_factory
-from sitebuilder.presentation.interface import IPresentationAgent
-from sitebuilder.observer.widget import IWidgetObserver
-from sitebuilder.observer.command import ICommandObserver
 from sitebuilder.command.interface import COMMAND_SUCCESS
 from sitebuilder.abstraction.interface import ISiteNew
+from sitebuilder.presentation.interface import IPresentationAgent
 from sitebuilder.utils.parameters import ACTION_ADD, ACTION_VIEW, ACTION_SUBMIT
 from sitebuilder.utils.parameters import ACTION_EDIT, ACTION_DELETE
 from sitebuilder.utils.parameters import ACTION_RELOAD, ACTION_CLEARLOGS
@@ -22,12 +20,13 @@ from sitebuilder.command.scheduler import enqueue_command
 from sitebuilder.command.host import LookupHostByName
 from sitebuilder.command.site import GetSiteByName, AddSite, UpdateSite
 from sitebuilder.command.site import DeleteSite
-from sitebuilder.observer.action import Action, ActionSubject
 from sitebuilder.exception import SiteError, FieldFormatError
 from sitebuilder.abstraction.site.defaults import SiteDefaultsManager
-from zope.interface import implements
-import gtk
+from sitebuilder.event.events import UIActionEvent, AppActionEvent
+from sitebuilder.event.events import UIWidgetEvent, CommandExecEvent
+from zope.interface import alsoProvides
 import re
+import gtk
 
 
 class ListMainControlAgent(object):
@@ -39,37 +38,33 @@ class ListMainControlAgent(object):
         """
         ControlAgent initialization
         """
-        presentation_agent = ListMainPresentationAgent(self)
-        presentation_agent.register_action_observer(self)
+        pa = ListMainPresentationAgent(self)
         # Main detail presentation agent has no reason to listen to changed
         # attribute events. Disabled.
         # site.register_attribute_observer(presentation_agent)
-        self._presentation_agent = presentation_agent
+        self._presentation_agent = pa
 
         # Creates sites list component
         slave = ListSitesControlAgent()
         self._sites_control_agent = slave
-        presentation_agent = slave.get_presentation_agent()
         self._presentation_agent.attach_slave('sites', 'vbox_general',
-                slave.get_presentation_agent())
-        slave.register_action_observer(self)
+                                              slave.get_presentation_agent())
         # Listens for list sites controller action events
-        # TODO: finish refactorization
-        slave.get_event_bus().subscribe(
-            UIActiondEvent, self.action_evt_callback)
+        slave.get_event_bus().subscribe(AppActionEvent,
+                                        self.app_action_evt_callback)
 
         # Creates logs list component
         slave = ListLogsControlAgent()
         self._logs_control_agent = slave
         self._presentation_agent.attach_slave('logs', 'vbox_general',
-                slave.get_presentation_agent())
+                                              slave.get_presentation_agent())
 
         # Initial sites search (may be disabled id database is really big)
         self.reload_sites()
 
-    def action_evt_callback(self, event):
+    def app_action_evt_callback(self, event):
         """
-        ActionActivatedObserver trigger mmethod local implementation
+        Method triggerred on UIActionEvent
         """
         # Handles add action that do nat need any parameter
         if event.action == ACTION_ADD:
@@ -80,9 +75,9 @@ class ListMainControlAgent(object):
             return
 
         # Checks that ids parameter is correctly set in event parameters
-        parms = action.parameters
+        parms = event.parameters
 
-        if not parms.has_key('sites'):
+        if not 'sites' in parms:
             raise AttributeError('sites parameter is not set in action parameters')
 
         # Handles view action
@@ -95,7 +90,7 @@ class ListMainControlAgent(object):
         elif event.action == ACTION_SUBMIT:
             self.submit_sites(parms['sites'])
         else:
-            raise NotImplementedError("Unhandled action %s triggered" % action)
+            raise NotImplementedError("Unhandled action %s triggered" % event.action)
 
     def get_presentation_agent(self):
         """
@@ -103,26 +98,24 @@ class ListMainControlAgent(object):
         """
         return self._presentation_agent
 
-    def set_presentation_agent(self, presentation_agent):
+    def set_presentation_agent(self, pa):
         """
         Sets local PresentationAgent implementation instance
         """
         # TODO: perform better instance check on presentation agent
-        if not IPresentationAgent.providedBy(presentation_agent):
+        if not IPresentationAgent.providedBy(pa):
             raise AttributeError("presentation agent should implement " +
                                  "IPresentationAgent")
 
-        self._presentation_agent = presentation_agent
+        self._presentation_agent = pa
 
     def show_detail_dialog(self, site, read_only=False):
         """
         Shows detail dialog for the specified site
         """
         detail = DetailMainControlAgent(site, read_only)
-
-        if IActionSubject.providedBy(detail):
-            detail.register_action_observer(self)
-
+        detail.get_event_bus().subscribe(
+            AppActionEvent, self.app_action_evt_callback)
         presentation = detail.get_presentation_agent()
         presentation.show()
 
@@ -140,7 +133,8 @@ class ListMainControlAgent(object):
         """
         for name, domain in selection:
             command = GetSiteByName(name, domain)
-            command.register_command_callback(self.cb_show_detail_dialog_ro)
+            command.get_event_bus().subscribe(
+                CommandExecEvent, self.cb_show_detail_dialog_ro)
             enqueue_command(command)
 
     def edit_selected_sites(self, selection):
@@ -149,7 +143,8 @@ class ListMainControlAgent(object):
         """
         for name, domain in selection:
             command = GetSiteByName(name, domain)
-            command.register_command_callback(self.cb_show_detail_dialog_rw)
+            command.get_event_bus().subscribe(
+                CommandExecEvent, self.cb_show_detail_dialog_rw)
             enqueue_command(command)
 
     def delete_selected_sites(self, selection):
@@ -159,9 +154,10 @@ class ListMainControlAgent(object):
         for name, domain in selection:
             conf_name = "%s.%s" % (name, domain)
 
+            # TODO: create a dedicated pac agent
             dialog = gtk.MessageDialog(
                 self.get_presentation_agent().get_toplevel(),
-                gtk.DIALOG_MODAL|gtk.DIALOG_DESTROY_WITH_PARENT,
+                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                 gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO,
                 "Are you sure you want to delete configuraiton '%s' ?" % conf_name)
 
@@ -170,8 +166,11 @@ class ListMainControlAgent(object):
 
             if response == gtk.RESPONSE_YES:
                 command = DeleteSite(name, domain)
-                command.register_command_callback(self.cb_reload_sites)
-                command.register_command_observer(self._logs_control_agent)
+                command.get_event_bus().subscribe(CommandExecEvent,
+                                                  self.cb_reload_sites)
+                command.get_event_bus().subscribe(
+                    CommandExecEvent,
+                    self._logs_control_agent.command_evt_callback)
                 enqueue_command(command)
                 print "deleted site id %s" % conf_name
 
@@ -185,8 +184,13 @@ class ListMainControlAgent(object):
             else:
                 command = UpdateSite(site)
 
-            command.register_command_callback(self.cb_reload_sites)
-            command.register_command_observer(self._logs_control_agent)
+            command.get_event_bus().subscribe(
+                CommandExecEvent, self.cb_reload_sites)
+
+            command.get_event_bus().subscribe(
+                CommandExecEvent,
+                self._logs_control_agent.command_evt_callback)
+
             enqueue_command(command)
 
     def reload_sites(self):
@@ -198,50 +202,60 @@ class ListMainControlAgent(object):
         filter_domain = sca.get_value('filter_domain')
 
         command = LookupHostByName(filter_name, filter_domain)
-        command.register_command_callback(self.cb_set_sites)
+        command.get_event_bus().subscribe(CommandExecEvent,
+                                          self.cb_set_sites)
         enqueue_command(command)
 
-    def cb_set_sites(self, command):
+    def cb_set_sites(self, event):
         """
         Site list has been reloaded and result has to be taken in account
         """
+        command = event.source
         sca = self._sites_control_agent
 
         if command.status == COMMAND_SUCCESS:
             sca.set_value('hosts', command.result)
         # TODO: manage error reporting for non logged commands
 
-    def cb_reload_sites(self, command):
+    def cb_reload_sites(self, event):
         """
         A command has been executted that needs sites list to be refreshed
         """
+        command = event.source
+
         if command.status == COMMAND_SUCCESS:
             self.reload_sites()
         # TODO: manage error reporting for non logged commands
 
-    def cb_show_detail_dialog_rw(self, command):
+    def cb_show_detail_dialog_rw(self, event):
         """
         Command callback method to show detail dialog in read/write mode
         """
+        command = event.source
+
         if command.status == COMMAND_SUCCESS:
             site = command.result
             self.show_detail_dialog(site, False)
         # TODO: manage error reporting for non logged commands
 
-    def cb_show_detail_dialog_ro(self, command):
+    def cb_show_detail_dialog_ro(self, event):
         """
         Command callback method to show detail dialog in read only mode
         """
+        command = event.source
+
         if command.status == COMMAND_SUCCESS:
             site = command.result
             self.show_detail_dialog(site, True)
         # TODO: manage error reporting for non logged commands
 
-    def cb_show_delete_dialog(self, command):
+    def cb_show_delete_dialog(self, event):
         """
         Shows detail dialog for the specified site
         """
-        if not  command.status == COMMAND_SUCCESS:
+        command = event.source
+
+        if not command.status == COMMAND_SUCCESS:
             raise command.exception
 
         conf_name = "%s.%s" % (command.name, command.domain)
@@ -285,13 +299,13 @@ class ListSitesControlAgent(BaseControlAgent):
         self._filter_name_re = re.compile(r"^[\w\d\*_-]*$")
         self._filter_domain = '*'
         self._filter_domain_re = re.compile(r"^[\w\d\*\._-]*$")
-        pa  = ListSitesPresentationAgent(self)
+        pa = ListSitesPresentationAgent(self)
 
         domains = SiteDefaultsManager.get_domains()
-        domains['*'] =  '*'
+        domains['*'] = '*'
         pa.set_items('filter_domain', domains)
-        pa.register_action_observer(self)
-        pa.register_widget_observer(self)
+        pa.get_event_bus().subscribe(UIActionEvent, self.action_evt_callback)
+        pa.get_event_bus().subscribe(UIWidgetEvent, self.widget_evt_callback)
         self.set_presentation_agent(pa)
 
     def get_value(self, name):
@@ -305,7 +319,7 @@ class ListSitesControlAgent(BaseControlAgent):
         elif name == "filter_domain":
             return self._filter_domain
         else:
-            raise AttributeError("%s object has no attribute '%s'" % \
+            raise AttributeError("%s object has no attribute '%s'" %
                                  (self.__class__.__name__, name))
 
     def set_value(self, name, value):
@@ -331,7 +345,7 @@ class ListSitesControlAgent(BaseControlAgent):
             self._hosts = value
             self.load_widgets_data()
         else:
-            raise AttributeError("%s object has no attribute '%s'" % \
+            raise AttributeError("%s object has no attribute '%s'" %
                                  (self.__class__.__name__, name))
 
     def load_widgets_data(self):
@@ -349,40 +363,46 @@ class ListSitesControlAgent(BaseControlAgent):
 
         self.get_presentation_agent().set_items('site_list', sites)
 
-    def reload_sites(self):
-        """
-        Asks parent control agent to reload sites
-        """
-        action = Action(ACTION_RELOAD)
-        self.notify_action_activated(action)
-
     def get_presentation_agent(self):
         """
         Returns ListPresentationAgent presentation instance
         """
         return self._presentation_agent
 
-    def action_activated(self, action):
+    def action_evt_callback(self, event):
         """
         Forwards actions to parent control agent
         """
-        self.notify_action_activated(action)
+        pa = self.get_presentation_agent()
 
-    def widget_changed(self, name, value):
+        if event.action in (ACTION_VIEW, ACTION_EDIT, ACTION_DELETE):
+            self.get_event_bus().publish(
+                AppActionEvent(self, action=event.action,
+                    parameters={'sites': pa.get_value('site_list')}))
+
+        elif event.action in (ACTION_ADD, ACTION_RELOAD):
+            self.get_event_bus().publish(AppActionEvent(self, action=event.action))
+        else:
+            raise NotImplementedError("Unhandled action %d triggered" %
+                                      event.action)
+
+    def widget_evt_callback(self, event):
         """
-        Observer method run on widget changed event
-
-        Name is the name of the widget that triggerd the event, value is the
-        value it was set to.
         """
         pa = self.get_presentation_agent()
 
         try:
-            self.set_value(name, value)
+            self.set_value(event.name, event.value)
         except (FieldFormatError), e:
-            pa.set_error(name, True, str(e))
+            pa.set_error(event.name, True, str(e))
         else:
-            pa.set_error(name, False)
+            pa.set_error(event.name, False)
+
+    def reload_sites(self):
+        """
+        Sends an ACTION_RELOAD action to reload sites.
+        """
+        self.get_event_bus().publish(AppActionEvent(self, action=ACTION_RELOAD))
 
     def destroy(self):
         """
@@ -398,15 +418,15 @@ class ListLogsControlAgent(object):
     """
     List main component control agent
     """
-    implements(IActionObserver, ICommandObserver)
 
     def __init__(self):
         """
         Initializes control agent.
         """
         self._commands = []
-        self._presentation_agent = ListLogsPresentationAgent(self)
-        self._presentation_agent.register_action_observer(self)
+        pa = ListLogsPresentationAgent(self)
+        pa.get_event_bus().subscribe(UIActionEvent, self.action_evt_callback)
+        self._presentation_agent = pa
         self.load_widgets_data()
 
     def load_widgets_data(self):
@@ -427,25 +447,25 @@ class ListLogsControlAgent(object):
         """
         pass
 
-    def action_activated(self, action=None):
+    def action_evt_callback(self, event):
         """
         ActionActivatedObserver trigger mmethod local implementation
         """
         # Handles add action that do nat need any parameter
-        if action.name == ACTION_CLEARLOGS:
+        if event.action == ACTION_CLEARLOGS:
             del (self._commands[:])
-            self._presentation_agent.load_widgets_data()
-        elif action.name == ACTION_SHOWLOGS:
+            self.load_widgets_data()
+        elif event.action == ACTION_SHOWLOGS:
             # Checks that ids parameter is correctly set in event parameters
-            parms = action.parameters
+            parms = event.parameters
 
-            if not parms.has_key('logs'):
+            if not 'logs' in parms:
                 raise AttributeError('logs parameter is not set in action parameters')
 
             for command in parms['logs']:
                 self.show_command_result(command)
         else:
-            raise NotImplementedError("Unhandled action %s triggered" % action)
+            raise NotImplementedError("Unhandled action %s triggered" % event.action)
 
     def show_command_result(self, command):
         """
@@ -453,15 +473,15 @@ class ListLogsControlAgent(object):
         """
         if command.status == COMMAND_SUCCESS:
             text = "%s\n\nCommand status:\n\nCommand was successfully executed" % \
-                    command.mesg
+                command.mesg
         else:
             text = ("%s\n\nCommand status:\n\nAn error occured: %s\n\n" + \
-                   "Stack trace:\n\n%s") % \
-                   (command.mesg, str(command.exception), command.traceback)
+                "Stack trace:\n\n%s") % (command.mesg, str(command.exception),
+                command.traceback)
 
         dialog = gtk.MessageDialog(
             self.get_presentation_agent().get_toplevel(),
-            gtk.DIALOG_MODAL|gtk.DIALOG_DESTROY_WITH_PARENT,
+            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
             gtk.MESSAGE_INFO, gtk.BUTTONS_OK,
             text)
 
@@ -474,11 +494,11 @@ class ListLogsControlAgent(object):
         """
         return self._presentation_agent
 
-    def command_executed(self, command):
+    def command_evt_callback(self, event):
         """
         CommandObserver trigger mmethod local implementation
         """
-        self._commands.append(command)
+        self._commands.append(event.source)
         self.load_widgets_data()
 
     def destroy(self):
@@ -492,9 +512,7 @@ class ListLogsControlAgent(object):
 
 
 if __name__ == '__main__':
-
     from sitebuilder.application import init, uninit
-
     init()
     control = ListMainControlAgent()
     presentation = control.get_presentation_agent()
